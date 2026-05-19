@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  habits    Habit[]
+}
+
+model Habit {
+  id        String     @id @default(cuid())
+  name      String
+  type      HabitType
+  unit      String?
+  frequency Int[]       // [0,1,2,3,4] → Días de la semana (0=Dom, 6=Sáb)
+  userId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      HabitLog[]
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  habitId   String
+  date      DateTime @db.Date
+  completed Boolean  @default(false)
+  value     Float?   // Solo para hábitos numéricos
+  createdAt DateTime @default(now())
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date]) // Un registro por hábito por día
+}
+
+enum HabitType {
+  BINARY
+  NUMERIC
+}
