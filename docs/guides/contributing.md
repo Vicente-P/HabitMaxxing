@@ -117,11 +117,43 @@ feature/SCRUM-3-register-page
 
 ---
 
+## Validaciones automáticas — Husky
+
+El proyecto usa **Husky** para ejecutar validaciones locales antes de que git permita el commit o el push.
+
+### `pre-commit`
+
+Corre automáticamente al hacer `git commit`. Ejecuta **lint-staged**: ESLint solo sobre los archivos `.ts` y `.tsx` que están staged.
+
+```
+git commit -m "feat: ..."
+→ lint-staged corre ESLint en archivos staged
+→ si hay errores: commit cancelado
+→ si pasa: commit realizado
+```
+
+### `pre-push`
+
+Corre automáticamente al hacer `git push`. Ejecuta el typecheck completo del proyecto.
+
+```
+git push
+→ tsc --noEmit corre sobre todo el proyecto
+→ si hay errores de tipos: push cancelado
+→ si pasa: push realizado
+```
+
+> Los hooks se activan solos al correr `pnpm install`. Si por alguna razón no funcionan, corré `pnpm exec husky`.
+
+---
+
 ## Checklist antes de abrir un PR
 
 - [ ] La rama parte de `develop` actualizado
 - [ ] El nombre de la rama sigue la convención `feature/SCRUM-N-descripcion`
 - [ ] Todos los commits siguen Conventional Commits
 - [ ] El código corre sin errores (`pnpm dev`)
-- [ ] El linter no reporta errores (`pnpm lint`)
+- [ ] El pre-commit hook pasa (lint sin errores)
+- [ ] El pre-push hook pasa (typecheck sin errores)
+- [ ] El CI en GitHub Actions está en verde
 - [ ] El ticket de Jira está vinculado en la descripción del PR
