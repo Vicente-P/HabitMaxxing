@@ -18,9 +18,11 @@ Verificá que tenés instalado lo siguiente antes de comenzar:
 
 | Herramienta | Versión mínima | Verificar |
 |-------------|---------------|-----------|
-| Node.js | 20.x | `node -v` |
-| pnpm | 9.x | `pnpm -v` |
+| Node.js | 22.x | `node -v` |
+| pnpm | 11.x | `pnpm -v` |
 | Git | — | `git -v` |
+
+> pnpm 11 requiere Node.js 22 como mínimo.
 
 Si no tenés pnpm instalado:
 
@@ -45,6 +47,8 @@ cd habitmaxxing
 pnpm install
 ```
 
+> `pnpm install` genera el cliente de Prisma automáticamente (vía `postinstall`) y activa los hooks de Husky (vía `prepare`).
+
 ---
 
 ## Variables de entorno
@@ -61,8 +65,9 @@ cp .env.example .env
 # Supabase Session Pooler — para queries de la app y migraciones
 DATABASE_URL="postgresql://postgres.[project-ref]:[PASSWORD]@aws-1-us-east-1.pooler.supabase.com:5432/postgres"
 
-# Auth.js — genera un string aleatorio seguro
+# Auth.js v5 — genera un string aleatorio seguro
 AUTH_SECRET="tu-secret-aqui"
+AUTH_URL="http://localhost:3000"
 ```
 
 ### Obtener la URL de Supabase
@@ -96,13 +101,7 @@ Deberías ver:
 Your database is now in sync with your schema.
 ```
 
-**6. Genera el cliente de Prisma**
-
-```bash
-pnpm dlx prisma generate
-```
-
-> En Prisma 7, `migrate dev` no genera el cliente automáticamente — hay que correr este comando por separado.
+> En Prisma 7, `migrate dev` no genera el cliente automáticamente. El cliente se regenera solo al correr `pnpm install` (vía `postinstall`) o `pnpm build`.
 
 ---
 
@@ -120,13 +119,12 @@ Abrí [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ## Checklist
 
-- [ ] Node.js 20+ instalado
-- [ ] pnpm instalado
+- [ ] Node.js 22+ instalado
+- [ ] pnpm 11+ instalado
 - [ ] Repositorio clonado
-- [ ] `pnpm install` ejecutado sin errores
-- [ ] `.env` creado con `DATABASE_URL` y `AUTH_SECRET`
+- [ ] `pnpm install` ejecutado sin errores (genera el cliente de Prisma y activa Husky)
+- [ ] `.env` creado con `DATABASE_URL`, `AUTH_SECRET` y `AUTH_URL`
 - [ ] `prisma migrate dev` ejecutado sin errores
-- [ ] `prisma generate` ejecutado
 - [ ] `pnpm dev` levanta en `localhost:3000`
 
 ---
