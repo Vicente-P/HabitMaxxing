@@ -1,0 +1,33 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4 — define design tokens and theme values."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4 — define a custom variant (e.g. dark mode)."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4 — override a built-in variant."
+    },
+    {
+      "name": "@apply",
+      "description": "Tailwind CSS — inline utility classes."
+    },
+    {
+      "name": "@layer",
+      "description": "Tailwind CSS — declare base, components, or utilities layer."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4 — specify content sources."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4 — define a custom utility."
+    }
+  ]
+}
