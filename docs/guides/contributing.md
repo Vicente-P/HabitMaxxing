@@ -153,6 +153,7 @@ git push
 - [ ] El nombre de la rama sigue la convención `feature/SCRUM-N-descripcion`
 - [ ] Todos los commits siguen Conventional Commits
 - [ ] El código corre sin errores (`pnpm dev`)
+- [ ] Los tests pasan (`pnpm test`)
 - [ ] El pre-commit hook pasa (lint sin errores)
 - [ ] El pre-push hook pasa (typecheck sin errores)
 - [ ] El CI en GitHub Actions está en verde
