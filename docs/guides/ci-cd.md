@@ -17,7 +17,7 @@
 feature/SCRUM-N → push/PR a develop
                         ↓
                    CI (GitHub Actions)
-                   lint → typecheck → build
+                   lint → typecheck → test → build
                         ↓ (si pasa)
 develop → merge a main
                         ↓
@@ -46,10 +46,12 @@ develop → merge a main
 | 3 | Generar cliente de Prisma | `pnpm prisma generate` |
 | 4 | Typecheck | `pnpm typecheck` |
 | 5 | Lint | `pnpm lint` |
-| 6 | Tests | `pnpm run --if-present test` |
+| 6 | Tests | `pnpm test` |
 | 7 | Build | `pnpm build` |
 
 > El paso 3 (`prisma generate`) debe ejecutarse **antes** del typecheck — el cliente generado vive en `src/generated/prisma/` y TypeScript lo necesita para resolver los tipos.
+
+> El paso 6 (`pnpm test`) corre Vitest en modo `run` (una sola pasada, sin watch). Si no hay archivos de test, pasa igualmente (`passWithNoTests: true`).
 
 ### Entorno
 
