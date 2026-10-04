@@ -40,6 +40,8 @@ Implementation should start from one coherent contract instead of forcing develo
   - Route: inline; mechanical initiative metadata and personal config update.
   - Acceptance: `core.active_initiative` resolves to `initiative-habitmaxxing-mvp` and the initiative file exists.
   - Evidence: `_bmad/scripts/resolve_config.py` returned `initiative-habitmaxxing-mvp`; initiative metadata read back successfully.
+  - Work unit: `7cec2ba` (`docs: start HU-01 readiness initiative`).
+  - Review: RDD reported `off`; delivery remains unmanaged. Repository identity resolution also returned `Acceso denegado`.
 - [ ] **HUR-002 — Produce the HU-01 BMad specification**
   - Route: delegated; requires multi-source requirements, UX, and architecture synthesis.
   - Acceptance: the spec kernel and companions preserve all load-bearing decisions and expose unresolved questions explicitly.
