@@ -13,7 +13,10 @@ Representa un usuario registrado en Habit Maxxing. Es la entidad raíz de owners
 | `id` | `String` | Sí (auto) | Identificador único | `cuid()`, generado por Prisma |
 | `email` | `String` | Sí | Email del usuario, usado para login | Formato email válido, único en DB |
 | `password` | `String` | Sí | Hash bcrypt de la contraseña | Mínimo 8 caracteres en registro; nunca en respuestas API |
-| `name` | `String` | No | Nombre para mostrar | Máx. 100 caracteres |
+| `name` | `String?` | No | Nombre para mostrar | Máx. 100 caracteres |
+| `emailVerified` | `DateTime?` | No | Timestamp de verificación de email | `null` hasta que el usuario confirme su correo (Fase 2) |
+| `failedLoginAttempts` | `Int` | Sí (auto) | Contador de intentos fallidos consecutivos | Default `0`; se resetea tras login exitoso |
+| `lockedUntil` | `DateTime?` | No | Timestamp de expiración del bloqueo | `null` si la cuenta no está bloqueada |
 | `createdAt` | `DateTime` | Sí (auto) | Fecha de creación | ISO 8601 en API |
 | `updatedAt` | `DateTime` | Sí (auto) | Última actualización | ISO 8601 en API |
 
@@ -32,7 +35,8 @@ Representa un usuario registrado en Habit Maxxing. Es la entidad raíz de owners
 - `email` tiene constraint `@unique` — no pueden existir dos usuarios con el mismo email.
 - Al eliminar un `User`, se eliminan en cascada todos sus `Habit` y `HabitLog` asociados.
 - La contraseña se hashea con bcryptjs (`saltRounds: 12`) antes de persistir.
-- Tras 5 intentos fallidos consecutivos de login, la cuenta se bloquea temporalmente por 15 minutos.
+- Tras 5 intentos fallidos consecutivos de login, `lockedUntil` se establece en `now() + 15 min` y `failedLoginAttempts` alcanza 5. Ambos campos se resetean a sus valores por defecto tras login exitoso.
+- `emailVerified` es `null` en el MVP (verificación de email es Fase 2, HU-17 / SCRUM-22). Cuando se implemente, se establece al timestamp en que el usuario confirmó su correo.
 - El email de bienvenida se envía tras registro exitoso (HU-01 / SCRUM-6).
 
 ---
@@ -41,13 +45,16 @@ Representa un usuario registrado en Habit Maxxing. Es la entidad raíz de owners
 
 ```prisma
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  habits    Habit[]
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  emailVerified        DateTime?
+  failedLoginAttempts  Int       @default(0)
+  lockedUntil          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  habits               Habit[]
 }
 ```
 

@@ -91,6 +91,19 @@ Usuario creado exitosamente.
 }
 ```
 
+### 429 Too Many Requests — Rate limit excedido
+
+```json
+{
+  "error": {
+    "code": "ACCOUNT_LOCKED",
+    "message": "Demasiados intentos, intentá de nuevo en 1 hora"
+  }
+}
+```
+
+> Límite: máx. 3 intentos de registro por IP por hora. Ver [SPEC_CONVENTIONS — Rate limiting](../SPEC_CONVENTIONS.md).
+
 ### 500 Internal Server Error
 
 ```json
@@ -130,13 +143,15 @@ Usuario creado exitosamente.
 - Hashear password con `bcryptjs` (`saltRounds: 12`) antes de `prisma.user.create()`.
 - Schema Zod: `registerSchema` en `src/lib/validations.ts`.
 - El email de bienvenida (CA-04) es responsabilidad del servicio de email; puede implementarse de forma asíncrona.
-- Tras 201, el frontend puede llamar a `signIn()` de Auth.js para iniciar sesión automáticamente o redirigir al login.
+- Tras 201, el frontend DEBE llamar a `signIn("credentials", { email, password })` de Auth.js para iniciar sesión automáticamente y redirigir al dashboard.
+
+> **Fase 2:** la verificación de email se implementará en una fase posterior. En el MVP, las cuentas quedan activas inmediatamente tras el registro.
 
 ## Notas de seguridad
 
 - Nunca incluir `password` en la respuesta.
-- Normalizar email a minúsculas antes de persistir y comparar.
-- Rate limiting recomendado en producción para prevenir registro masivo.
+- Normalizar email a minúsculas antes de persistir y comparar (ver [SPEC_CONVENTIONS — Normalización de email](../SPEC_CONVENTIONS.md)).
+- Rate limiting: máx. 3 intentos de registro por IP por hora (implementado en MVP).
 
 ---
 

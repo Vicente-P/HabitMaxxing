@@ -232,6 +232,44 @@ Ver specs detalladas en [`models/`](./models/).
 - Tokens de recuperación de contraseña expiran en 30 minutos.
 - Verificar ownership: un usuario solo accede a sus propios `Habit` y `HabitLog`.
 
+### Normalización de email
+
+**Regla global:** todos los endpoints que reciben un campo `email` DEBEN normalizarlo a minúsculas antes de cualquier operación (validación, búsqueda en DB, persistencia).
+
+```typescript
+const normalizedEmail = email.toLowerCase()
+```
+
+Aplica a: `POST /api/auth/register`, login vía Auth.js, `POST /api/auth/forgot-password`.
+
+### Sesiones
+
+- **Duración:** 30 días (default de Auth.js v5).
+- Estrategia: cookies `httpOnly`, `secure` en producción, `sameSite: lax`.
+- El campo `expires` en el response de sesión refleja la fecha de expiración ISO 8601.
+
+### Rate limiting
+
+| Endpoint | Identificador | Límite | Ventana | Respuesta |
+|----------|--------------|--------|---------|-----------|
+| `POST /api/auth/register` | IP | 3 intentos | 1 hora | 429 `ACCOUNT_LOCKED` |
+| Login (intentos fallidos) | Email | 5 intentos | — | Bloqueo 15 min |
+
+> Rate limiting de registro aplica para MVP. Rate limiting adicional por IP en login es recomendado para producción (fase 2).
+
+### Bloqueo de cuenta por intentos fallidos (login)
+
+Almacenado en el modelo `User` con dos campos:
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `failedLoginAttempts` | `Int` | Contador de intentos fallidos consecutivos |
+| `lockedUntil` | `DateTime?` | Timestamp de expiración del bloqueo (`null` si no está bloqueada) |
+
+- **Clave de bloqueo:** email (no IP).
+- **Reset:** el contador se resetea a 0 tras un login exitoso.
+- **Threshold:** 5 intentos → `lockedUntil = now + 15 min`.
+
 ---
 
 ## Convenciones de nombrado

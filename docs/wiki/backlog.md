@@ -62,7 +62,7 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 
 | Clave | Épica | Story Points | Descripción |
 |---|---|---|---|
-| SCRUM-1 | 🔐 EP-01 — Autenticación y Gestión de Cuenta | 14 SP | Registro, login, recuperación y eliminación de cuenta |
+| SCRUM-1 | 🔐 EP-01 — Autenticación y Gestión de Cuenta | 17 SP | Registro, login, recuperación, verificación de email y eliminación de cuenta |
 | SCRUM-2 | 📝 EP-02 — Gestión de Hábitos | 8 SP | CRUD de hábitos con tipo y frecuencia configurable |
 | SCRUM-3 | ✅ EP-03 — Registro Diario | 5 SP | Registro binario y numérico de hábitos |
 | SCRUM-4 | 📊 EP-04 — Progreso y Estadísticas | 10 SP | Rachas, heatmap y porcentaje de cumplimiento |
@@ -164,6 +164,29 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 - T-25: Redirigir a pantalla de confirmación tras eliminar
 
 `Story Points: 2` `Prioridad: Baja` `Sprint: 5`
+
+---
+
+### 📖 HU-17 — Verificación de correo electrónico `SCRUM-22`
+> *"Como usuario recién registrado, quiero confirmar mi correo electrónico, para verificar que la cuenta me pertenece antes de acceder al dashboard."*
+
+> ⚠️ **Fase 2 — No incluida en el MVP.** En MVP las cuentas quedan activas inmediatamente tras el registro.
+
+**Criterios de Aceptación:**
+- CA-01: Dado que completo el registro, cuando reviso mi bandeja de entrada, entonces recibo un email con un enlace de confirmación válido por 24 horas.
+- CA-02: Dado que recibo el enlace de confirmación, cuando lo presiono dentro del plazo, entonces mi cuenta queda verificada y soy redirigido al dashboard.
+- CA-03: Dado que el enlace de confirmación expiró, cuando intento usarlo, entonces veo "El enlace ha expirado, solicitá uno nuevo".
+- CA-04: Dado que solicito reenvío del enlace, cuando ya tengo uno activo, entonces el enlace anterior se invalida y se envía uno nuevo.
+
+**Tareas Técnicas:**
+- T-67: Agregar modelo `VerificationToken` en Prisma (token, userId, expiresAt) y migrar
+- T-68: Crear endpoint POST /api/auth/verify-email (consumir token)
+- T-69: Crear endpoint POST /api/auth/resend-verification (reenvío)
+- T-70: Configurar envío de email con enlace de verificación
+- T-71: Bloquear acceso al dashboard si `emailVerified` es null
+- T-72: Crear página "Verificá tu correo" en frontend con opción de reenvío
+
+`Story Points: 3` `Prioridad: Media` `Sprint: 2`
 
 ---
 
@@ -369,12 +392,12 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 
 | Épica | Historias | Story Points | Sprint |
 |---|---|---|---|
-| 🔐 EP-01 Autenticación | HU-01 a HU-05 | 14 SP | 1, 2, 5 |
+| 🔐 EP-01 Autenticación | HU-01 a HU-05, HU-17 | 17 SP | 1, 2, 5 |
 | 📝 EP-02 Gestión Hábitos | HU-06 a HU-09 | 8 SP | 2, 3 |
 | ✅ EP-03 Registro Diario | HU-10 a HU-11 | 5 SP | 3 |
 | 📊 EP-04 Progreso | HU-12 a HU-14 | 10 SP | 4, 5 |
 | 🎨 EP-05 UI/UX | HU-15 a HU-16 | 5 SP | 5 |
-| **Total** | **16 historias** | **42 SP** | **5 sprints** |
+| **Total** | **17 historias** | **45 SP** | **5 sprints** |
 
 ---
 
@@ -383,7 +406,7 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 | Sprint | Historias | Story Points | Objetivo |
 |---|---|---|---|
 | Sprint 1 | HU-01, HU-02, HU-03 | 9 SP | Auth básica funcionando |
-| Sprint 2 | HU-04, HU-06, HU-09 | 8 SP | Recuperar contraseña + CRUD hábitos |
+| Sprint 2 | HU-04, HU-06, HU-09, HU-17 | 11 SP ⚠️ | Recuperar contraseña + verificación email + CRUD hábitos |
 | Sprint 3 | HU-07, HU-08, HU-10, HU-11 | 8 SP | Editar/eliminar + registro diario |
 | Sprint 4 | HU-12, HU-13 | 8 SP | Rachas + Heatmap |
 | Sprint 5 | HU-14, HU-15, HU-16, HU-05 | 9 SP | Estadísticas + Responsive + Polish |
