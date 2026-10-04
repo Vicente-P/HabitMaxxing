@@ -65,10 +65,11 @@ Establish a structured, reproducible AI-assisted development workflow that can l
   - Trigger: tests, build, lint, and typecheck are execution tasks.
   - Acceptance: BMad installation is verified; lint, tests, typecheck, and build outcomes are recorded without unrelated fixes.
   - Evidence: BMad status exited 0 with local version `6.13.0-next`, `current: true`, and no integrity problems; online freshness probes were blocked by sandbox WinError 10013. `pnpm lint` and `pnpm typecheck` exited 0. `pnpm exec vitest run` exited 1 because the Vitest executable was unavailable, so no tests ran. `pnpm build` exited 1 after Prisma generation because Next.js could not fetch Inter from Google Fonts. Existing `.atl` files retained identical hashes. The verification run exposed `.agents/` by removing its pre-existing ignore entry; `.gitignore` was restored and the parent will force-add only the selected BMad skill directories.
-- [ ] **BMB-005 — Record recommended workflow and pilot story**
+- [x] **BMB-005 — Record recommended workflow and pilot story**
   - Route: inline.
   - Trigger: synthesis from verified evidence.
   - Acceptance: final report names preserved sources of truth, gaps, concrete BMad pipeline, pilot candidates, recommendation, and exact next prompt.
+  - Evidence: The workflow below maps current BMad skills to the requested delivery path, preserves existing repository artifacts, and recommends HU-01 as the first controlled pilot.
 
 ## Current Artifact Classification
 
@@ -87,8 +88,42 @@ Establish a structured, reproducible AI-assisted development workflow that can l
 - BMB-002: completed; the 10 selected skills, `_bmad/` runtime, and installed status were verified. Status reports `current: true`; upstream freshness probes were unavailable in its sandboxed status run (WinError 10013).
 - BMB-003: completed; the approved managed context block and all referenced paths were structurally verified.
 - BMB-004: completed with partial verification; lint and typecheck passed, tests were unavailable, and build was blocked by an external font fetch.
-- BMB-005: pending.
+- BMB-005: completed; the recommended workflow, pilot candidates, and exact next prompt are recorded below.
+
+## Work-Unit Commits
+
+- BMB-001/BMB-002 tracking and lockfile: `a54bdc4`.
+- BMB-002 runtime: `8b38ca8`.
+- BMB-003 project context: `77b9c99`.
+- BMB-004 tracked skills and validation evidence: `10a0980`.
+- BMB-005 workflow and pilot: `e7837cb`.
+
+## Recommended BMad Workflow
+
+1. Start from an existing backlog story and its repository spec.
+2. For one bounded story, invoke `bmad-build` directly; it performs repository discovery, intent resolution, impact analysis, planning, implementation, tests, and independent review.
+3. When a change is too large or its intent remains unclear, run `bmad-spec`, then use `bmad-ticket` to split it before invoking `bmad-build` for each ready entry.
+4. Use `bmad-code-review` only for an additional standalone review, and `bmad-walkthrough` for the final human review.
+5. Close with the applicable package and CI quality gates. Do not mark work complete when a required check is unavailable or failing.
+
+## Pilot Story
+
+Candidates:
+
+1. **HU-01 — Registro de cuenta (`SCRUM-6`)**: recommended because it is foundational, has explicit acceptance criteria and a detailed repository spec, and the current implementation is still a placeholder.
+2. **HU-06 — Crear hábito (`SCRUM-11`)**: well specified and testable, but depends on an authenticated user flow.
+3. **HU-12 — Ver racha actual (`SCRUM-17`)**: algorithmically bounded and testable, but depends on habit logs and earlier MVP capabilities.
+
+Recommended first pilot: **HU-01 — Registro de cuenta**. Keep the run bounded to `docs/wiki/backlog.md` and `docs/specs/auth/register.md`; any missing product decision should stop for user input rather than expand scope.
+
+## Exact Next Prompt
+
+Open a fresh Codex chat in this repository and send:
+
+```text
+$bmad-build Implementa HU-01 — Registro de cuenta (SCRUM-6) como primera historia piloto. Usa docs/wiki/backlog.md y docs/specs/auth/register.md como fuentes de verdad, junto con docs/architecture/auth-flow.md, docs/specs/models/user.md y docs/specs/DESIGN_SYSTEM.md. Trata el repositorio como brownfield, verifica el código actual antes de planificar, no amplíes el alcance y detente si una decisión de producto no puede resolverse con evidencia. Ejecuta los tests aplicables, lint, typecheck y build; no hagas push ni abras un PR.
+```
 
 ## Next Step
 
-Proceed with BMB-005: record the recommended workflow, pilot story, final gaps, and exact next prompt.
+Bootstrap complete. Start a fresh chat with the exact pilot prompt above when ready; do not implement the story in this bootstrap session.
