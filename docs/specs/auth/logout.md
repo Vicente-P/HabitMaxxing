@@ -35,32 +35,9 @@ No requiere body.
 
 ---
 
-## Responses
+## Comportamiento esperado
 
-### 200 OK — Sesión invalidada
-
-```json
-{
-  "data": {
-    "message": "Sesión cerrada exitosamente"
-  }
-}
-```
-
-> Auth.js puede retornar redirect en lugar de JSON según configuración CSRF.
-
-### 401 Unauthorized — Sin sesión activa
-
-```json
-{
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "No hay sesión activa"
-  }
-}
-```
-
----
+> `signOut({ redirect: true })` es gestionado completamente por Auth.js en el cliente — no retorna un response JSON. El endpoint `POST /api/auth/signout` es llamado internamente y siempre resulta en un redirect del browser. No hay response HTTP interceptable desde el frontend.
 
 ## Comportamiento en frontend
 

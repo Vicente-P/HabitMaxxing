@@ -59,7 +59,7 @@ POST /api/auth/login
 
 ### 200 OK — Login exitoso
 
-Sesión creada. Cookie de sesión establecida por Auth.js.
+Sesión creada. Cookie de sesión establecida por Auth.js. La sesión dura **30 días**.
 
 ```json
 {
@@ -183,14 +183,16 @@ null
 
 - Configurar provider `Credentials` en `src/lib/auth.ts`.
 - Comparar password con `bcrypt.compare()` contra el hash en DB.
-- Contador de intentos fallidos: puede almacenarse en memoria (dev) o en DB/Redis (prod).
+- Normalizar email a minúsculas antes de buscar en DB (ver [SPEC_CONVENTIONS — Normalización de email](../SPEC_CONVENTIONS.md)).
+- Contador de intentos fallidos: almacenado en campos `failedLoginAttempts` y `lockedUntil` del modelo `User`. Clave de bloqueo = email.
 - Auth.js gestiona la cookie de sesión; no emitir JWT manualmente.
 - Proteger rutas del dashboard con middleware o `auth()` en Server Components.
+- Duración de sesión: 30 días (configurar `session.maxAge` en `src/lib/auth.ts` si el default difiere).
 
 ## Notas de seguridad
 
 - Mensaje genérico en fallo de login para no revelar existencia de emails.
-- Resetear contador de intentos fallidos tras login exitoso.
+- Resetear `failedLoginAttempts` a `0` y `lockedUntil` a `null` tras login exitoso.
 - Cookie `httpOnly`, `secure` en producción, `sameSite: lax`.
 
 ---
