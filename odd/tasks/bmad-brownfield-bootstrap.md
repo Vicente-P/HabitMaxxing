@@ -60,10 +60,11 @@ Establish a structured, reproducible AI-assisted development workflow that can l
   - Acceptance: BMad context references existing docs, preserves existing instructions, and validates every referenced path.
   - Checks: structural readback and BMad project-context validation.
   - Evidence: The user approved the complete proposed block and empty setup ledger. `AGENTS.md` was created with one balanced BMad marker pair. Every referenced repository path exists, `git diff --check -- AGENTS.md` passed, and the file preserves existing documentation as source-of-truth pointers. Runtime inspection found Node `v24.13.0` and pnpm `11.25.0`; the project declaration remains `pnpm@11.1.3` and the documented project baseline remains Node 22.
-- [ ] **BMB-004 — Validate bootstrap and existing project checks**
+- [x] **BMB-004 — Validate bootstrap and existing project checks**
   - Route: delegated direct.
   - Trigger: tests, build, lint, and typecheck are execution tasks.
   - Acceptance: BMad installation is verified; lint, tests, typecheck, and build outcomes are recorded without unrelated fixes.
+  - Evidence: BMad status exited 0 with local version `6.13.0-next`, `current: true`, and no integrity problems; online freshness probes were blocked by sandbox WinError 10013. `pnpm lint` and `pnpm typecheck` exited 0. `pnpm exec vitest run` exited 1 because the Vitest executable was unavailable, so no tests ran. `pnpm build` exited 1 after Prisma generation because Next.js could not fetch Inter from Google Fonts. Existing `.atl` files retained identical hashes. The verification run exposed `.agents/` by removing its pre-existing ignore entry; `.gitignore` was restored and the parent will force-add only the selected BMad skill directories.
 - [ ] **BMB-005 — Record recommended workflow and pilot story**
   - Route: inline.
   - Trigger: synthesis from verified evidence.
@@ -85,9 +86,9 @@ Establish a structured, reproducible AI-assisted development workflow that can l
 - BMB-001: completed from repository inspection and current official BMad documentation.
 - BMB-002: completed; the 10 selected skills, `_bmad/` runtime, and installed status were verified. Status reports `current: true`; upstream freshness probes were unavailable in its sandboxed status run (WinError 10013).
 - BMB-003: completed; the approved managed context block and all referenced paths were structurally verified.
-- BMB-004: pending.
+- BMB-004: completed with partial verification; lint and typecheck passed, tests were unavailable, and build was blocked by an external font fetch.
 - BMB-005: pending.
 
 ## Next Step
 
-Proceed with BMB-004: run BMad validation and existing project checks without fixing unrelated failures.
+Proceed with BMB-005: record the recommended workflow, pilot story, final gaps, and exact next prompt.
