@@ -42,7 +42,7 @@ Implementation should start from one coherent contract instead of forcing develo
   - Evidence: `_bmad/scripts/resolve_config.py` returned `initiative-habitmaxxing-mvp`; initiative metadata read back successfully.
   - Work unit: `7cec2ba` (`docs: start HU-01 readiness initiative`).
   - Review: RDD reported `off`; delivery remains unmanaged. Repository identity resolution also returned `Acceso denegado`.
-- [ ] **HUR-002 — Produce the HU-01 BMad specification**
+- [x] **HUR-002 — Produce the HU-01 BMad specification**
   - Route: delegated; requires multi-source requirements, UX, and architecture synthesis.
   - Acceptance: the spec kernel and companions preserve all load-bearing decisions and expose unresolved questions explicitly.
 - [ ] **HUR-003 — Align requirements and UX source documents**
@@ -71,6 +71,6 @@ Implementation should start from one coherent contract instead of forcing develo
 
 ## Progress
 
-- Current task: HUR-002.
-- Verified outcome: HUR-001 complete; the BMad resolver confirms the active initiative.
-- Next step: derive the HU-01 BMad specification from the accepted decisions and existing sources.
+- Current task: HUR-003.
+- Verified outcome: HUR-001 and HUR-002 complete; HUR-002 coherence and preservation self-validation passed, with three capabilities and one contract companion. Scoped `git diff --check` passed.
+- Next step: HUR-003 — align requirements and UX source documents.
