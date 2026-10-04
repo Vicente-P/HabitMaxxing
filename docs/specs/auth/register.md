@@ -93,19 +93,6 @@ Usuario creado exitosamente.
 }
 ```
 
-### 429 Too Many Requests — Rate limit excedido
-
-```json
-{
-  "error": {
-    "code": "ACCOUNT_LOCKED",
-    "message": "Demasiados intentos, intentá de nuevo en 1 hora"
-  }
-}
-```
-
-> Límite: máx. 3 intentos de registro por IP por hora. Ver [SPEC_CONVENTIONS — Rate limiting](../SPEC_CONVENTIONS.md).
-
 ### 500 Internal Server Error
 
 ```json
@@ -153,7 +140,7 @@ Usuario creado exitosamente.
 
 - Nunca incluir `password` en la respuesta.
 - Normalizar email a minúsculas antes de persistir y comparar (ver [SPEC_CONVENTIONS — Normalización de email](../SPEC_CONVENTIONS.md)).
-- Rate limiting: el requisito existente de máximo 3 intentos por IP por hora se conserva; el mecanismo se define en HUR-004.
+- La protección contra abuso y la limitación de frecuencia del registro quedan fuera de HU-01 y se difieren a una futura historia de infraestructura, sin clave de tracker asignada. No se define ni selecciona proveedor ni mecanismo en esta historia.
 
 ## Contrato de pantalla de registro (HU-01)
 

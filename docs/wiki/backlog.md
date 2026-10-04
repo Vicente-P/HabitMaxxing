@@ -89,6 +89,8 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 
 El envío de un correo de bienvenida se difiere a una historia futura; no forma parte de HU-01.
 
+La protección contra abuso y la limitación de frecuencia del registro se difieren a una futura historia de infraestructura, sin clave de tracker asignada; no forman parte de HU-01.
+
 `Story Points: 3` `Prioridad: Alta` `Sprint: 1`
 
 ---

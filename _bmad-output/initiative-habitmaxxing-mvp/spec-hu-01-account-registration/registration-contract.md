@@ -15,7 +15,7 @@ Se conserva el modelo `User` del esquema Prisma actual: `id` CUID, `email` únic
 - Creación correcta: HTTP 201 y usuario sin `password`, con `id`, `email`, `name`, `createdAt`, `updatedAt` bajo `data`.
 - Entrada inválida o faltante: HTTP 400, `VALIDATION_ERROR`, mensaje en español y detalles por campo.
 - Email duplicado: conflicto 409 observable internamente; la interfaz muestra exactamente «No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo», sin confirmar existencia.
-- Rate limit: 429 `ACCOUNT_LOCKED` tras 3 intentos por IP en una hora según las convenciones actuales. El mecanismo y la indisponibilidad no están especificados.
+- La protección contra abuso y limitación de frecuencia del registro quedan fuera de HU-01 y se difieren a una futura historia de infraestructura, sin clave de tracker. No se elige ni instala proveedor.
 - Fallo interno: 500 `INTERNAL_ERROR` sin detalles sensibles.
 
 ## Flujo posterior y experiencia
@@ -39,9 +39,9 @@ Tras HTTP 201, la interfaz intenta iniciar sesión con Auth.js Credentials. Si t
 - Email inválido, contraseña menor a 8 caracteres, body vacío o campos requeridos ausentes producen validación 400.
 - Duplicado da conflicto interno; la UI no confirma existencia.
 - Confirmar persistencia de hash no reversible en lugar de contraseña en texto plano, y ausencia del campo sensible en la respuesta.
-- Registro limitado a tres intentos por IP por hora.
+- Protección contra abuso y limitación de frecuencia diferidas a una futura historia de infraestructura sin clave de tracker.
 - Inicio automático exitoso conduce al dashboard; si falla, cuenta válida y enlace a login.
 
 ## Pendientes explícitos
 
-Quedan para HUR-004 el mecanismo/almacenamiento del rate limit y su comportamiento ante indisponibilidad. La arquitectura de autenticación se describe como planeada y la implementación de `src/lib/auth.ts` está pendiente en el documento fuente; este contrato no presume que ya exista. El envío de bienvenida se difiere a una historia futura sin clave de tracker asignada.
+La protección contra abuso queda fuera de HU-01 y se difiere a una futura historia de infraestructura sin clave de tracker; no hay decisión de mecanismo o proveedor. La arquitectura de autenticación y la implementación de `src/lib/auth.ts` son planeadas; este contrato no presume que ya existan. El envío de bienvenida se difiere a una historia futura sin clave de tracker asignada.

@@ -34,11 +34,11 @@ Las personas nuevas necesitan crear una cuenta para habilitar la sincronización
 
 ## Constraints
 
-- El registro es público mediante `POST /api/auth/register`; Auth.js Credentials gestiona login/sesión y `proxy.ts` protege rutas autenticadas.
+- `POST /api/auth/register` es público y gestiona validación, normalización, hash, persistencia y duplicados. Auth.js Credentials verifica credenciales y establece la sesión mínima; no persiste usuarios. `proxy.ts` solo realiza redirecciones tempranas generales; cada límite servidor protegido autentica y autoriza de nuevo.
 - Normalizar email a minúsculas antes de validar/buscar/persistir; email único. Usar bcryptjs con saltRounds 12 y nunca exponer contraseña ni hash.
 - Recortar email y nombre; email máximo 254 caracteres; nombre opcional máximo 100 caracteres y vacío equivale a `null`. Contraseña: mínimo 8 caracteres y máximo 72 bytes UTF-8, aplicado por servidor antes de bcrypt; el feedback UX por caracteres no sustituye la validación en bytes.
 - Mantener el modelo `User` de Prisma existente. En MVP la cuenta queda activa con `emailVerified` nulo.
-- El límite documentado para MVP es 3 intentos por IP por hora; su mecanismo operativo no está definido.
+- La protección contra abuso y limitación de frecuencia quedan fuera de HU-01 y se difieren a una futura historia de infraestructura sin clave de tracker. No se elige ni instala proveedor.
 - HU-01 admite solo tema claro; se conservan los tokens oscuros generales para uso futuro. Para duplicado, 409 interno puede mantenerse; la UI usa «No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo», sin confirmar existencia.
 - Si falla el inicio automático tras crear la cuenta, no deshacer ni invalidar la cuenta.
 
@@ -55,10 +55,6 @@ Una persona nueva completa el registro, obtiene una cuenta activa sin que se exp
 
 ## Assumptions
 
-- Se conserva como requisito MVP el límite de 3 intentos por IP por hora de `register.md` y `SPEC_CONVENTIONS.md`; falta definir su mecanismo y disponibilidad.
-
-## Open Questions
-
-- ¿Qué mecanismo/almacenamiento aplica el rate limit y qué ocurre si no está disponible?
+- La configuración de autenticación, el endpoint de registro y las redirecciones de Proxy son diseño planeado, no implementación disponible.
 
 El contrato de pantalla, incluidos campos/orden, validación, carga, errores de servidor, auto-inicio y recuperación, teclado/foco/anuncios accesibles y reflow, está definido en `registration-contract.md`.
