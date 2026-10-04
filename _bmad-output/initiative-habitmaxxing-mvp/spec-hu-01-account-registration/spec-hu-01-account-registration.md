@@ -36,9 +36,10 @@ Las personas nuevas necesitan crear una cuenta para habilitar la sincronización
 
 - El registro es público mediante `POST /api/auth/register`; Auth.js Credentials gestiona login/sesión y `proxy.ts` protege rutas autenticadas.
 - Normalizar email a minúsculas antes de validar/buscar/persistir; email único. Usar bcryptjs con saltRounds 12 y nunca exponer contraseña ni hash.
+- Recortar email y nombre; email máximo 254 caracteres; nombre opcional máximo 100 caracteres y vacío equivale a `null`. Contraseña: mínimo 8 caracteres y máximo 72 bytes UTF-8, aplicado por servidor antes de bcrypt; el feedback UX por caracteres no sustituye la validación en bytes.
 - Mantener el modelo `User` de Prisma existente. En MVP la cuenta queda activa con `emailVerified` nulo.
 - El límite documentado para MVP es 3 intentos por IP por hora; su mecanismo operativo no está definido.
-- HU-01 admite solo tema claro. El mensaje UI para email duplicado es neutral, aunque el conflicto siga identificable internamente.
+- HU-01 admite solo tema claro; se conservan los tokens oscuros generales para uso futuro. Para duplicado, 409 interno puede mantenerse; la UI usa «No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo», sin confirmar existencia.
 - Si falla el inicio automático tras crear la cuenta, no deshacer ni invalidar la cuenta.
 
 ## Non-goals
@@ -59,6 +60,5 @@ Una persona nueva completa el registro, obtiene una cuenta activa sin que se exp
 ## Open Questions
 
 - ¿Qué mecanismo/almacenamiento aplica el rate limit y qué ocurre si no está disponible?
-- ¿Cuál es el texto exacto, neutral, para conflicto de email y fallo de inicio automático?
-- ¿Qué límites adicionales de longitud y normalización aplican a email y nombre?
-- ¿Qué estados de carga, accesibilidad y comportamiento responsive deben normarse para el formulario?
+
+El contrato de pantalla, incluidos campos/orden, validación, carga, errores de servidor, auto-inicio y recuperación, teclado/foco/anuncios accesibles y reflow, está definido en `registration-contract.md`.

@@ -45,9 +45,14 @@ Implementation should start from one coherent contract instead of forcing develo
 - [x] **HUR-002 — Produce the HU-01 BMad specification**
   - Route: delegated; requires multi-source requirements, UX, and architecture synthesis.
   - Acceptance: the spec kernel and companions preserve all load-bearing decisions and expose unresolved questions explicitly.
-- [ ] **HUR-003 — Align requirements and UX source documents**
+  - Evidence: coherence and preservation validation passed; three capabilities and one spec-authored contract companion were produced.
+  - Work unit: `b5458c6` (`docs: specify HU-01 registration`).
+  - Review: RDD remains disabled/unmanaged.
+- [x] **HUR-003 — Align requirements and UX source documents**
   - Route: delegated; touches multiple non-trivial documentation files.
   - Acceptance: HU-01 criteria, failure states, accessibility, responsive behavior, and deferred scope are consistent.
+  - Evidence: Removed welcome email from HU-01 criteria/tasks and deferred it without tracker key; standardized privacy-preserving duplicate copy; documented UI, accessible form, responsive contract, light-only scope, normalization, and input limits across sources and BMad derived artifacts. Rate-limit mechanism remains explicitly assigned to HUR-004.
+  - Verification: BMad config resolved `core.active_initiative=initiative-habitmaxxing-mvp`; scoped `git diff --check` passed; cross-document traceability checked; `git diff --name-only -- src app prisma` returned no application source changes.
 - [ ] **HUR-004 — Align architecture and verification guidance**
   - Route: delegated; requires current primary-source verification for unstable framework and Supabase details.
   - Acceptance: authentication boundaries, route protection, database connection guidance, migrations, and noninteractive test commands are coherent.
@@ -71,6 +76,6 @@ Implementation should start from one coherent contract instead of forcing develo
 
 ## Progress
 
-- Current task: HUR-003.
-- Verified outcome: HUR-001 and HUR-002 complete; HUR-002 coherence and preservation self-validation passed, with three capabilities and one contract companion. Scoped `git diff --check` passed.
-- Next step: HUR-003 — align requirements and UX source documents.
+- Current task: HUR-004.
+- Verified outcome: HUR-001, HUR-002, and HUR-003 complete. HUR-003 coherence and preservation validation passed; source and derived contract decisions were cross-checked. Existing HUR-002 work-unit evidence is preserved.
+- Next step: HUR-004 — align architecture and verification guidance, including rate-limit mechanism and failure behavior.
