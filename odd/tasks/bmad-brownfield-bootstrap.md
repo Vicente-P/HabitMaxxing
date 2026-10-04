@@ -54,11 +54,12 @@ Establish a structured, reproducible AI-assisted development workflow that can l
   - Acceptance: required prerequisites are available; project-local BMad skills are installed using the current supported mechanism; setup completes.
   - Checks: installed skill directories, `_bmad/` runtime, `bmad status` or installed equivalent.
   - Evidence: `uv --version` returned `uv 0.12.23 (46b84fd0b 2026-10-03 x86_64-pc-windows-msvc)`. `npx skills add bmad-code-org/BMAD-METHOD --skill bmad bmod-core-tools bmod-method bmad-project-context bmad-spec bmad-ticket bmad-build bmad-code-review bmad-walkthrough bmad-qa-generate-e2e-tests --agent codex --copy --yes` completed and reported all 10 selected skills copied to the project. The initial sandboxed `npx skills add --help` stalled without output and was interrupted; the same help command with approved network access succeeded and documented `--skill`, `--agent`, `--copy`, and `--yes`. BMad setup question check (`uv run --no-cache .agents/skills/bmad/scripts/setup.py ... --list-config-questions`) returned `[]`; setup (`uv run --no-cache .agents/skills/bmad/scripts/setup.py ...`) returned `status: created`, `current: true`, version `6.13.0-next`, no pending questions or problems, and created shared scripts/config plus `_bmad/`. Installed status (`uv run --no-cache .agents/skills/bmad/scripts/setup.py ... --status`) returned `bmad_exists: true`, both modules at `6.13.0-next` with project scope, scripts/config current, `current: true`, no problems, and `next: null`; online module update checks were `could-not-check` because the sandboxed status process reported WinError 10013 socket access denied. All 10 requested `.agents/skills/<name>/SKILL.md` files and `_bmad/` were present. `git status --short` showed `M .atl/skill-registry.md`, `M skills-lock.json`, `?? .atl/.skill-registry.cache.json`, `?? _bmad/`, and `?? odd/`; pre-existing `.atl` changes were preserved. No project context was created and no product files were changed.
-- [ ] **BMB-003 — Adopt project context without duplicating sources of truth**
+- [x] **BMB-003 — Adopt project context without duplicating sources of truth**
   - Route: delegated direct.
   - Trigger: generated context plus repository instruction integration.
   - Acceptance: BMad context references existing docs, preserves existing instructions, and validates every referenced path.
   - Checks: structural readback and BMad project-context validation.
+  - Evidence: The user approved the complete proposed block and empty setup ledger. `AGENTS.md` was created with one balanced BMad marker pair. Every referenced repository path exists, `git diff --check -- AGENTS.md` passed, and the file preserves existing documentation as source-of-truth pointers. Runtime inspection found Node `v24.13.0` and pnpm `11.25.0`; the project declaration remains `pnpm@11.1.3` and the documented project baseline remains Node 22.
 - [ ] **BMB-004 — Validate bootstrap and existing project checks**
   - Route: delegated direct.
   - Trigger: tests, build, lint, and typecheck are execution tasks.
@@ -77,16 +78,16 @@ Establish a structured, reproducible AI-assisted development workflow that can l
 | Architecture | EXISTS_BUT_NEEDS_ADAPTATION | `docs/architecture/`, ADRs, Prisma schema |
 | Engineering | EXISTS_AND_USABLE | `docs/guides/`, `package.json`, CI and tooling configs |
 | AI instructions | EXISTS_BUT_NEEDS_ADAPTATION | `.agents/skills/`, `.atl/skill-registry.md` |
-| BMad runtime/workflow | MISSING | No `_bmad/` or BMad project setup detected |
+| BMad runtime/workflow | EXISTS_AND_USABLE | `_bmad/`, project-local BMad skills, `skills-lock.json` |
 
 ## Verification Evidence
 
 - BMB-001: completed from repository inspection and current official BMad documentation.
 - BMB-002: completed; the 10 selected skills, `_bmad/` runtime, and installed status were verified. Status reports `current: true`; upstream freshness probes were unavailable in its sandboxed status run (WinError 10013).
-- BMB-003: pending.
+- BMB-003: completed; the approved managed context block and all referenced paths were structurally verified.
 - BMB-004: pending.
 - BMB-005: pending.
 
 ## Next Step
 
-Proceed with BMB-003: adopt project context without duplicating sources of truth; do not create that context as part of BMB-002.
+Proceed with BMB-004: run BMad validation and existing project checks without fixing unrelated failures.
