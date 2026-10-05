@@ -1,0 +1,102 @@
+import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach } from "vitest";
+import React from "react";
+
+import { registerSchema } from "@/lib/validations";
+
+describe("registerSchema", () => {
+  it("normalizes email and optional name", () => {
+    expect(registerSchema.parse({ email: " User@Example.COM ", password: "password123", name: "  User  " })).toMatchObject({
+      email: "user@example.com",
+      name: "User",
+    });
+    expect(registerSchema.parse({ email: "user@example.com", password: "password123" }).name).toBeNull();
+  });
+
+  it("rejects passwords over 72 UTF-8 bytes", () => {
+    const result = registerSchema.safeParse({ email: "user@example.com", password: "á".repeat(37) });
+    expect(result.success).toBe(false);
+  });
+});
+
+const { findUnique, compare, authConfiguration } = vi.hoisted(() => ({ findUnique: vi.fn(), compare: vi.fn(), authConfiguration: { value: undefined as unknown } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique } } }));
+vi.mock("bcryptjs", () => ({ default: { compare, hash: vi.fn() } }));
+vi.mock("next-auth", () => ({ default: (configuration: unknown) => { authConfiguration.value = configuration; return { handlers: {}, signIn: vi.fn(), signOut: vi.fn(), auth: vi.fn() }; } }));
+vi.mock("next-auth/providers/credentials", () => ({ default: (options: { authorize: (credentials: unknown) => Promise<unknown> }) => options }));
+vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: React.ReactNode }) => React.createElement("a", { href }, children) }));
+vi.mock("next-auth/react", () => ({ signIn: vi.fn() }));
+
+describe("Credentials authorize and auth forms", () => {
+  afterEach(() => { cleanup(); vi.clearAllMocks(); vi.unstubAllGlobals(); });
+
+  it("authorizes valid credentials and rejects invalid or mismatched credentials", async () => {
+    await import("@/lib/auth");
+    const configuration = authConfiguration.value as { providers: Array<{ authorize?: (credentials: unknown) => Promise<unknown> }> };
+    const authorize = configuration.providers[0].authorize!;
+    findUnique.mockResolvedValue({ id: "u1", email: "user@example.com", name: "User", password: "hash" });
+    compare.mockResolvedValue(true);
+    expect(await authorize({ email: "user@example.com", password: "password123" })).toEqual({ id: "u1", email: "user@example.com", name: "User" });
+    compare.mockResolvedValue(false);
+    expect(await authorize({ email: "user@example.com", password: "password123" })).toBeNull();
+    expect(await authorize({ email: "invalid", password: "short" })).toBeNull();
+  });
+
+  it("shows registration recovery link after sign-in failure and keeps the account", async () => {
+    vi.mocked((await import("next-auth/react")).signIn).mockResolvedValue({ ok: false, error: "CredentialsSignin" } as never);
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
+    const { default: RegisterPage } = await import("@/app/(auth)/register/page");
+    render(React.createElement(RegisterPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Tu cuenta fue creada"));
+    expect(screen.getByRole("link", { name: /Inicia sesión/ })).toHaveAttribute("href", "/login");
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
+  it("focuses the password input when email is valid but the password is invalid", async () => {
+    const { default: RegisterPage } = await import("@/app/(auth)/register/page");
+    render(React.createElement(RegisterPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "short" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    expect(document.activeElement).toBe(screen.getByLabelText("Contraseña"));
+  });
+
+  it("does not show unrelated field errors when one untouched field blurs", async () => {
+    const { default: RegisterPage } = await import("@/app/(auth)/register/page");
+    render(React.createElement(RegisterPage));
+    fireEvent.focus(screen.getByLabelText("Correo electrónico"));
+    fireEvent.blur(screen.getByLabelText("Correo electrónico"));
+    expect(screen.getByText("Ingresa un correo electrónico válido")).toBeInTheDocument();
+    expect(screen.queryByText("La contraseña debe tener al menos 8 caracteres")).not.toBeInTheDocument();
+  });
+
+  it("renders field details returned by a server validation error", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: vi.fn().mockResolvedValue({ error: { details: [{ field: "password", message: "La contraseña fue rechazada" }] } }),
+    }));
+    const { default: RegisterPage } = await import("@/app/(auth)/register/page");
+    render(React.createElement(RegisterPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+    await waitFor(() => expect(screen.getByText("La contraseña fue rechazada")).toBeInTheDocument());
+    expect(screen.getByRole("alert")).toHaveTextContent("Revisa los campos indicados.");
+  });
+
+  it("recovers the login pending state and presents a neutral accessible error", async () => {
+    vi.mocked((await import("next-auth/react")).signIn).mockRejectedValue(new Error("internal"));
+    const { default: LoginPage } = await import("@/app/(auth)/login/page");
+    render(React.createElement(LoginPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No se pudo iniciar sesión"));
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+  });
+});
