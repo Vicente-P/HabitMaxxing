@@ -33,7 +33,8 @@
 Variables de entorno requeridas:
 
 ```env
-DATABASE_URL="postgresql://..."   # Session Pooler en dev
+DATABASE_URL="postgresql://..."   # Transaction Pooler para consultas de runtime
+DIRECT_URL="postgresql://..."     # Session Pooler/conexión directa para Prisma CLI y migraciones
 AUTH_SECRET="..."                 # openssl rand -base64 32
 AUTH_URL="http://localhost:3000"  # URL base de la app
 ```

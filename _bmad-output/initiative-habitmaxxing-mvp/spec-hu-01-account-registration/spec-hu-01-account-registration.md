@@ -2,14 +2,14 @@
 id: SPEC-hu-01-account-registration
 companions:
   - registration-contract.md
-  - ../../../../docs/specs/DESIGN_SYSTEM.md
+  - ../../../docs/specs/DESIGN_SYSTEM.md
 sources:
-  - ../../../../docs/wiki/backlog.md
-  - ../../../../docs/specs/auth/register.md
-  - ../../../../docs/specs/models/user.md
-  - ../../../../docs/specs/SPEC_CONVENTIONS.md
-  - ../../../../docs/architecture/auth-flow.md
-  - ../../../../prisma/schema.prisma
+  - ../../../docs/wiki/backlog.md
+  - ../../../docs/specs/auth/register.md
+  - ../../../docs/specs/models/user.md
+  - ../../../docs/specs/SPEC_CONVENTIONS.md
+  - ../../../docs/architecture/auth-flow.md
+  - ../../../prisma/schema.prisma
 ---
 
 > **Contrato canónico.** Este SPEC y los archivos de `companions:` forman el contrato validado para HU-01. Los artefactos de `sources:` son trazabilidad; consultar solo para narrativa omitida deliberadamente.

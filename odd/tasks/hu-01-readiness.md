@@ -60,10 +60,15 @@ Implementation should start from one coherent contract instead of forcing develo
   - Acceptance: authentication boundaries, route protection, database connection guidance, migrations, and noninteractive test commands are coherent.
   - Evidence: aligned architecture/deployment/testing guidance; added `DIRECT_URL` to local example, Prisma CLI config, and CI secret reference; removed registration rate limiting from HU-01 and BMad derivations, deferring abuse protection to future infrastructure without tracker key/provider choice. BMad spec self-validation coherence/preservation recorded in `.memlog.md`.
   - Verification: direct `prisma.cmd validate` and `prisma.cmd generate` passed using a local placeholder `DIRECT_URL`; `pnpm typecheck` and `pnpm lint` passed; direct `vitest.cmd run` exited 0 and reported no test files. `pnpm exec vitest run` failed in the local pnpm shim (`vitest` not recognized), so the equivalent local executable was run directly. No deployed migration status was queried; it remains unverified without real `DIRECT_URL` access. `git diff --check` passed; `git diff --name-only -- src app` returned no paths. No behavior files changed. No files staged or committed per instruction.
-  - Work unit: not committed; explicitly prohibited for this task.
-- [ ] **HUR-005 — Validate readiness for implementation**
+  - Work unit: `55f4024` (`docs: align HU-01 architecture and checks`).
+  - Review: RDD remains disabled/unmanaged.
+- [x] **HUR-005 — Validate readiness for implementation**
   - Route: delegated verification.
   - Acceptance: requirements, UX, architecture, and checks produce no unresolved implementation blocker.
+  - Correction evidence: all external `sources:` and `companions:` paths in the HU-01 spec and its contract now use `../../../` from the spec folder; every declared path resolved successfully with PowerShell `Test-Path`. Added the Prisma CLI/migrations `DIRECT_URL` convention alongside runtime `DATABASE_URL`, consistent with `prisma.config.ts` and `.env.example`.
+  - Independent verification: `READY WITH CONDITIONS`; no implementation blocker remains. All declared BMad references resolve, fresh coherence/preservation PASS events exist, scoped and full readiness `git diff --check` passed, and no `src`/`app` behavior paths changed.
+  - Conditions: local pnpm dispatch for Prisma/Vitest remains broken although direct installed executables work; Vitest discovers zero tests; recheck under Node 22/pnpm 11.1.3; deployment secrets and applied migrations remain externally unverified.
+  - Review: RDD remains disabled/unmanaged; `gentle-ai review assess` was unassessable because repository identity resolution returned `Acceso denegado`, so an independent verifier was used.
 
 ## Checks
 
@@ -83,6 +88,6 @@ Implementation should start from one coherent contract instead of forcing develo
 
 ## Progress
 
-- Current task: HUR-005.
-- Verified outcome: HUR-001, HUR-002, and HUR-003 complete. HUR-003 coherence and preservation validation passed; source and derived contract decisions were cross-checked. Existing HUR-002 work-unit evidence is preserved. HUR-004 documentation and config alignment is complete; Prisma validation/generation, typecheck, lint, and direct Vitest executable passed. The Vitest run found no test files, so it is not evidence of coverage; `pnpm exec vitest run` itself failed under the local pnpm shim although the direct executable succeeded. No deployed migration status was queried.
-- Next step: HUR-005 — validate readiness for implementation, including the empty test discovery and unverified deployed migration status. The rate-limit requirement is explicitly out of HU-01 and deferred to infrastructure without a tracker key.
+- Current task: complete.
+- Verified outcome: `READY WITH CONDITIONS`. Requirements, UX, architecture, configuration, and the BMad contract are aligned; all declared references resolve and no implementation blocker remains.
+- Next step: begin HU-01 implementation with observed RED -> GREEN -> REFACTOR, while preserving the listed environment and deployment conditions.

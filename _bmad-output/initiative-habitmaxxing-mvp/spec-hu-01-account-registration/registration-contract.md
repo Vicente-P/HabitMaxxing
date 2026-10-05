@@ -20,7 +20,7 @@ Se conserva el modelo `User` del esquema Prisma actual: `id` CUID, `email` únic
 
 ## Flujo posterior y experiencia
 
-Tras HTTP 201, la interfaz intenta iniciar sesión con Auth.js Credentials. Si tiene éxito, redirige al dashboard. Si falla, informa «Tu cuenta fue creada, pero no pudimos iniciar sesión. Inicia sesión para continuar.» y ofrece navegación al login; no repite ni revierte la creación automáticamente. Mantener tema claro exclusivamente en este flujo. Usar el sistema visual existente para tipografía, superficies, inputs, labels, botones y estados; el contrato detallado de tokens vive en `../../../../docs/specs/DESIGN_SYSTEM.md`.
+Tras HTTP 201, la interfaz intenta iniciar sesión con Auth.js Credentials. Si tiene éxito, redirige al dashboard. Si falla, informa «Tu cuenta fue creada, pero no pudimos iniciar sesión. Inicia sesión para continuar.» y ofrece navegación al login; no repite ni revierte la creación automáticamente. Mantener tema claro exclusivamente en este flujo. Usar el sistema visual existente para tipografía, superficies, inputs, labels, botones y estados; el contrato detallado de tokens vive en `../../../docs/specs/DESIGN_SYSTEM.md`.
 
 ## Contrato de pantalla
 
