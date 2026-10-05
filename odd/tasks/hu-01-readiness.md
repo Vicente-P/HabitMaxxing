@@ -68,6 +68,7 @@ Implementation should start from one coherent contract instead of forcing develo
   - Correction evidence: all external `sources:` and `companions:` paths in the HU-01 spec and its contract now use `../../../` from the spec folder; every declared path resolved successfully with PowerShell `Test-Path`. Added the Prisma CLI/migrations `DIRECT_URL` convention alongside runtime `DATABASE_URL`, consistent with `prisma.config.ts` and `.env.example`.
   - Independent verification: `READY WITH CONDITIONS`; no implementation blocker remains. All declared BMad references resolve, fresh coherence/preservation PASS events exist, scoped and full readiness `git diff --check` passed, and no `src`/`app` behavior paths changed.
   - Conditions: local pnpm dispatch for Prisma/Vitest remains broken although direct installed executables work; Vitest discovers zero tests; recheck under Node 22/pnpm 11.1.3; deployment secrets and applied migrations remain externally unverified.
+  - Work unit: `d23896d` (`docs: verify HU-01 implementation readiness`).
   - Review: RDD remains disabled/unmanaged; `gentle-ai review assess` was unassessable because repository identity resolution returned `Acceso denegado`, so an independent verifier was used.
 
 ## Checks
