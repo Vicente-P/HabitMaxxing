@@ -56,18 +56,18 @@ src/
 # Modo watch — re-corre al guardar (desarrollo)
 pnpm test
 
-# Una sola pasada — útil para CI o verificación rápida
-pnpm vitest run
+# Una sola pasada — CI y verificación no interactiva
+pnpm exec vitest run
 
 # Con cobertura
 pnpm test:coverage
 ```
 
-Vitest abre una UI interactiva en modo watch. Para filtrar por archivo o nombre de test:
+`pnpm test` inicia Vitest en modo watch. La ejecución no interactiva debe usar `pnpm exec vitest run`. La configuración actual tiene `passWithNoTests: true`: por lo tanto, una ejecución exitosa sin tests detectados no demuestra cobertura ni que existan pruebas para la funcionalidad. Para filtrar por archivo o nombre de test:
 
 ```bash
-pnpm vitest run src/lib/validations.test.ts
-pnpm vitest run --reporter=verbose
+pnpm exec vitest run src/lib/validations.test.ts
+pnpm exec vitest run --reporter=verbose
 ```
 
 ---
@@ -176,7 +176,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',   // simula el DOM
     globals: true,           // test/expect/describe disponibles sin import
-    passWithNoTests: true,   // no falla si no hay archivos de test (útil en CI)
+    passWithNoTests: true,   // permite éxito sin tests; el éxito no demuestra cobertura
     setupFiles: ['./src/test/setup.ts'],
   },
 })

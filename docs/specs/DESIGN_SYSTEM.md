@@ -8,7 +8,7 @@
 SIEMPRE usa las clases y tokens definidos en este documento.
 NUNCA hardcodees colores hex en componentes React.
 NUNCA uses estilos inline para colores o tipografía.
-SIEMPRE agrega variante `dark:` en elementos de color.
+Agrega variantes `dark:` cuando la historia soporte el tema oscuro; las historias light-only, como HU-01, usan solo los tokens claros.
 
 ---
 
@@ -16,7 +16,7 @@ SIEMPRE agrega variante `dark:` en elementos de color.
 
 - Minimalista moderno (Spotify, GitHub, Linear, Uber).
 - Acento: **Violet Purple** (`brand-500` = `#7C3AED`).
-- Modo claro y oscuro con variante `dark:`.
+- El sistema conserva tokens para modo claro y oscuro; cada historia declara los temas que soporta. HU-01 es exclusivamente de tema claro y no activa el tema oscuro. Los tokens dark se mantienen para trabajo futuro.
 - Tipografía sans-serif con jerarquía clara (Inter).
 - Cards con bordes sutiles (8% opacidad).
 - Espaciado generoso.
@@ -377,7 +377,7 @@ Estados incluidos: `disabled:`, `hover:`, `active:scale-95`, `focus:ring-2`.
 - Usar `.btn-primary` para acciones principales
 - Usar `.input` y `.label` en formularios
 - Usar `.badge-*` para estados y etiquetas
-- Agregar `dark:` en todos los colores de superficie y texto
+- Aplicar las variantes de tema requeridas por la historia; no exigir `dark:` en flujos declarados light-only como HU-01.
 - Usar `text-heading-*` / `text-body-*` para tipografía
 - Agregar tokens nuevos en `@theme` de `globals.css`
 
@@ -385,7 +385,7 @@ Estados incluidos: `disabled:`, `hover:`, `active:scale-95`, `focus:ring-2`.
 
 - Hardcodear colores: `style={{ color: '#7C3AED' }}`
 - Usar colores Tailwind default (`bg-zinc-*`, `text-gray-*`) para UI de la app
-- Omitir variante `dark:` en elementos de color
+- Omitir variante `dark:` en historias que declaren soporte de tema oscuro
 - Crear `tailwind.config.ts`
 - Usar `@apply` entre clases custom del mismo `@layer components`
 - Usar `font-bold` / `font-semibold` fuera de la escala tipográfica
@@ -396,7 +396,7 @@ Estados incluidos: `disabled:`, `hover:`, `active:scale-95`, `focus:ring-2`.
 
 ```
 □ ¿Usé clases del design system (no colores hardcodeados)?
-□ ¿Todos los colores tienen variante dark:?
+□ ¿Las variantes de tema corresponden a los temas declarados por la historia?
 □ ¿Los botones usan .btn-primary / .btn-secondary / .btn-ghost?
 □ ¿Los inputs usan .input y los labels .label?
 □ ¿Las cards usan .card o .card-hover?

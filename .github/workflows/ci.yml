@@ -16,9 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-      AUTH_URL: ${{ secrets.AUTH_URL }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/habitmaxxing' }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://postgres:postgres@localhost:5432/habitmaxxing' }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET || 'ci-only-secret' }}
+      AUTH_URL: ${{ secrets.AUTH_URL || 'http://localhost:3000' }}
 
     steps:
       - name: Checkout
@@ -49,7 +50,7 @@ jobs:
         run: pnpm lint
 
       - name: Test
-        run: pnpm test
+        run: pnpm exec vitest run
 
       - name: Build
         run: pnpm build

@@ -1,7 +1,6 @@
 # Arquitectura — Flujo de Autenticación
 
-> ⚠️ **Documento en construcción.** La implementación de `src/lib/auth.ts` está pendiente.
-> Este documento se completará cuando EP-01 esté implementado.
+> **Estado: arquitectura planeada, no implementada.** Los flujos y límites siguientes describen el diseño objetivo de HU-01; no implican que el endpoint, Auth.js ni la protección estén desplegados. `src/lib/auth.ts` está pendiente.
 
 ---
 
@@ -43,7 +42,7 @@ sequenceDiagram
             API->>Prisma: create({ email, password hash, name })
             Prisma->>DB: INSERT User
             DB-->>Prisma: User creado
-            API-->>Cliente: 201 Created
+            API-->>Cliente: 201 Created (sin password ni hash)
         end
     end
 ```
@@ -76,13 +75,16 @@ sequenceDiagram
 
 ---
 
-## Protección de rutas
+## Límites de autenticación y autorización
 
-La protección se implementa mediante middleware de Next.js que verifica la sesión de Auth.js antes de permitir el acceso a las rutas del grupo `(dashboard)`.
+`POST /api/auth/register` es un Route Handler público y es responsable de validar y normalizar los datos, hashear la contraseña, persistir la cuenta y tratar de forma segura el email duplicado. Auth.js Credentials verifica las credenciales y establece la sesión mínima requerida por el registro para intentar el inicio automático; Credentials no crea ni persiste usuarios.
+
+En Next.js 16, `proxy.ts` puede realizar redirecciones tempranas y generales hacia o desde rutas de autenticación según la presencia de sesión, pero se reserva como optimización: la documentación de Next.js recomienda Proxy solo como último recurso. Cada Route Handler, Server Action y acceso de servidor a datos protegidos debe volver a autenticar y autorizar en su propio límite antes de leer o modificar datos. No confiar en la redirección de Proxy como control de acceso. [Next.js Proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy), [Auth.js Credentials](https://authjs.dev/getting-started/authentication/credentials).
 
 ```
-Rutas públicas:  /login, /register
-Rutas protegidas: /dashboard, /habits, /stats (pendientes)
+Rutas públicas: `POST /api/auth/register`, `/login`, `/register`
+Rutas con redirección temprana en Proxy: `/dashboard`, `/habits`, `/stats`
+La autorización efectiva de datos se valida nuevamente en cada límite servidor protegido.
 ```
 
 ---

@@ -33,7 +33,8 @@
 Variables de entorno requeridas:
 
 ```env
-DATABASE_URL="postgresql://..."   # Session Pooler en dev
+DATABASE_URL="postgresql://..."   # Transaction Pooler para consultas de runtime
+DIRECT_URL="postgresql://..."     # Session Pooler/conexión directa para Prisma CLI y migraciones
 AUTH_SECRET="..."                 # openssl rand -base64 32
 AUTH_URL="http://localhost:3000"  # URL base de la app
 ```
@@ -252,10 +253,9 @@ Aplica a: `POST /api/auth/register`, login vía Auth.js, `POST /api/auth/forgot-
 
 | Endpoint | Identificador | Límite | Ventana | Respuesta |
 |----------|--------------|--------|---------|-----------|
-| `POST /api/auth/register` | IP | 3 intentos | 1 hora | 429 `ACCOUNT_LOCKED` |
 | Login (intentos fallidos) | Email | 5 intentos | — | Bloqueo 15 min |
 
-> Rate limiting de registro aplica para MVP. Rate limiting adicional por IP en login es recomendado para producción (fase 2).
+> La limitación de frecuencia del registro está diferida fuera de HU-01 a una futura historia de infraestructura, sin clave de tracker. No se ha definido ni seleccionado proveedor o mecanismo. Rate limiting adicional por IP en login es recomendado para producción (fase 2).
 
 ### Bloqueo de cuenta por intentos fallidos (login)
 

@@ -77,17 +77,19 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 
 **Criterios de Aceptación:**
 - CA-01: Dado que soy usuario nuevo, cuando ingreso email válido y contraseña de mínimo 8 caracteres, entonces mi cuenta es creada y soy redirigido al dashboard.
-- CA-02: Dado que intento registrarme, cuando ingreso un email ya registrado, entonces veo "Este correo ya está en uso".
+- CA-02: Dado que intento registrarme y el registro no puede completarse con esos datos, entonces veo "No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo", sin que el mensaje confirme si existe una cuenta.
 - CA-03: Dado que intento registrarme, cuando ingreso una contraseña menor a 8 caracteres, entonces veo un mensaje con los requisitos de contraseña.
-- CA-04: Dado que completo el registro, cuando reviso mi bandeja de entrada, entonces recibo un email de bienvenida.
 
 **Tareas Técnicas:**
 - T-01: Crear modelo User en base de datos (email, password hash, createdAt)
 - T-02: Crear endpoint POST /api/auth/register con validaciones
 - T-03: Implementar hash de contraseña con bcrypt
 - T-04: Crear formulario de registro en frontend con validaciones
-- T-05: Configurar envío de email de bienvenida
 - T-06: Escribir tests unitarios del endpoint
+
+El envío de un correo de bienvenida se difiere a una historia futura; no forma parte de HU-01.
+
+La protección contra abuso y la limitación de frecuencia del registro se difieren a una futura historia de infraestructura, sin clave de tracker asignada; no forman parte de HU-01.
 
 `Story Points: 3` `Prioridad: Alta` `Sprint: 1`
 
