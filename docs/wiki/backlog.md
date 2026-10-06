@@ -37,7 +37,7 @@ entonces [resultado esperado]
 | ❌ Requisito técnico | ✅ Criterio de aceptación |
 |---|---|
 | "Emitir un JWT tras login exitoso" | "Dado que ingreso credenciales correctas, cuando inicio sesión, entonces accedo a mi dashboard sin volver a ingresar mis datos" |
-| "Bloquear tras 5 intentos fallidos" | "Dado que ingresé 5 veces una contraseña incorrecta, cuando intento iniciar sesión nuevamente, entonces veo un mensaje indicando que mi cuenta está bloqueada temporalmente" |
+| "Bloquear tras 5 intentos fallidos" | "Dado que ingresé 5 veces una contraseña incorrecta, se aplica un bloqueo interno de 15 minutos; el mensaje externo sigue siendo Credenciales incorrectas" |
 
 ---
 
@@ -98,19 +98,23 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ### 📖 HU-02 — Inicio de sesión `SCRUM-7`
 > *"Como usuario registrado, quiero iniciar sesión con mis credenciales, para acceder a mi perfil y hábitos guardados."*
 
+**Estado 2026-10-06:** etapa de autenticación aceptada localmente sobre `a7bb421`, sin aprobación de seguridad ni validación funcional en producción. [Plan y evidencia](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-02-login.md). Decisiones aprobadas: transporte Auth.js nativo, privacidad uniforme, guard HU-02 y aceptación por etapas.
+
 **Criterios de Aceptación:**
-- CA-01: Dado que soy usuario registrado, cuando ingreso email y contraseña correctos, entonces accedo al dashboard con mis hábitos disponibles.
+- CA-01: Dado que soy usuario registrado, cuando ingreso email y contraseña correctos, entonces accedo al dashboard protegido (etapa A aceptada localmente). Hábitos disponibles se difieren a HU-06/lectura autenticada (etapa B no implementada); el CA-01 original completo sigue pendiente.
 - CA-02: Dado que intento iniciar sesión, cuando ingreso credenciales incorrectas, entonces veo "Credenciales incorrectas" sin especificar cuál campo falló.
-- CA-03: Dado que fallé el login 5 veces consecutivas, cuando intento iniciar sesión nuevamente, entonces veo "Cuenta bloqueada temporalmente, intenta en 15 minutos".
+- CA-03: Dado que fallé el login 5 veces consecutivas, cuando intento iniciar sesión nuevamente, se establece bloqueo interno de 15 minutos, sin extensión durante bloqueo; el mensaje externo es "Credenciales incorrectas", igual para email desconocido, contraseña errónea o cuenta bloqueada. Expiración y reinicio tras éxito se preservan.
 - CA-04: Dado que inicio sesión exitosamente, cuando cierro y vuelvo a abrir la app, entonces mi sesión sigue activa sin reingresar credenciales.
 
 **Tareas Técnicas:**
-- T-07: Crear endpoint POST /api/auth/login con validaciones
-- T-08: Implementar generación y firma de JWT
-- T-09: Implementar lógica de bloqueo tras 5 intentos fallidos
+- T-07: Reutilizar Credentials/handler Auth.js con loginSchema; sin endpoint login paralelo
+- T-08: Usar sesión JWT/cookie nativa de Auth.js; sin firma manual
+- T-09: Política transaccional de cinco fallos/15 minutos, expiración y reinicio; A1 local pasó con carreras reales y seis conflictos P2034 recuperados
 - T-10: Crear formulario de login en frontend con manejo de errores
-- T-11: Implementar persistencia de sesión con refresh token
-- T-12: Escribir tests unitarios del endpoint
+- T-11: Sesión nativa de 30 días renovable; A2 local pasó con cookie persistente y reinicio real de Chrome, sin refresh-token paralelo
+- T-12: Pruebas de política/provider/formulario/callbacks/guard; 51 deterministas observadas, no aceptación DB/navegador
+
+**Aceptación local:** A1 PostgreSQL aislado y A2 Chrome/sesión/cookies/reinicio/acceso protegido/teclado/320 px pasaron. Secure en producción, 30 días transcurridos y anuncios con tecnología asistiva no se comprobaron. Etapa B sigue diferida: no completar la historia original con hábitos ni afirmar aceptación en producción. Los antiguos T-07/T-08/T-11 de endpoint/JWT/refresh y texto de bloqueo específico quedan supersedidos.
 
 `Story Points: 5` `Prioridad: Alta` `Sprint: 1`
 
@@ -127,7 +131,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-13: Crear endpoint POST /api/auth/logout
 - T-14: Implementar invalidación de token en frontend
 - T-15: Redirigir a login tras cerrar sesión
-- T-16: Proteger rutas privadas con middleware de autenticación
+- T-16: Reutilizar el guard servidor HU-02 para verificar acceso tras logout; no duplicar middleware/guard. Logout y verificación posterior siguen pendientes en HU-03
 
 `Story Points: 1` `Prioridad: Alta` `Sprint: 1`
 
