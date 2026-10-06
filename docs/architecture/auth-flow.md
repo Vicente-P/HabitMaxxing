@@ -1,6 +1,6 @@
 # Arquitectura — Flujo de Autenticación
 
-> **Estado: registro HU-01 y fallback mínimo de login implementados y validados localmente (2026-10-05).** El endpoint de registro y Auth.js Credentials están implementados en `src/lib/auth.ts`; la aceptación verificó persistencia y sesiones contra la base autorizada. Esto no acredita despliegue en producción ni implementación de protección contra abuso u otras historias de autenticación. Evidencia: [plan HU-01](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).
+> **Estado 2026-10-06: etapa de autenticación HU-02 aceptada localmente.** HU-01 tuvo aceptación local (2026-10-05), fue integrado y desplegado; la comprobación en producción fue solo lectura de páginas, no login/registro funcional. HU-02 añade política de bloqueo, sesión nativa explícita y guard servidor con 51 pruebas deterministas; A1 PostgreSQL local y A2 Chrome real pasaron sobre `a7bb421`, sin acreditar aceptación en producción. [Plan HU-02](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-02-login.md) / [evidencia HU-01](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).
 
 ---
 
@@ -57,17 +57,20 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Cliente->>AuthJS: signIn({ email, password })
-    AuthJS->>Prisma: findUnique({ email })
+    AuthJS->>AuthJS: loginSchema antes de DB
+    AuthJS->>Prisma: transacción Serializable: lectura y comparación
     Prisma->>DB: SELECT user WHERE email
     DB-->>Prisma: User / null
-    alt Usuario no existe
-        AuthJS-->>Cliente: Error: Invalid credentials
+    alt Usuario no existe o bloqueo activo
+        AuthJS-->>Cliente: Credenciales incorrectas
     else Usuario existe
         AuthJS->>AuthJS: bcryptjs.compare(password, hash)
         alt Contraseña incorrecta
-            AuthJS-->>Cliente: Error: Invalid credentials
+            AuthJS->>Prisma: confirma fallo; quinto fija bloqueo de 15 min
+            AuthJS-->>Cliente: Credenciales incorrectas
         else Contraseña correcta
-            AuthJS->>AuthJS: Crea sesión JWT
+            AuthJS->>Prisma: reinicia contador y bloqueo
+            AuthJS->>AuthJS: Crea sesión JWT nativa de 30 días
             AuthJS-->>Cliente: Redirect + Session cookie
         end
     end
@@ -81,19 +84,27 @@ sequenceDiagram
 
 En Next.js 16, `proxy.ts` puede realizar redirecciones tempranas y generales hacia o desde rutas de autenticación según la presencia de sesión, pero se reserva como optimización: la documentación de Next.js recomienda Proxy solo como último recurso. Cada Route Handler, Server Action y acceso de servidor a datos protegidos debe volver a autenticar y autorizar en su propio límite antes de leer o modificar datos. No confiar en la redirección de Proxy como control de acceso. [Next.js Proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy), [Auth.js Credentials](https://authjs.dev/getting-started/authentication/credentials).
 
-```
-Rutas públicas: `POST /api/auth/register`, `/login`, `/register`
-Rutas con redirección temprana en Proxy: `/dashboard`, `/habits`, `/stats`
-La autorización efectiva de datos se valida nuevamente en cada límite servidor protegido.
-```
+- Rutas públicas implementadas: `POST /api/auth/register`, `/login`, `/register`.
+- `/dashboard`: `auth()` en el Server Component exige ID de usuario válido antes de devolver contenido; sin identidad redirige a `/login`, errores de autenticación se propagan sin contenido protegido. No hay un segundo guard de Proxy implementado.
+- HU-03 reutiliza este guard para logout/verificación posterior; no se acredita cierre de sesión implementado. Cada futuro límite de datos debe autenticar y autorizar al usuario de nuevo.
 
 ---
+
+## Política HU-02 y límites de prueba
+
+El quinto fallo admitido establece un bloqueo interno de 15 minutos; intentos durante el bloqueo no lo extienden ni crean sesiones. En `now >= lockedUntil` se inicia una secuencia nueva y un éxito desbloqueado reinicia ambos campos. La transacción devuelve rechazo para confirmar incrementos; hasta tres intentos reintentan solo conflictos P2034 reales y otros errores fallan cerrados. Bcrypt puede retener una conexión: A1 local observó concurrencia real y seis conflictos P2034 recuperados; no se observó agotamiento de reintentos ni se midió carga de producción.
+
+Email desconocido, contraseña errónea y bloqueo comparten "Credenciales incorrectas". Transporte exclusivo de Auth.js: no wrapper login, JWT manual, refresh-token paralelo ni HTTP 429 específico de cuenta. El cliente exige `result?.ok && !result.error`; HTTP 200 no demuestra sesión.
+
+Auth.js usa `session.maxAge = 2_592_000` para JWT/cookie con expiración renovable al acceder a sesión. No devuelve contraseña/hash/contadores; bloqueo no revoca JWT existentes. A2 local verificó sesión, HttpOnly/SameSite=Lax, reinicio real de Chrome con el mismo perfil y acceso protegido. Secure=false en HTTP local no acredita producción. Etapa A aceptada localmente; etapa B hábitos/HU-06 no implementada, CA-01 completo pendiente.
 
 ## Archivos relevantes
 
 | Archivo | Descripción |
 |---------|-------------|
 | `src/lib/auth.ts` | Configuración de Auth.js — providers, callbacks, session |
+| `src/lib/login-policy.ts` | Decisión serializada de bloqueo y reinicio |
+| `src/app/(dashboard)/dashboard/page.tsx` | Guard servidor HU-02 |
 | `src/lib/validations.ts` | Schemas Zod para registro y login |
 | `src/app/api/auth/[...nextauth]/route.ts` | Handler HTTP de Auth.js |
 | `src/app/(auth)/login/page.tsx` | Página de login |
