@@ -116,14 +116,22 @@ Usuario creado exitosamente.
 
 ## Tests requeridos
 
-- [ ] Registro exitoso con email, password y name válidos retorna 201 y usuario sin password.
-- [ ] Registro exitoso sin `name` retorna 201 con `name: null`.
-- [ ] Email inválido retorna 400 con `VALIDATION_ERROR`.
-- [ ] Password menor a 8 caracteres retorna 400 con mensaje de requisitos.
-- [ ] Email duplicado puede retornar 409 internamente; la interfaz muestra el mensaje neutral definido en CA-02, sin confirmar existencia.
-- [ ] Email normalizado, trim y límites (254 email, 100 nombre, 72 bytes UTF-8 contraseña) se validan en servidor; nombre vacío se persiste como `null`.
-- [ ] Password se almacena hasheado (no en texto plano) en DB.
-- [ ] Body vacío o campos faltantes retorna 400.
+- [x] Registro exitoso con email, password y name válidos retorna 201 y usuario sin password.
+- [x] Registro exitoso sin `name` retorna 201 con `name: null`.
+- [x] Email inválido retorna 400 con `VALIDATION_ERROR`.
+- [x] Password menor a 8 caracteres retorna 400 con mensaje de requisitos.
+- [x] Email duplicado puede retornar 409 internamente; la interfaz muestra el mensaje neutral definido en CA-02, sin confirmar existencia.
+- [x] Email normalizado, trim y límites (254 email, 100 nombre, 72 bytes UTF-8 contraseña) se validan en servidor; nombre vacío se persiste como `null`.
+- [x] Password se almacena hasheado (no en texto plano) en DB.
+- [x] Body vacío o campos faltantes retorna 400.
+
+### Evidencia de aceptación — 2026-10-05
+
+API local: 201 con campos seguros para cuentas con/sin nombre; 400 para entradas inválidas/faltantes y límites excedidos; 409 con copy neutral para duplicado. Se verificaron normalización y máximos 254/100/72, nombre omitido nulo y hashes bcrypt costo 12 coincidentes, sin texto plano. La normalización de nombre vacío se comprobó por inspección del esquema; no se creó una cuenta adicional para ese caso.
+
+UI: registro y login válido llegan al dashboard; login inválido permanece con error neutral; foco por validación, teclado, controles pendientes y reflow de ambas pantallas a 320 px comprobados. Recuperación ante fallo de inicio automático: pruebas deterministas, no fallo inyectado en vivo. Lector de pantalla y zoom no ejercitados. Despliegue y logout no acreditados por este cierre.
+
+Evidencia detallada: [plan HU-01](../../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).
 
 ---
 

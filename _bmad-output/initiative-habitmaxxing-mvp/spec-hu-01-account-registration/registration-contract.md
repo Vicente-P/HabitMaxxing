@@ -44,4 +44,4 @@ Tras HTTP 201, la interfaz intenta iniciar sesión con Auth.js Credentials. Si t
 
 ## Pendientes explícitos
 
-La protección contra abuso queda fuera de HU-01 y se difiere a una futura historia de infraestructura sin clave de tracker; no hay decisión de mecanismo o proveedor. La arquitectura de autenticación y la implementación de `src/lib/auth.ts` son planeadas; este contrato no presume que ya existan. El envío de bienvenida se difiere a una historia futura sin clave de tracker asignada.
+La protección contra abuso queda fuera de HU-01 y se difiere a una futura historia de infraestructura sin clave de tracker; no hay decisión de mecanismo o proveedor. El registro y Auth.js Credentials en `src/lib/auth.ts` están implementados y su aceptación local se verificó el 2026-10-05; esto no acredita despliegue en producción. La recuperación tras fallo de inicio automático tiene prueba determinista, no inyección de fallo en vivo; lector de pantalla y zoom no se ejercitaron. El envío de bienvenida se difiere a una historia futura sin clave de tracker asignada. Evidencia: [plan HU-01](../plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).

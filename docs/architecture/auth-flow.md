@@ -1,6 +1,6 @@
 # Arquitectura — Flujo de Autenticación
 
-> **Estado: arquitectura planeada, no implementada.** Los flujos y límites siguientes describen el diseño objetivo de HU-01; no implican que el endpoint, Auth.js ni la protección estén desplegados. `src/lib/auth.ts` está pendiente.
+> **Estado: registro HU-01 y fallback mínimo de login implementados y validados localmente (2026-10-05).** El endpoint de registro y Auth.js Credentials están implementados en `src/lib/auth.ts`; la aceptación verificó persistencia y sesiones contra la base autorizada. Esto no acredita despliegue en producción ni implementación de protección contra abuso u otras historias de autenticación. Evidencia: [plan HU-01](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).
 
 ---
 
@@ -15,7 +15,7 @@
 
 ---
 
-## Flujo planeado
+## Flujo de referencia
 
 ### Registro
 
