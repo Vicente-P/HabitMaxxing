@@ -17,7 +17,7 @@ export default function LoginPage() {
     try {
       const result = await signIn("credentials", { email, password, redirect: false });
       if (result?.ok && !result.error) window.location.assign("/dashboard");
-      else setError("No se pudo iniciar sesión con esos datos.");
+      else setError("Credenciales incorrectas");
     } catch {
       setError("No se pudo iniciar sesión con esos datos.");
     } finally {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach } from "vitest";
 import React from "react";
 
@@ -20,8 +20,8 @@ describe("registerSchema", () => {
   });
 });
 
-const { findUnique, compare, authConfiguration } = vi.hoisted(() => ({ findUnique: vi.fn(), compare: vi.fn(), authConfiguration: { value: undefined as unknown } }));
-vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique } } }));
+const { findUnique, update, compare, authConfiguration } = vi.hoisted(() => ({ findUnique: vi.fn(), update: vi.fn(), compare: vi.fn(), authConfiguration: { value: undefined as unknown } }));
+vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: (work: (tx: unknown) => unknown) => work({ user: { findUnique, update } }) } }));
 vi.mock("bcryptjs", () => ({ default: { compare, hash: vi.fn() } }));
 vi.mock("next-auth", () => ({ default: (configuration: unknown) => { authConfiguration.value = configuration; return { handlers: {}, signIn: vi.fn(), signOut: vi.fn(), auth: vi.fn() }; } }));
 vi.mock("next-auth/providers/credentials", () => ({ default: (options: { authorize: (credentials: unknown) => Promise<unknown> }) => options }));
@@ -35,7 +35,7 @@ describe("Credentials authorize and auth forms", () => {
     await import("@/lib/auth");
     const configuration = authConfiguration.value as { providers: Array<{ authorize?: (credentials: unknown) => Promise<unknown> }> };
     const authorize = configuration.providers[0].authorize!;
-    findUnique.mockResolvedValue({ id: "u1", email: "user@example.com", name: "User", password: "hash" });
+    findUnique.mockResolvedValue({ id: "u1", email: "user@example.com", name: "User", password: "hash", failedLoginAttempts: 0, lockedUntil: null });
     compare.mockResolvedValue(true);
     expect(await authorize({ email: "user@example.com", password: "password123" })).toEqual({ id: "u1", email: "user@example.com", name: "User" });
     compare.mockResolvedValue(false);
@@ -63,7 +63,7 @@ describe("Credentials authorize and auth forms", () => {
     fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
     fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
-    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No se pudo iniciar sesión con esos datos."));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Credenciales incorrectas"));
     expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
   });
 
@@ -140,5 +140,62 @@ describe("Credentials authorize and auth forms", () => {
     fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
     await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("No se pudo iniciar sesión"));
     expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+    expect(screen.getByRole("alert")).not.toHaveTextContent("internal");
+  });
+
+  it("configures a 30-day native JWT session and exposes only safe user identity", async () => {
+    await import("@/lib/auth");
+    const configuration = authConfiguration.value as {
+      session: { strategy: string; maxAge?: number };
+      callbacks: {
+        jwt: (input: { token: Record<string, unknown>; user?: Record<string, unknown> }) => Record<string, unknown>;
+        session: (input: { session: { user: Record<string, unknown>; expires: string }; token: Record<string, unknown> }) => { user: Record<string, unknown>; expires: string };
+      };
+    };
+    expect(configuration.session).toEqual({ strategy: "jwt", maxAge: 30 * 24 * 60 * 60 });
+    const identity = { name: "User", email: "user@example.com", picture: null };
+    const token = configuration.callbacks.jwt({ token: { ...identity }, user: { id: "u1", password: "private", failedLoginAttempts: 4, lockedUntil: new Date() } });
+    expect(token).toEqual({ ...identity, sub: "u1" });
+    expect(configuration.callbacks.jwt({ token })).toEqual(token);
+    const session = configuration.callbacks.session({ session: { user: { name: identity.name, email: identity.email, image: null }, expires: "2030-01-01T00:00:00Z" }, token });
+    expect(session).toEqual({ user: { id: "u1", name: identity.name, email: identity.email, image: null }, expires: "2030-01-01T00:00:00Z" });
+    expect(JSON.stringify({ token, session })).not.toMatch(/password|private|failedLoginAttempts|lockedUntil/);
+    expect(configuration.callbacks.session({ session: { user: {}, expires: "unchanged" }, token: {} })).toEqual({ user: {}, expires: "unchanged" });
+  });
+
+  it("keeps the login button disabled while native sign-in is pending and restores it on non-ok", async () => {
+    let finish!: (value: never) => void;
+    const signIn = vi.mocked((await import("next-auth/react")).signIn);
+    signIn.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const { default: LoginPage } = await import("@/app/(auth)/login/page");
+    render(React.createElement(LoginPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+    const pending = screen.getByRole("button", { name: "Iniciando sesión…" });
+    expect(pending).toBeDisabled();
+    fireEvent.click(pending);
+    expect(signIn).toHaveBeenCalledOnce();
+    finish({ ok: false } as never);
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Credenciales incorrectas"));
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
+  });
+
+  it("navigates only after a successful sign-in without a semantic error", async () => {
+    let finish!: (value: never) => void;
+    const signIn = vi.mocked((await import("next-auth/react")).signIn);
+    signIn.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const { default: LoginPage } = await import("@/app/(auth)/login/page");
+    render(React.createElement(LoginPage));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "user@example.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "password123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { assign } });
+    await act(async () => { finish({ ok: true, error: undefined } as never); });
+    vi.unstubAllGlobals();
+    expect(assign).toHaveBeenCalledExactlyOnceWith("/dashboard");
+    expect(signIn).toHaveBeenCalledExactlyOnceWith("credentials", { email: "user@example.com", password: "password123", redirect: false });
+    expect(screen.getByRole("alert")).toBeEmptyDOMElement();
   });
 });

@@ -3,10 +3,10 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
-import { loginSchema } from "@/lib/validations";
+import { verifyLogin } from "@/lib/login-policy";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   providers: [
     Credentials({
       credentials: {
@@ -14,18 +14,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const parsed = loginSchema.safeParse(credentials);
-        if (!parsed.success) return null;
-
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-          select: { id: true, email: true, name: true, password: true },
-        });
-        if (!user || !(await bcrypt.compare(parsed.data.password, user.password))) {
-          return null;
-        }
-
-        return { id: user.id, email: user.email, name: user.name };
+        return verifyLogin(credentials, { database: prisma, compare: bcrypt.compare });
       },
     }),
   ],
