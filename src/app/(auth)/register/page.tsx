@@ -15,6 +15,10 @@ export default function RegisterPage() {
   const [pending, setPending] = useState(false);
   const inputRefs = useRef<Record<Field, HTMLInputElement | null>>({ email: null, name: null, password: null });
 
+  function focusField(field: Field) {
+    inputRefs.current[field]?.focus();
+  }
+
   function validate() {
     const result = registerSchema.safeParse(values);
     if (result.success) {
@@ -28,8 +32,8 @@ export default function RegisterPage() {
     }
     setErrors(next);
     setStatus("Revisa los campos indicados.");
-    const firstInvalidField = Object.keys(next).find((field): field is Field => field in inputRefs.current);
-    if (firstInvalidField) inputRefs.current[firstInvalidField]?.focus();
+    const firstInvalidField = (["email", "name", "password"] as const).find((field) => field in next);
+    if (firstInvalidField) focusField(firstInvalidField);
     return null;
   }
 
@@ -96,11 +100,11 @@ export default function RegisterPage() {
           const autocomplete = { email: "email", name: "name", password: "new-password" };
           return <div key={field} className="space-y-1.5">
             <label className="label" htmlFor={field}>{labels[field]}</label>
-            <input ref={(element) => { inputRefs.current[field] = element; }} className={errors[field] ? "input-error" : "input"} id={field} name={field} type={field === "password" ? "password" : field} autoComplete={autocomplete[field]} value={values[field]} onChange={(e) => setValues({ ...values, [field]: e.target.value })} onBlur={() => validateField(field)} aria-invalid={Boolean(errors[field])} aria-describedby={errors[field] ? `${field}-error` : undefined} />
+            <input ref={(element) => { inputRefs.current[field] = element; }} className={errors[field] ? "input-error" : "input"} id={field} name={field} type={field === "password" ? "password" : field} autoComplete={autocomplete[field]} value={values[field]} onChange={(e) => setValues((current) => ({ ...current, [field]: e.target.value }))} onBlur={() => validateField(field)} aria-invalid={Boolean(errors[field])} aria-describedby={errors[field] ? `${field}-error` : undefined} />
             {errors[field] && <p className="field-error" id={`${field}-error`}>{errors[field]}</p>}
           </div>;
         })}
-        <button className="btn-primary w-full" type="submit" disabled={pending}>{pending ? "Creando cuenta…" : "Crear cuenta"}</button>
+        <button className="btn-primary w-full" type="submit" disabled={pending} onMouseDown={(event) => event.preventDefault()}>{pending ? "Creando cuenta…" : "Crear cuenta"}</button>
       </form>
       <p className="mx-auto mt-4 max-w-md"><Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link></p>
     </main>
