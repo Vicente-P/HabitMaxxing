@@ -3,7 +3,7 @@
 ## Objective and authorization
 
 Protect shared-device use by letting an authenticated user leave this browser session and return to `/login`, then deny fresh protected dashboard access.
-The owner authorized native Auth.js local implementation, tests and Conventional work-unit commits on 2026-10-07. Parent readback is complete; stacked integration delivery toward `develop` is approved. L1 is implemented and parent authorized bounded L2; no remote publication or runtime acceptance.
+The owner authorized native Auth.js local implementation, tests and Conventional work-unit commits on 2026-10-07. Parent readback is complete; stacked integration delivery toward `develop` is approved. L1/L2 local deterministic implementation is complete and independently verified; no remote publication or runtime acceptance.
 Authoritative intent: [HU-03 plan](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-03-logout.md); [PM review and decisions](../../_bmad-output/initiative-habitmaxxing-mvp/review-hu-03-requirements.md).
 
 ## Approved boundaries
@@ -39,7 +39,7 @@ No additional test fixture/configuration path is authorized; derive and request 
 
 ## Tasks and route
 
-- [ ] **G1 — Bootstrap/handoff.** Branch and task created; parent readback/delivery decision and full Engram mirror pending. Route delegated: preparation for coordinated multi-file implementation. No source or commit yet.
+- [x] **G1 — Bootstrap/handoff (local only).** Branch/task, parent readback and stacked delivery decision completed. Route delegated: preparation for coordinated multi-file implementation. Full Engram mirror remains pending; local completion does not claim memory synchronization.
 - [x] **L1 — Native logout behavior and tests.** Delegated writer: client behavior plus colocated tests are two nontrivial logic files. Observe meaningful Vitest RED for native invocation, pending/duplicate and PM-03 retry feedback; implement GREEN/refactor without custom cookie logic.
 - [x] **L2 — Dashboard integration and contract alignment (deterministic implementation).** Delegated writer: server page/test plus three normative docs. RED for changed authenticated output; preserve anonymous/error guard cases, reconcile approved semantics and stale transport notes without claiming acceptance.
 - [ ] **A1 — Isolated real acceptance.** Pending separate runtime permission; delegated verifier because browser/session/DB boundaries require actual execution. Verify cookie removal/session null, fresh/direct/Back dashboard denial, repeated/no-session behavior, keyboard and 320 px on the final candidate.
@@ -60,14 +60,14 @@ git diff --check
 
 Run focused tests as applicable, then all applicable foreground source checks before each behavior work-unit commit. Normalize only authorized source before verification/candidate freeze; commit hooks must be convergent/no-op.
 Local commits keep behavior/tests/relevant docs together and use Conventional messages. Parent owns native mode readback, committed-slice assessment and candidate-specific consent; no prior review supplies HU-03 approval. No lifecycle is started in bootstrap.
-Runtime proof remains pending: mocked calls do not certify cookies, CSRF, browser caching or session/access denial. No runtime or source-suite pass is recorded here.
+Runtime proof remains pending: mocked calls do not certify cookies, CSRF, browser caching or session/access denial. Source-suite results below are deterministic proof only.
 
 ## Delivery, rollback and next gate
 
 Delivery strategy: `ask-on-risk`; chain strategy `stacked-to-main` with integration target `develop` (owner-approved 2026-10-07), no inherited HU-02 topology or PR count. Forecast includes 209 existing plan/review lines, this task, about 180–300 behavior/test changed lines and 40–90 normative-doc changed lines: approximately 500–700 gross authored lines. Count actual net additions plus deletions at each work unit; never omit proof or compress to meet budget.
 Parent resolved the delivery choice before the first commit: stacked integration PRs toward `develop`; exact coherent slices will follow observed counts. Publication is not authorized by that planning choice. Keep complete behavior and tests in a cohesive slice; evidence/contract dependencies must remain honest and independently checkable.
 Rollback future approved work-unit commits only: remove logout control/integration/tests and restore their approved documentation boundaries; preserve the existing server guard/login policy and do not delete accounts or session data.
-Bootstrap commit: `33740e0c19bcae4d991ff50697a2ec06d3d460fb` (three planning documents, 280 additions); structural checks passed and hook changed no source. L1 implemented/tested the standalone control only; dashboard integration/L2 and real acceptance remain pending.
+Bootstrap commit: `33740e0c19bcae4d991ff50697a2ec06d3d460fb` (three planning documents, 280 additions); structural checks passed and hook changed no source. L1 tested the standalone control; L2 integrated it after the existing dashboard guard. Local deterministic implementation is complete; real acceptance remains pending.
 **Memory status:** full Engram mirror pending because authoritative runtime binding is unavailable; no memory mutation or remembered session identity is used. G1 records local completion only; parent explicitly acknowledged the blocked mirror and authorized safe local L1 continuation.
 
 ## L1 evidence and handoff
@@ -81,9 +81,9 @@ Encoding readback corrected bootstrap task/plan mojibake introduced by the Windo
 
 ## L2 evidence and handoff
 
-Parent assessment of `33740e0..4c72c544`: RDD on/global, medium 195 gross, `review_due=false` / `under_budget`. Boundary stays `33740e0` with L1 pending in the slice; no native START, consent or approval. Mirror remains unavailable.
+Historical parent assessment of `33740e0..4c72c544`: RDD on/global, medium 195 gross, `review_due=false` / `under_budget`; L1 remained pending against `33740e0`, without approval. Final `33740e0..689cbb8` assessment: high, 267 gross; owner explicitly declined exact native target `465e1a`, validated as candidate-scoped decline. Mode remains on/global; intentional unreviewed boundary is `689cbb8`, with no security approval or reusable authority for future candidates. Mirror remains unavailable.
 Observed RED: focused page/control/validation runner exited 1 with one missing authenticated logout-button assertion, 35 passed; all existing guard cases retained. GREEN: 36/36 focused; full 62/62. Existing nine page cases now also verify the client boundary is rendered only after server authentication and absent on denied/error paths.
 Final foreground `pnpm test -- --run`, `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`: all exit 0 after allowed page/test ESLint normalization. Prisma generated with no git-visible changes; dashboard remains dynamic. No runtime/DB/browser proof or dependency upgrade; Prisma update notice was informational only.
 Logout spec, architecture and backlog now document native CSRF/form/JSON ownership, checked native session read, PM-01 browser-only boundary, PM-02 deferred habits/full-story incompleteness and PM-03 neutral retry. Existing original CA text remains traceable; real acceptance boxes are unchecked. PM review evidence remains historical against its stated baseline.
-L2 rollback: remove dashboard control import/render and related assertions, restore this unit's three normative-document changes and plan/task evidence; preserve HU-02 guard and L1 tested standalone control. Local commit identity is returned to parent for later annotation; native assessment/consent is parent-owned against retained boundary `33740e0`.
-Next: parent readback/committed-slice assessment. A1 real cookie/session/direct/Back/keyboard/320 acceptance requires separate permission; L3 closure remains pending. No source edits outside approved surfaces, no publication or production operations.
+L2 rollback: remove dashboard control import/render and related assertions, restore this unit's three normative-document changes and plan/task evidence; preserve HU-02 guard and L1 tested standalone control. L2 local commit: `689cbb8adf9cc015fd46f1a53ac7657fd05d5a5a` (80 gross lines). Independent verification of those exact bytes: focused 36/36, full 62/62, typecheck/lint/build and worktree/committed diff checks all exit 0; 10 local references and fences valid, source/generated clean, no functional discrepancy. Earlier corrected failures remain historical, not current failures; mocked proof is not runtime or security approval.
+Next: separate authorization for A1 real cookie/session/direct/Back/keyboard/320 acceptance; L3 closure remains pending. Stage B habits/API proof is deferred to HU-06 and full original HU-03 remains incomplete. No source edits outside approved surfaces, no publication or production operations.
