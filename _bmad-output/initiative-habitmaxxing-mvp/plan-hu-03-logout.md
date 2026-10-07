@@ -9,7 +9,7 @@ context:
   - 'docs/wiki/backlog.md'
 ---
 
-**Local implementation authorized (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. Runtime acceptance, remote operations and publication remain unauthorized. No acceptance criterion is passed; L1 standalone implementation has deterministic proof only; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
+**Local implementation authorized (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. Runtime acceptance, remote operations and publication remain unauthorized. No acceptance criterion is passed; L1 control and L2 dashboard integration have deterministic proof only; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
 
 ## Intent
 
@@ -66,7 +66,7 @@ Existing `src/lib/auth.ts` and catch-all handler are reused; no planned change t
 
 - [ ] **G1 — Resolve intent and authorize execution.** PM-01–PM-03 and native Auth.js local implementation are approved. Branch `codex/hu-03-logout` was created at pinned integration `d3f3c3d` without fetching; current origin freshness is not asserted. The ODD task and parent readback are complete; stacked integration delivery toward `develop` is approved. G1 records local completion only; the unavailable Engram mirror remains pending.
 - [x] **L1 — Logout control with behavior tests.** Observe meaningful RED for authenticated control/native invocation, disabled pending/duplicate prevention and the approved PM-03 neutral non-success notice and re-enabled retry on unconfirmed logout; implement GREEN and refactor. Keep tests with the behavior, preserve HU-01/HU-02 regressions and avoid copying native CSRF/cookie logic.
-- [ ] **L2 — Guard integration and documentation.** Observe RED for changed authenticated page output, preserve all current redirect/fail-closed cases, then render the control. Reconcile only approved contract changes; pending acceptance stays unchecked. Close coherent tested units with future Conventional Commits after checks.
+- [x] **L2 — Guard integration and documentation (deterministic implementation).** Observe RED for changed authenticated page output, preserve all current redirect/fail-closed cases, then render the control. Reconcile only approved contract changes; pending acceptance stays unchecked. Close coherent tested units with future Conventional Commits after checks.
 - [ ] **A1 — Real isolated acceptance, separate permission required.** Use an explicitly authorized disposable local DB/account/browser, login, logout, inspect session/cookie outcome, verify direct/back protected access, repeated/no-session logout, keyboard and 320 px. Do not reuse production credentials or retained earlier fixture/profile contents.
 - [ ] **L3 — Evidence-based closure.** Record logout/dashboard stage acceptance only after observed proof; keep habits API unchecked under HU-06 and original full-story completion incomplete. No acceptance claim from mocks alone; no production/security approval inferred from local acceptance or deployment status.
 
@@ -98,6 +98,6 @@ Parent owns native RDD mode readback, committed-slice risk assessment and candid
 - Logout does not itself erase arbitrary application caches. Inspect actual sensitive state during bounded implementation before promising cleanup; do not add speculative storage deletion.
 - HU-02 Stage B/full original CA-01 remains incomplete but does not prevent HU-03 planning. Production login/cookie behavior, assistive-technology announcements and retained prior acceptance-profile cleanup remain unproved/unresolved, not silently completed here.
 
-Next: parent assesses the tested L1 commit before authorizing L2 dashboard integration; stacked integration delivery toward `develop` is selected. Local implementation/native approach is authorized; standalone L1 is implemented, not dashboard-integrated or accepted; isolated runtime acceptance needs separate permission. L1 deterministic implementation is checked; L2 and runtime/closure tasks remain unchecked.
+Next: parent assesses the committed integration slice before separately authorizing isolated acceptance; stacked integration delivery toward `develop` is selected. Local implementation/native approach is authorized; L1/L2 are implemented and dashboard-integrated, not runtime-accepted; isolated runtime acceptance needs separate permission. L1/L2 deterministic implementation is checked; runtime/closure tasks remain unchecked.
 
 **Memory status:** Engram mirror pending because authoritative runtime session binding is unavailable. No memory write or remembered session identity is used in this planning task.

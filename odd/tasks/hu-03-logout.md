@@ -3,7 +3,7 @@
 ## Objective and authorization
 
 Protect shared-device use by letting an authenticated user leave this browser session and return to `/login`, then deny fresh protected dashboard access.
-The owner authorized native Auth.js local implementation, tests and Conventional work-unit commits on 2026-10-07. Parent readback is complete; stacked integration delivery toward `develop` is approved. L1 is now authorized; no remote publication or runtime acceptance.
+The owner authorized native Auth.js local implementation, tests and Conventional work-unit commits on 2026-10-07. Parent readback is complete; stacked integration delivery toward `develop` is approved. L1 is implemented and parent authorized bounded L2; no remote publication or runtime acceptance.
 Authoritative intent: [HU-03 plan](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-03-logout.md); [PM review and decisions](../../_bmad-output/initiative-habitmaxxing-mvp/review-hu-03-requirements.md).
 
 ## Approved boundaries
@@ -41,7 +41,7 @@ No additional test fixture/configuration path is authorized; derive and request 
 
 - [ ] **G1 — Bootstrap/handoff.** Branch and task created; parent readback/delivery decision and full Engram mirror pending. Route delegated: preparation for coordinated multi-file implementation. No source or commit yet.
 - [x] **L1 — Native logout behavior and tests.** Delegated writer: client behavior plus colocated tests are two nontrivial logic files. Observe meaningful Vitest RED for native invocation, pending/duplicate and PM-03 retry feedback; implement GREEN/refactor without custom cookie logic.
-- [ ] **L2 — Dashboard integration and contract alignment.** Delegated writer: server page/test plus three normative docs. RED for changed authenticated output; preserve anonymous/error guard cases, reconcile approved semantics and stale transport notes without claiming acceptance.
+- [x] **L2 — Dashboard integration and contract alignment (deterministic implementation).** Delegated writer: server page/test plus three normative docs. RED for changed authenticated output; preserve anonymous/error guard cases, reconcile approved semantics and stale transport notes without claiming acceptance.
 - [ ] **A1 — Isolated real acceptance.** Pending separate runtime permission; delegated verifier because browser/session/DB boundaries require actual execution. Verify cookie removal/session null, fresh/direct/Back dashboard denial, repeated/no-session behavior, keyboard and 320 px on the final candidate.
 - [ ] **L3 — Evidence-based staged closure.** Delegated documentary work across plan/task/contracts; record observed stage results only, retain HU-06 habits dependency and original full-story incompleteness.
 
@@ -78,3 +78,12 @@ Final foreground results: focused `pnpm exec vitest run "src/app/(dashboard)/das
 L1 rollback boundary: remove the two standalone control/test files and their task/plan evidence, preserving existing dashboard/authentication. L1 local commit: `953cf4ca730d316134a4d36e542e4a535959eb1e` (195 gross lines; 140 standalone source/test additions); native assessment/consent parent-owned against bootstrap `33740e0`, no review approval claimed.
 Tests mock native invocation/session responses, including null, remaining session, HTTP failure, redirect, malformed/missing/invalid JSON, rejection, pending duplicates, retry and unmount. They are not cookie/CSRF/browser/runtime proof. A1 remains unauthorized and unchecked; no staged/story acceptance is claimed. Mirror remains pending.
 Encoding readback corrected bootstrap task/plan mojibake introduced by the Windows locale-default text read; subsequent reads/writes explicitly use UTF-8. No source/test bytes changed by this documentary correction.
+
+## L2 evidence and handoff
+
+Parent assessment of `33740e0..4c72c544`: RDD on/global, medium 195 gross, `review_due=false` / `under_budget`. Boundary stays `33740e0` with L1 pending in the slice; no native START, consent or approval. Mirror remains unavailable.
+Observed RED: focused page/control/validation runner exited 1 with one missing authenticated logout-button assertion, 35 passed; all existing guard cases retained. GREEN: 36/36 focused; full 62/62. Existing nine page cases now also verify the client boundary is rendered only after server authentication and absent on denied/error paths.
+Final foreground `pnpm test -- --run`, `pnpm typecheck`, `pnpm lint`, `pnpm build`, `git diff --check`: all exit 0 after allowed page/test ESLint normalization. Prisma generated with no git-visible changes; dashboard remains dynamic. No runtime/DB/browser proof or dependency upgrade; Prisma update notice was informational only.
+Logout spec, architecture and backlog now document native CSRF/form/JSON ownership, checked native session read, PM-01 browser-only boundary, PM-02 deferred habits/full-story incompleteness and PM-03 neutral retry. Existing original CA text remains traceable; real acceptance boxes are unchecked. PM review evidence remains historical against its stated baseline.
+L2 rollback: remove dashboard control import/render and related assertions, restore this unit's three normative-document changes and plan/task evidence; preserve HU-02 guard and L1 tested standalone control. Local commit identity is returned to parent for later annotation; native assessment/consent is parent-owned against retained boundary `33740e0`.
+Next: parent readback/committed-slice assessment. A1 real cookie/session/direct/Back/keyboard/320 acceptance requires separate permission; L3 closure remains pending. No source edits outside approved surfaces, no publication or production operations.

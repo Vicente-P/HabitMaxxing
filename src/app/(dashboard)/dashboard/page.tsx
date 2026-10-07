@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import LogoutButton from "./logout-button";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -10,6 +11,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1>Dashboard</h1>
+      <LogoutButton />
     </div>
   );
 }
