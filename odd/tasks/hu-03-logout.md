@@ -1,4 +1,4 @@
-# HU-03 / SCRUM-8 â€” Native logout
+# HU-03 / SCRUM-8 — Native logout
 
 ## Objective and authorization
 
@@ -39,15 +39,15 @@ No additional test fixture/configuration path is authorized; derive and request 
 
 ## Tasks and route
 
-- [ ] **G1 â€” Bootstrap/handoff.** Branch and task created; parent readback/delivery decision and full Engram mirror pending. Route delegated: preparation for coordinated multi-file implementation. No source or commit yet.
-- [ ] **L1 â€” Native logout behavior and tests.** Delegated writer: client behavior plus colocated tests are two nontrivial logic files. Observe meaningful Vitest RED for native invocation, pending/duplicate and PM-03 retry feedback; implement GREEN/refactor without custom cookie logic.
-- [ ] **L2 â€” Dashboard integration and contract alignment.** Delegated writer: server page/test plus three normative docs. RED for changed authenticated output; preserve anonymous/error guard cases, reconcile approved semantics and stale transport notes without claiming acceptance.
-- [ ] **A1 â€” Isolated real acceptance.** Pending separate runtime permission; delegated verifier because browser/session/DB boundaries require actual execution. Verify cookie removal/session null, fresh/direct/Back dashboard denial, repeated/no-session behavior, keyboard and 320 px on the final candidate.
-- [ ] **L3 â€” Evidence-based staged closure.** Delegated documentary work across plan/task/contracts; record observed stage results only, retain HU-06 habits dependency and original full-story incompleteness.
+- [ ] **G1 — Bootstrap/handoff.** Branch and task created; parent readback/delivery decision and full Engram mirror pending. Route delegated: preparation for coordinated multi-file implementation. No source or commit yet.
+- [ ] **L1 — Native logout behavior and tests.** Delegated writer: client behavior plus colocated tests are two nontrivial logic files. Observe meaningful Vitest RED for native invocation, pending/duplicate and PM-03 retry feedback; implement GREEN/refactor without custom cookie logic.
+- [ ] **L2 — Dashboard integration and contract alignment.** Delegated writer: server page/test plus three normative docs. RED for changed authenticated output; preserve anonymous/error guard cases, reconcile approved semantics and stale transport notes without claiming acceptance.
+- [ ] **A1 — Isolated real acceptance.** Pending separate runtime permission; delegated verifier because browser/session/DB boundaries require actual execution. Verify cookie removal/session null, fresh/direct/Back dashboard denial, repeated/no-session behavior, keyboard and 320 px on the final candidate.
+- [ ] **L3 — Evidence-based staged closure.** Delegated documentary work across plan/task/contracts; record observed stage results only, retain HU-06 habits dependency and original full-story incompleteness.
 
 ## Verification and commits
 
-Meaningful behavior changes use RED â†’ GREEN â†’ refactor with observed assertions; shell errors or missing modules alone are not valid RED. Bootstrap documents use structural checks only; no artificial RED.
+Meaningful behavior changes use RED → GREEN → refactor with observed assertions; shell errors or missing modules alone are not valid RED. Bootstrap documents use structural checks only; no artificial RED.
 
 ```text
 pnpm exec vitest run "src/app/(dashboard)/dashboard/logout-button.test.tsx" "src/app/(dashboard)/dashboard/page.test.tsx" tests/validations.test.ts
@@ -64,8 +64,17 @@ Runtime proof remains pending: mocked calls do not certify cookies, CSRF, browse
 
 ## Delivery, rollback and next gate
 
-Delivery strategy: `ask-on-risk`; chain strategy `stacked-to-main` with integration target `develop` (owner-approved 2026-10-07), no inherited HU-02 topology or PR count. Forecast includes 209 existing plan/review lines, this task, about 180â€“300 behavior/test changed lines and 40â€“90 normative-doc changed lines: approximately 500â€“700 gross authored lines. Count actual net additions plus deletions at each work unit; never omit proof or compress to meet budget.
+Delivery strategy: `ask-on-risk`; chain strategy `stacked-to-main` with integration target `develop` (owner-approved 2026-10-07), no inherited HU-02 topology or PR count. Forecast includes 209 existing plan/review lines, this task, about 180–300 behavior/test changed lines and 40–90 normative-doc changed lines: approximately 500–700 gross authored lines. Count actual net additions plus deletions at each work unit; never omit proof or compress to meet budget.
 Parent resolved the delivery choice before the first commit: stacked integration PRs toward `develop`; exact coherent slices will follow observed counts. Publication is not authorized by that planning choice. Keep complete behavior and tests in a cohesive slice; evidence/contract dependencies must remain honest and independently checkable.
 Rollback future approved work-unit commits only: remove logout control/integration/tests and restore their approved documentation boundaries; preserve the existing server guard/login policy and do not delete accounts or session data.
-Bootstrap evidence: pinned new branch and three-document structural readback; no source writes, tests/build, commits, remotes or runtime execution. Parent must reconcile this task before L1.
+Bootstrap commit: `33740e0c19bcae4d991ff50697a2ec06d3d460fb` (three planning documents, 280 additions); structural checks passed and hook changed no source. L1 implemented/tested the standalone control only; dashboard integration/L2 and real acceptance remain pending.
 **Memory status:** full Engram mirror pending because authoritative runtime binding is unavailable; no memory mutation or remembered session identity is used. G1 records local completion only; parent explicitly acknowledged the blocked mirror and authorized safe local L1 continuation.
+
+## L1 evidence and handoff
+
+Installed `signOut` parses JSON without checking HTTP success; installed `getSession` returns null after transport errors. The control therefore uses native nonredirecting signout, then an explicit same-origin, no-store session GET with redirects rejected. Only successful nonredirected JSON `null` permits `/login` navigation; active/malformed/failed reads show neutral Spanish retry feedback. No manual cookie or CSRF logic.
+Observed RED: 11 failed tests on the runnable inert button; 10 behavioral assertion failures (missing navigation/feedback/pending) plus one unmount fixture callback unavailable because no handler ran. GREEN: focused 11/11; full 62/62 (baseline 51 retained). First typecheck failed with two TS2352 mock casts; explicit `unknown` bridge corrected only test typing, then normalization and all final checks passed.
+Final foreground results: focused `pnpm exec vitest run "src/app/(dashboard)/dashboard/logout-button.test.tsx"` 0; `pnpm test -- --run` 0; `pnpm typecheck` 0; `pnpm lint` 0; `pnpm build` 0; `git diff --check` 0. Build generated Prisma with zero git-visible changes; dashboard remains dynamic and unchanged.
+L1 rollback boundary: remove the two standalone control/test files and their task/plan evidence, preserving existing dashboard/authentication. L1 local commit pending identity handoff (recorded by parent without self-referential amend); native assessment/consent parent-owned against bootstrap `33740e0`, no review approval claimed.
+Tests mock native invocation/session responses, including null, remaining session, HTTP failure, redirect, malformed/missing/invalid JSON, rejection, pending duplicates, retry and unmount. They are not cookie/CSRF/browser/runtime proof. A1 remains unauthorized and unchecked; no staged/story acceptance is claimed. Mirror remains pending.
+Encoding readback corrected bootstrap task/plan mojibake introduced by the Windows locale-default text read; subsequent reads/writes explicitly use UTF-8. No source/test bytes changed by this documentary correction.
