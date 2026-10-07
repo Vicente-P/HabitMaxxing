@@ -128,10 +128,12 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - CA-02: Dado que cerré sesión, cuando intento acceder a una ruta protegida, entonces soy redirigido al login automáticamente.
 
 **Tareas Técnicas:**
-- T-13: Crear endpoint POST /api/auth/logout
-- T-14: Implementar invalidación de token en frontend
-- T-15: Redirigir a login tras cerrar sesión
-- T-16: Reutilizar el guard servidor HU-02 para verificar acceso tras logout; no duplicar middleware/guard. Logout y verificación posterior siguen pendientes en HU-03
+- T-13: Usar `signOut` nativo de Auth.js (CSRF/formulario/JSON); sin endpoint `/api/auth/logout` propio
+- T-14: Retirar sesión/cookie de este navegador mediante Auth.js, sin revocar JWT copiados u otros dispositivos
+- T-15: Navegar al login solo después de respuesta exitosa y JSON `null` explícito del endpoint nativo de sesión; fallo ambiguo muestra aviso neutral y habilita reintento
+- T-16: Control integrado tras el guard servidor HU-02, sin duplicar middleware/guard; pruebas deterministas conservan denegación anónima y fallo cerrado. Etapa logout/dashboard verificada localmente; hábitos/HU-06 pendientes
+
+**Estado HU-03 (2026-10-07):** etapa logout/dashboard aceptada localmente sobre `201ce13` (fuente `689cbb8`) tras tres intentos aislados: cookie retirada, sesión 200/null, dashboard 307/login directo/Back, repetición sin sesión, teclado/320 px y confirmación 503 con aviso neutral/reintento sin éxito supuesto. PM-01–PM-03: navegador actual, sin revocación global; `/api/habits` 401 diferido a HU-06 e historia original completa incompleta. Fallos iniciales de aserciones del harness no demostraron defectos de fuente; origen del callback repetido desconocido. Temporales retenidos por política quedan como seguimiento; procesos/contenedores/volúmenes detenidos. No aceptación en producción/aprobación de seguridad ni publicación. T-13/T-14 antiguos de endpoint/token manual supersedidos.
 
 `Story Points: 1` `Prioridad: Alta` `Sprint: 1`
 

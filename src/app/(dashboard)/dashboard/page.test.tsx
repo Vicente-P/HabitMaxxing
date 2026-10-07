@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { auth, redirect } = vi.hoisted(() => ({ auth: vi.fn(), redirect: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("./logout-button", () => ({ default: () => <button type="button">Cerrar sesión</button> }));
 
 import DashboardPage from "./page";
 
@@ -20,6 +21,7 @@ describe("dashboard server session boundary", () => {
       expect(auth).toHaveBeenCalledOnce();
       expect(redirect).toHaveBeenCalledExactlyOnceWith("/login");
       expect(screen.queryByRole("heading", { name: "Dashboard" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
     },
   );
 
@@ -30,6 +32,7 @@ describe("dashboard server session boundary", () => {
     expect(auth).toHaveBeenCalledOnce();
     expect(redirect).not.toHaveBeenCalled();
     expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
   });
 
   it("fails closed when server authentication throws instead of returning protected content", async () => {
@@ -38,5 +41,6 @@ describe("dashboard server session boundary", () => {
     await expect(Promise.resolve().then(() => DashboardPage())).rejects.toBe(unavailable);
     expect(redirect).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Dashboard" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
   });
 });
