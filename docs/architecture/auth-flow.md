@@ -86,7 +86,7 @@ En Next.js 16, `proxy.ts` puede realizar redirecciones tempranas y generales hac
 
 - Rutas públicas implementadas: `POST /api/auth/register`, `/login`, `/register`.
 - `/dashboard`: `auth()` en el Server Component exige ID de usuario válido antes de devolver contenido; sin identidad redirige a `/login`, errores de autenticación se propagan sin contenido protegido. No hay un segundo guard de Proxy implementado.
-- HU-03 integra el control de logout únicamente después de este guard; conserva el placeholder sin hábitos. Cada futuro límite de datos debe autenticar y autorizar al usuario de nuevo. Aceptación real de logout pendiente.
+- HU-03 integra el control de logout únicamente después de este guard; conserva el placeholder sin hábitos. Cada futuro límite de datos debe autenticar y autorizar al usuario de nuevo. Etapa logout/dashboard aceptada localmente sobre `201ce13` (fuente `689cbb8`), sin acreditar producción.
 
 ---
 
@@ -98,11 +98,11 @@ Email desconocido, contraseña errónea y bloqueo comparten "Credenciales incorr
 
 Auth.js usa `session.maxAge = 2_592_000` para JWT/cookie con expiración renovable al acceder a sesión. No devuelve contraseña/hash/contadores; bloqueo no revoca JWT existentes. A2 local verificó sesión, HttpOnly/SameSite=Lax, reinicio real de Chrome con el mismo perfil y acceso protegido. Secure=false en HTTP local no acredita producción. Etapa A aceptada localmente; etapa B hábitos/HU-06 no implementada, CA-01 completo pendiente.
 
-## Logout HU-03: implementación y prueba pendiente
+## Logout HU-03: etapa aceptada localmente
 
 `LogoutButton` llama a `signOut({ redirect: false, redirectTo: "/login" })`; Auth.js obtiene CSRF, envía formulario al signout nativo y procesa JSON. No hay endpoint logout propio ni borrado manual de cookies. Luego un GET al endpoint nativo de sesión, sin caché y con redirecciones rechazadas, exige HTTP exitoso y JSON `null` explícito antes de navegar al login. Un helper resuelto o llegar al login no demuestra sesión terminada; un resultado ambiguo restaura reintento y aviso neutral, sin éxito supuesto.
 
-PM-01–PM-03 (2026-10-07): alcance de este navegador, sin revocar JWT copiados/otros dispositivos; etapa logout/dashboard requiere aceptación observada. API hábitos diferida a HU-06 y historia completa pendiente. Pruebas unitarias de control/integración no sustituyen cookies, sesión, navegación directa/Back o navegador real; no se afirma aceptación ni aprobación de seguridad.
+PM-01–PM-03 (2026-10-07): alcance de este navegador, sin revocar JWT copiados/otros dispositivos; etapa logout/dashboard aceptada con tres intentos aislados sobre `201ce13` (fuente `689cbb8`): cookie retirada, sesión 200/null, dashboard 307/login directo/Back, repetición sin sesión, teclado y 320 px. Confirmación 503 mostró aviso neutral y reintento sin éxito supuesto; el reintento real confirmó sesión nula. Aserciones iniciales de callback/localizador fueron límites del harness; origen del callback repetido desconocido. API hábitos diferida a HU-06 e historia completa pendiente; HTTP local no acredita Secure en producción ni aprobación de seguridad. Temporales retenidos por política requieren seguimiento, con contenedores/volúmenes/procesos ya detenidos.
 
 ## Archivos relevantes
 

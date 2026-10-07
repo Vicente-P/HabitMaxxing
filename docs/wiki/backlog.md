@@ -131,9 +131,9 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-13: Usar `signOut` nativo de Auth.js (CSRF/formulario/JSON); sin endpoint `/api/auth/logout` propio
 - T-14: Retirar sesión/cookie de este navegador mediante Auth.js, sin revocar JWT copiados u otros dispositivos
 - T-15: Navegar al login solo después de respuesta exitosa y JSON `null` explícito del endpoint nativo de sesión; fallo ambiguo muestra aviso neutral y habilita reintento
-- T-16: Control integrado tras el guard servidor HU-02, sin duplicar middleware/guard; pruebas deterministas conservan denegación anónima y fallo cerrado. Aceptación real posterior pendiente
+- T-16: Control integrado tras el guard servidor HU-02, sin duplicar middleware/guard; pruebas deterministas conservan denegación anónima y fallo cerrado. Etapa logout/dashboard verificada localmente; hábitos/HU-06 pendientes
 
-**Estado HU-03:** implementación local de control/integración; no aceptación real todavía. PM-01–PM-03 aprobados 2026-10-07: sesión del navegador actual, sin revocación global; etapa logout/dashboard solo tras prueba observada. `/api/habits` 401 diferido a HU-06 y la historia original completa sigue incompleta. Llegar al login no acredita cierre; verificar cookies/sesión/acceso directo y Back en aceptación aislada. Los antiguos T-13/T-14 de endpoint y token manual quedan supersedidos.
+**Estado HU-03 (2026-10-07):** etapa logout/dashboard aceptada localmente sobre `201ce13` (fuente `689cbb8`) tras tres intentos aislados: cookie retirada, sesión 200/null, dashboard 307/login directo/Back, repetición sin sesión, teclado/320 px y confirmación 503 con aviso neutral/reintento sin éxito supuesto. PM-01–PM-03: navegador actual, sin revocación global; `/api/habits` 401 diferido a HU-06 e historia original completa incompleta. Fallos iniciales de aserciones del harness no demostraron defectos de fuente; origen del callback repetido desconocido. Temporales retenidos por política quedan como seguimiento; procesos/contenedores/volúmenes detenidos. No aceptación en producción/aprobación de seguridad ni publicación. T-13/T-14 antiguos de endpoint/token manual supersedidos.
 
 `Story Points: 1` `Prioridad: Alta` `Sprint: 1`
 

@@ -9,11 +9,11 @@ context:
   - 'docs/wiki/backlog.md'
 ---
 
-**Local implementation authorized (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. Runtime acceptance, remote operations and publication remain unauthorized. No acceptance criterion is passed; L1 control and L2 dashboard integration have deterministic proof only; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
+**Local implementation authorized (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. The owner subsequently authorized isolated A1; logout/dashboard stage acceptance is now observed locally, not full-story completion. Remote operations/publication remain unauthorized; L1/L2 deterministic proof and local A1 evidence are recorded below; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
 
 ## Intent
 
-Let an authenticated user choose "Cerrar sesión", leave the current browser session and return to `/login`; subsequent protected dashboard access must redirect to login. This protects shared-device use without introducing a second authentication stack or duplicating the HU-02 server guard. PM-02 permits future logout/dashboard stage acceptance only after proof; habits API acceptance stays deferred to HU-06 and the original full story remains incomplete.
+Let an authenticated user choose "Cerrar sesión", leave the current browser session and return to `/login`; subsequent protected dashboard access must redirect to login. This protects shared-device use without introducing a second authentication stack or duplicating the HU-02 server guard. PM-02 permits logout/dashboard stage acceptance after proof, now observed locally; habits API acceptance stays deferred to HU-06 and the original full story remains incomplete.
 
 ## References and current evidence
 
@@ -22,7 +22,7 @@ Let an authenticated user choose "Cerrar sesión", leave the current browser ses
 - [Authentication architecture](../../docs/architecture/auth-flow.md): existing authentication ownership.
 - [HU-02 plan](plan-hu-02-login.md): accepted local authentication stage, deferred actual habits and proof limits; historical execution statements are not current publication status.
 - Current integration baseline: `d3f3c3df668096fc6f97980defdae0f326a7a24c`, tree `1fbd672fea23c8cc24e35d84c64ec071f496e1da`. HU-02 was integrated and deployed; production proof covered page GETs and anonymous dashboard redirect only, not functional login/cookies.
-- `src/lib/auth.ts` already exports `signOut`, `auth` and handlers; the existing catch-all route exposes GET/POST. Dashboard already authenticates on the server but has no logout control. No application logout invocation or logout-specific tests were found.
+- `src/lib/auth.ts` already exports `signOut`, `auth` and handlers; the existing catch-all route exposes GET/POST. At the pinned pre-HU-03 baseline, dashboard authenticated on the server without a logout control or logout-specific tests; L1/L2 subsequently added the native control and tests.
 - Installed `next-auth/react` obtains CSRF, sends form-encoded signout parameters, reads JSON and then redirects. Specification claims of no body/no interceptable JSON are stale; use the installed API rather than implementing those claims literally.
 
 CodeGraph was checked before focused inspection; it reported pending index changes and no lexical logout match. Focused source/package readback supplied the missing evidence without index mutation.
@@ -31,15 +31,15 @@ CodeGraph was checked before focused inspection; it reported pending index chang
 
 | Criterion | Planned proof | Boundary |
 |---|---|---|
-| CA-01: choose logout, invalidate session and reach login | Deterministic control/pending/failure tests plus separately authorized isolated browser logout, cookie removal and `/api/auth/session` null | PM-01 owner-approved 2026-10-07: current browser session removal only; no copied-token or all-device revocation; implementation/proof pending |
-| CA-02: protected access after logout redirects to login | Reuse existing server dashboard guard; isolated fresh request, direct navigation and browser-back verification after logout | PM-02 owner-approved 2026-10-07: future logout/dashboard stage acceptance requires proof; habits API deferred to HU-06, unchecked; original full story incomplete |
+| CA-01: choose logout, invalidate session and reach login | Deterministic control/pending/failure tests plus separately authorized isolated browser logout, cookie removal and `/api/auth/session` null | PM-01 owner-approved 2026-10-07: current browser session removal only; no copied-token or all-device revocation; local browser-session removal proved; no production/global revocation claim |
+| CA-02: protected access after logout redirects to login | Reuse existing server dashboard guard; isolated fresh request, direct navigation and browser-back verification after logout | PM-02 owner-approved 2026-10-07: logout/dashboard stage accepted locally after proof; habits API deferred to HU-06, unchecked; original full story incomplete |
 
 ## Scope and decision status
 
 1. **Native transport — owner-approved 2026-10-07:** use `signOut` from installed `next-auth/react`, targeting `/login` with supported `redirectTo`; no custom `/api/auth/logout`, token implementation or manual cookie deletion. Reconcile backlog/spec transport notes only during authorized implementation.
-2. **Session meaning — PM-01 owner-approved 2026-10-07:** CA-01 removes the current browser's Auth.js session cookie. Do not promise revocation of copied JWTs, other devices or every concurrent session. This resolves intent only; implementation and runtime proof remain pending. Stronger revocation is outside the approved boundary.
-3. **Dependent API acceptance — PM-02 owner-approved 2026-10-07:** Defer `/api/habits` postlogout 401 proof until HU-06/authenticated readback exists. Future logout/dashboard stage acceptance requires observed proof; keep habits unchecked and do not claim original full-story completion.
-4. **Failure outcome — PM-03 owner-approved 2026-10-07:** If logout cannot be confirmed, show a neutral non-success notice and re-enable the logout button for retry. Arrival or redirect to `/login` alone does not prove the session ended. Finalize exact neutral Spanish copy during authorized implementation; pending/duplicate and repeated/no-session behavior remain implementation proposals.
+2. **Session meaning — PM-01 owner-approved 2026-10-07:** CA-01 removes the current browser's Auth.js session cookie. Do not promise revocation of copied JWTs, other devices or every concurrent session. This originally resolved intent only; implementation and isolated browser proof are now observed. Stronger revocation is outside the approved boundary.
+3. **Dependent API acceptance — PM-02 owner-approved 2026-10-07:** Defer `/api/habits` postlogout 401 proof until HU-06/authenticated readback exists. Local logout/dashboard stage acceptance now has observed proof; keep habits unchecked and do not claim original full-story completion.
+4. **Failure outcome — PM-03 owner-approved 2026-10-07:** If logout cannot be confirmed, show a neutral non-success notice and re-enable the logout button for retry. Arrival or redirect to `/login` alone does not prove the session ended. Implemented neutral Spanish copy, pending/duplicate prevention and repeated/no-session behavior have deterministic and isolated local proof; no custom callback-status contract is imposed.
 
 Authorized local implementation scope: logout control, focused deterministic tests, native session removal/redirect, existing guard reuse, documentary reconciliation and separately authorized isolated acceptance. Do not duplicate middleware/proxy authentication.
 
@@ -66,9 +66,9 @@ Existing `src/lib/auth.ts` and catch-all handler are reused; no planned change t
 
 - [x] **G1 — Resolve intent and authorize execution (local only).** PM-01–PM-03 and native Auth.js local implementation are approved. Branch `codex/hu-03-logout` was created at pinned integration `d3f3c3d` without fetching; current origin freshness is not asserted. The ODD task and parent readback are complete; stacked integration delivery toward `develop` is approved. G1 records local completion only; the unavailable Engram mirror remains pending.
 - [x] **L1 — Logout control with behavior tests.** Observe meaningful RED for authenticated control/native invocation, disabled pending/duplicate prevention and the approved PM-03 neutral non-success notice and re-enabled retry on unconfirmed logout; implement GREEN and refactor. Keep tests with the behavior, preserve HU-01/HU-02 regressions and avoid copying native CSRF/cookie logic.
-- [x] **L2 — Guard integration and documentation (deterministic implementation).** Observe RED for changed authenticated page output, preserve all current redirect/fail-closed cases, then render the control. Reconcile only approved contract changes; pending acceptance stays unchecked. Close coherent tested units with future Conventional Commits after checks.
-- [ ] **A1 — Real isolated acceptance, separate permission required.** Use an explicitly authorized disposable local DB/account/browser, login, logout, inspect session/cookie outcome, verify direct/back protected access, repeated/no-session logout, keyboard and 320 px. Do not reuse production credentials or retained earlier fixture/profile contents.
-- [ ] **L3 — Evidence-based closure.** Record logout/dashboard stage acceptance only after observed proof; keep habits API unchecked under HU-06 and original full-story completion incomplete. No acceptance claim from mocks alone; no production/security approval inferred from local acceptance or deployment status.
+- [x] **L2 — Guard integration and documentation (deterministic implementation).** Observe RED for changed authenticated page output, preserve all current redirect/fail-closed cases, then render the control. Approved contract changes were reconciled and tested in L2; local-stage acceptance is recorded in A1, with habits/full-story completion still pending.
+- [x] **A1 — Real isolated acceptance (local stage only).** Later owner-authorized disposable DB/browser proof covered login/logout, cookie/session outcome, direct/Back denial, repeated/no-session, pending duplicates, 503 neutral retry, keyboard and 320 px on `201ce13` (source `689cbb8`); no production credentials or retained earlier profile reuse.
+- [x] **L3 — Evidence-based local closure.** Record observed logout/dashboard stage acceptance; keep habits API unchecked under HU-06 and original full-story completion incomplete. No acceptance claim from mocks alone; no production/security approval inferred from local acceptance or deployment status.
 
 ## Verification and review handoff
 
@@ -93,11 +93,16 @@ Parent owns native RDD mode readback, committed-slice risk assessment and candid
 
 ## Risks and next step
 
-- PM-03: unconfirmed logout requires neutral non-success feedback and an enabled retry. Redirect/arrival alone is not proof; future acceptance must separately verify session null and denied protected access.
-- Back navigation/browser caching and repeated logout need real browser proof; mocked calls do not prove cookie removal, CSRF or invalidation.
+- PM-03: unconfirmed logout requires neutral non-success feedback and an enabled retry. Redirect/arrival alone is not proof; isolated acceptance separately verified session null and denied protected access.
+- Real local browser proof now covers direct/Back denial and repeated logout; mocks alone did not prove cookie removal or session termination. Repeated native callback origin mismatch remains unexplained, without a source/security root-cause claim.
 - Logout does not itself erase arbitrary application caches. Inspect actual sensitive state during bounded implementation before promising cleanup; do not add speculative storage deletion.
 - HU-02 Stage B/full original CA-01 remains incomplete but does not prevent HU-03 planning. Production login/cookie behavior, assistive-technology announcements and retained prior acceptance-profile cleanup remain unproved/unresolved, not silently completed here.
 
-Next: separately authorize isolated A1 acceptance; L3 closure remains pending, with Stage B habits/HU-06 and full original HU-03 incomplete. L2 commit `689cbb8adf9cc015fd46f1a53ac7657fd05d5a5a` independently passed focused 36/full 62, typecheck/lint/build/worktree and committed diff checks (all exit 0), 10 local references/fences and source/generated cleanliness. G1/L1/L2 local deterministic implementation is complete, not runtime-accepted or security-approved; stacked delivery toward `develop` is selected and memory mirror remains pending.
+Next: local stacked-delivery preparation; A1 and L3 close only the observed local logout/dashboard stage, with Stage B habits/HU-06 and full original HU-03 incomplete. L2 commit `689cbb8adf9cc015fd46f1a53ac7657fd05d5a5a` independently passed focused 36/full 62, typecheck/lint/build/worktree and committed diff checks (all exit 0), 10 local references/fences and source/generated cleanliness. G1/L1/L2 implementation and A1/L3 local-stage acceptance are complete, not full-story or security approval; stacked delivery toward `develop` is selected and memory mirror remains pending.
 
 **Memory status:** Engram mirror pending because authoritative runtime session binding is unavailable. No memory write or remembered session identity is used in this planning task.
+
+## Local acceptance outcome — 2026-10-07
+
+Three owner-authorized isolated attempts on `201ce13` (exact source `689cbb8`) jointly proved real session 200/null, cookie removal, protected dashboard 307/login including direct/Back, repeated/no-session denial, keyboard and 320 px. A focused third recovery run exited 0: injected confirmation 503 produced the exact neutral notice, re-enabled retry without navigation; keyboard Space retry then confirmed null session/cookie absence and reached login. Earlier combined repeat/callback and broad-alert locator assertions were harness limitations, not demonstrated source defects; callback origin cause remains unknown. See [task evidence](../../odd/tasks/hu-03-logout.md#isolated-a1-acceptance-and-l3-closure--2026-10-07).
+All owned containers/volumes, browsers/apps and listeners were stopped/removed. Policy-blocked temporary fixture/profile cleanup remains a nonblocking follow-up; do not inspect or delete retained contents without authorization. Local Secure=false is expected HTTP behavior, not production proof; habits/HU-06/full original HU-03 and remote delivery remain pending.
