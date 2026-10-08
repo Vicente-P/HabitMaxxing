@@ -166,15 +166,15 @@ POST /api/habits
 
 ## Tests requeridos
 
-- [ ] Crear hábito binario válido retorna 201 con `unit: null`.
-- [ ] Crear hábito numérico válido retorna 201 con `unit` especificado.
-- [ ] Nombre vacío retorna 400 con mensaje obligatorio.
-- [ ] `frequency` vacío retorna 400 con mensaje de al menos un día.
-- [ ] `frequency` con valores fuera de 0–6 retorna 400.
-- [ ] `type = NUMERIC` sin `unit` retorna 400.
-- [ ] `type = BINARY` con `unit` retorna 400, incluso con `null`.
-- [ ] Sin sesión retorna 401.
-- [ ] Hábito creado pertenece al `userId` de la sesión activa.
+- [x] Crear hábito binario válido retorna 201 con `unit: null`.
+- [x] Crear hábito numérico válido retorna 201 con `unit` especificado.
+- [x] Nombre vacío retorna 400 con mensaje obligatorio.
+- [x] `frequency` vacío retorna 400 con mensaje de al menos un día.
+- [x] `frequency` con valores fuera de 0–6 retorna 400: POST autenticado BINARY con `[7]` confirmó `VALIDATION_ERROR`, sin insertar (delta real aislado).
+- [x] `type = NUMERIC` sin `unit` retorna 400: POST autenticado NUMERIC con `[0]` y clave `unit` omitida confirmó `VALIDATION_ERROR`, sin insertar (delta real aislado).
+- [x] `type = BINARY` con `unit` retorna 400, incluso con `null`.
+- [x] Sin sesión retorna 401.
+- [x] Hábito creado pertenece al `userId` de la sesión activa.
 
 ---
 
@@ -187,7 +187,7 @@ POST /api/habits
 ## Notas de seguridad
 
 - Verificar sesión activa antes de crear.
-- Validar texto con recorte de espacios externos y límites; no interpretar HTML. La UI posterior debe renderizarlo como texto.
+- Validar texto con recorte de espacios externos y límites; no interpretar HTML. La UI lo renderiza como texto.
 
 ---
 
@@ -202,12 +202,12 @@ POST /api/habits
 - Comparar un único `Origin` canónico con `APP_ORIGIN`, configurado en servidor. Nunca inferirlo de `Host`, cabeceras reenviadas o URL de la solicitud. Origen ausente, `null`, extranjero, múltiple o no canónico: 403 (`FORBIDDEN`). Configuración ausente/inválida: 500 (`INTERNAL_ERROR`).
 - Aceptar `application/json`, opcionalmente `charset=utf-8`; otros formatos: 415 (`UNSUPPORTED_MEDIA_TYPE`). Cuerpo máximo: 8192 bytes reales, leído por streaming, con cancelación al exceder; `Content-Length` solo permite rechazo anticipado. Exceso: 413 (`PAYLOAD_TOO_LARGE`). JSON vacío, malformado, UTF-8 inválido o no objeto: 400 (`VALIDATION_ERROR`).
 - Todos los resultados del handler llevan `Cache-Control: private, no-store`. El DTO incluye únicamente campos escalares del hábito, sin relaciones ni información de cuenta. No registrar cuerpos, cookies, tokens o excepciones internas.
-- HU06-01 implementa POST; HU06-02 añade el catálogo `GET /api/habits?view=catalog` y HU06-03 integra formulario y catálogo persistente en el dashboard. La agenda diaria permanece en HU-09. La aceptación real de CA-01 y el GET posterior a logout de HU-03 siguen pendientes.
+- HU06-01 implementa POST; HU06-02 añade el catálogo `GET /api/habits?view=catalog` y HU06-03 integra formulario y catálogo persistente en el dashboard. La agenda diaria permanece en HU-09. CA-01 y el GET posterior a logout de HU-03 cuentan con aceptación local real aislada del 2026-10-08; no prueba de producción.
 - No hay garantía de idempotencia ni revocación de JWT copiados. Un fallo ambiguo después de insertar puede producir duplicados ante reintento manual; no hacer reintentos automáticos.
 
 ### Evidencia y límites
 
-Pruebas deterministas con Auth.js/Prisma simulados cubren validación, cuenta ausente/eliminada, propiedad, DTO, errores neutrales, origen exacto, formato, límite de streaming y caché. No equivalen a persistencia en PostgreSQL, logout con cookies reales, despliegue ni aprobación de seguridad; esas comprobaciones siguen pendientes y requieren autorización separada.
+Pruebas deterministas con Auth.js/Prisma simulados cubren validación, cuenta ausente/eliminada, propiedad, DTO, errores neutrales, origen exacto, formato, límite de streaming y caché. Por sí solas no equivalen a persistencia/logout real. La aceptación PostgreSQL/navegador local posterior se registra abajo; despliegue y aceptación en producción siguen pendientes, sin aprobación de seguridad.
 
 ## Dashboard y formulario — HU06-03
 
@@ -218,4 +218,19 @@ Pruebas deterministas con Auth.js/Prisma simulados cubren validación, cuenta au
 - “Mis hábitos” distingue carga, vacío, error con reintento y sesión no disponible. No conserva tarjetas tras errores/401; cambio de identidad reinicia el estado y cancela lecturas previas. Nombre/unidad se renderizan como texto, no HTML.
 - Conserva el orden del servidor y muestra tipo, unidad y días de todos los hábitos, incluidos los no programados para hoy. No muestra completados/pendientes ni adelanta HU-09.
 
-Las pruebas de componentes simulan fetch y verifican semántica de teclado, estados, cancelación y guard; no observan layout real de 320 px ni una recarga con PostgreSQL. La estructura adaptable usa tokens/clases existentes; la inspección visual y aceptación DB/navegador siguen pendientes. Build no ejecutado bajo esta autorización: `next/font/google` y la carga de `.env` de Next requieren un entorno aislado verificable sin red/secretos.
+Las pruebas de componentes simulan fetch y verifican teclado, estados, cancelación y guard. Después de autorización separada, el build aislado con Node 22 pasó y la aceptación PostgreSQL/navegador local verificó recarga real y layout de 320 px. El salto inicial de build por red/secretos es histórico, no un bloqueo vigente.
+## Aceptación local real — 2026-10-08
+
+HU-06 completa localmente sobre snapshot compilado 9476118, equivalente a la fuente actual: Node 22.23.3, PostgreSQL 18.2, dos migraciones existentes y cuentas sintéticas A/B. Treinta pasos de preparación, comportamiento y limpieza pasaron: tres hábitos persistidos, propiedad aislada, binario 201/unidad nula, numérico normalizado, días [0,6], visibilidad fuera del día tras recarga/revisita y texto literal. El retraso controlado produjo un solo POST/insert; el fallo controlado de catálogo recuperó solo GET. Las validaciones de esta lista cuentan con evidencia determinista; la aceptación real añade rechazos de propietario/unidades/query/origen/formato/tamaño sin inserciones.
+
+Logout Auth.js real terminó en sesión200/null y cookies de sesión ausentes; GET simple/catalog 401 y POST 401 sin insertar, dashboard fresco/directo/Back denegado y aislamiento A/B en ambas direcciones. Teclado Space y captura inspeccionada a 320 px sin recorte. Build aislado exit 0, 238 pruebas y typecheck exit 0; lint de 36 archivos rastreados exit 0. Se conservan fallos históricos del harness/lint no acotado y un aviso act no fallante.
+
+Evidencia: `C:\Users\vpere\.codex\hu06-builds\acceptance-c6ba223\acceptance-readback.md` y campos redactados de `acceptance-edge.json`. Primer Chrome agotó 180 segundos antes de aserciones y registró intentos GCM: no afirmar ausencia de actividad externa. Edge bloqueó 78 solicitudes de fondo y observó cero solicitudes externas de la aplicación; no garantía de aislamiento de red del sistema operativo.
+
+Procesos propios detenidos, sin listeners 3106/55406/55407 y 357 huellas originales sin cambios. HU-09 diario sigue planificado. HU-06 no está desplegada; producción/cuentas/logout no probados, preview APP_ORIGIN pendiente, revisiones nativas omitidas por decisión explícita, sin recibo/aprobación de seguridad ni revocación de JWT copiados.
+
+### Comprobación HTTP suplementaria — 2026-10-08
+
+Los dos casos HTTP específicos pendientes quedaron observados en PostgreSQL/navegador local: BINARY con frecuencia `[7]` y NUMERIC con frecuencia `[0]` sin clave `unit` retornaron 400 `VALIDATION_ERROR`, ambos con `Cache-Control: private, no-store`. Conteo real de hábitos 3→3 y cero filas con los nombres rechazados. La lista requerida queda 9/9 comprobada. Evidencia: `C:\Users\vpere\.codex\hu06-builds\acceptance-c6ba223\acceptance-validation-delta.md` y `acceptance-validation-delta.json`.
+
+Logout real posterior confirmó sesión 200/null y cookies de sesión ausentes; puertos propios detenidos y 357 huellas de aplicación intactas. Este delta es exclusivamente local, sin aprobación nativa/de producción ni nuevas garantías de revocación.
