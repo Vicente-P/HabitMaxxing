@@ -5,10 +5,12 @@ on:
     branches:
       - develop
       - 'feature/**'
+      - 'codex/**'
   pull_request:
     branches:
       - develop
       - main
+      - 'codex/**'
 
 jobs:
   ci:
