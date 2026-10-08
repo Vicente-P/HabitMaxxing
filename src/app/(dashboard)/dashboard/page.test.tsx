@@ -5,6 +5,7 @@ const { auth, redirect } = vi.hoisted(() => ({ auth: vi.fn(), redirect: vi.fn() 
 vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("./logout-button", () => ({ default: () => <button type="button">Cerrar sesión</button> }));
+vi.mock("./habit-catalog", () => ({ default: ({ ownerId }: { ownerId: string }) => <section data-testid="catalog" data-owner={ownerId}>Mis hábitos</section> }));
 
 import DashboardPage from "./page";
 
@@ -25,7 +26,7 @@ describe("dashboard server session boundary", () => {
     },
   );
 
-  it("renders the existing placeholder for a server-verified safe user identity", async () => {
+  it("renders the catalog for a server-verified safe user identity", async () => {
     auth.mockResolvedValue({ user: { id: "u1", name: "User", email: "user@example.com" }, expires: "2030-01-01T00:00:00Z" });
     render(await DashboardPage());
     expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
@@ -33,6 +34,7 @@ describe("dashboard server session boundary", () => {
     expect(redirect).not.toHaveBeenCalled();
     expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
+    expect(screen.getByTestId("catalog")).toHaveAttribute("data-owner", "u1");
   });
 
   it("fails closed when server authentication throws instead of returning protected content", async () => {
