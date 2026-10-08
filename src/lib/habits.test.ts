@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createHabit, requireHabitOwner, habitSelect } from "./habits";
+import { createHabit, listHabitCatalog, requireHabitOwner, habitSelect } from "./habits";
 
 function database() {
   return { user: { findUnique: vi.fn().mockResolvedValue({ id: "owner" }) }, habit: { create: vi.fn().mockResolvedValue({ id: "habit" }) } };
@@ -33,5 +33,28 @@ describe("habit ownership and persistence", () => {
     const db = database();
     await createHabit({ name: "Read", type: "NUMERIC", unit: "pages", frequency: [0] }, "owner", db);
     expect(db.habit.create.mock.calls[0][0].data.unit).toBe("pages");
+  });
+});
+
+describe("owned habit catalog", () => {
+  it.each(["owner", "different-owner"])("scopes the deterministic unfiltered query to %s", async (ownerId) => {
+    const findMany = vi.fn().mockResolvedValue([]);
+    expect(await listHabitCatalog(ownerId, { habit: { findMany } })).toEqual([]);
+    expect(findMany).toHaveBeenCalledWith({
+      where: { userId: ownerId },
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      select: habitSelect,
+    });
+  });
+
+  it("retains habits regardless of weekday and projects only scalar fields", async () => {
+    const habit = { id: "habit", name: "Read", type: "BINARY", unit: null, frequency: [0], userId: "owner", createdAt: new Date(0), updatedAt: new Date(0) };
+    const findMany = vi.fn().mockResolvedValue([{ ...habit, user: { password: "private" }, logs: [], extra: "private" }]);
+    expect(await listHabitCatalog("owner", { habit: { findMany } })).toEqual([habit]);
+  });
+
+  it("propagates database failure", async () => {
+    const findMany = vi.fn().mockRejectedValue(new Error("private"));
+    await expect(listHabitCatalog("owner", { habit: { findMany } })).rejects.toThrow();
   });
 });
