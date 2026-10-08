@@ -1,5 +1,7 @@
 # HU-03 / SCRUM-8 — Native logout
 
+**Current status — 2026-10-08:** local HU-03 acceptance complete, including the previously deferred habits API check. Earlier staged/deployment notes below are historical; the dated closure supersedes their outstanding local-dependency statements. No production-account/logout or security approval inferred.
+
 ## Objective and authorization
 
 Protect shared-device use by letting an authenticated user leave this browser session and return to `/login`, then deny fresh protected dashboard access.
@@ -96,3 +98,11 @@ Attempt 3 focused recovery harness exited 0: one injected session-confirmation H
 Local HTTP cookie metadata: HttpOnly, SameSite=Lax and persistent; Secure=false expected locally, not production Secure proof. Copied-JWT/device revocation and habits API remain excluded; full original HU-03 stays incomplete. Native candidate decline/mode and lack of security approval are unchanged.
 Owned containers/volumes were removed; browsers/apps stopped and listeners absent. Policy blocked temporary-directory cleanup in all three attempts; retained local fixture/profile cleanup is a follow-up, not an acceptance blocker. No cleanup bypass or inspection of retained contents; unrelated HU-02 fixture remains untouched.
 L3 is passive documentation only: reuse exact-source 36 focused/62 full tests and all checks exit 0; structural readback, local references/fences/whitespace and diff checks apply now. Local closure commit identity is handed to parent, not self-recorded; remote delivery and Engram mirror remain pending.
+## HU-06 dependency closure — 2026-10-08
+
+- Real isolated acceptance on production-compiled snapshot 9476118 (matching current application source/schema/config) used Node 22.23.3, PostgreSQL 18.2 and fresh Edge, with synthetic accounts. All 30 recorded setup/behavior/cleanup steps passed.
+- Native logout confirmed session HTTP 200/JSON null and absent session cookies; bare/catalog GET returned 401 and valid POST returned 401 without insertion. Fresh/direct/Back dashboard access was denied; A/B owner isolation passed in both directions. This completes the original local HU-03 dependency, not copied-JWT/device revocation or production acceptance.
+- Evidence: C:\Users\vpere\.codex\hu06-builds\acceptance-c6ba223\acceptance-readback.md and selected redacted acceptance-edge.json fields. Parent inspected the 320 px screenshot/readback, stopped-listener proof and original-file preservation; 357 original fingerprints unchanged.
+- First Chrome attempt timed out after 180 seconds before application assertions and logged Google GCM attempts despite flags. Edge deny proxy blocked 78 background requests and observed zero external application requests; no claim of OS-wide network isolation or zero external activity for Chrome.
+- Owned browser/Next/PostgreSQL/proxy stopped; no owned listeners on 3106/55406/55407. Retained artifacts and user skills preserved. Historical production HU-03 integration/deployment/PR20/21/CI is user-supplied context, not a new remote check. No issue #19 closure or remote operation.
+- Native review was explicitly declined, without receipt/security approval. Engram mirror remains PENDING because no runtime identity is registered. Parent owns this documentary closure commit; HU-06 PR/release and production accounts/logout remain separate decisions.

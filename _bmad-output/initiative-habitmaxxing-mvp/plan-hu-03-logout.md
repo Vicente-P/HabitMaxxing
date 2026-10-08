@@ -9,7 +9,9 @@ context:
   - 'docs/wiki/backlog.md'
 ---
 
-**Local implementation authorized (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. The owner subsequently authorized isolated A1; logout/dashboard stage acceptance is now observed locally, not full-story completion. Remote operations/publication remain unauthorized; L1/L2 deterministic proof and local A1 evidence are recorded below; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
+**Current local closure (2026-10-08):** HU-03 acceptance is complete locally, including actual habits GET denial after logout. Earlier phase authorization/staged/deployment notes are historical; see the dated dependency closure below. Production accounts/logout and security approval remain unverified.
+
+**Historical local implementation authorization (2026-10-07).** PM-01–PM-03 and the native Auth.js approach are owner-approved; tests and local work-unit commits on a new branch are authorized. The owner subsequently authorized isolated A1; logout/dashboard stage acceptance is now observed locally, not full-story completion. Remote operations/publication remain unauthorized; L1/L2 deterministic proof and local A1 evidence are recorded below; bootstrap readback/delivery choice are complete; Engram mirror remains unavailable and explicitly pending.
 
 ## Intent
 
@@ -106,3 +108,12 @@ Next: local stacked-delivery preparation; A1 and L3 close only the observed loca
 
 Three owner-authorized isolated attempts on `201ce13` (exact source `689cbb8`) jointly proved real session 200/null, cookie removal, protected dashboard 307/login including direct/Back, repeated/no-session denial, keyboard and 320 px. A focused third recovery run exited 0: injected confirmation 503 produced the exact neutral notice, re-enabled retry without navigation; keyboard Space retry then confirmed null session/cookie absence and reached login. Earlier combined repeat/callback and broad-alert locator assertions were harness limitations, not demonstrated source defects; callback origin cause remains unknown. See [task evidence](../../odd/tasks/hu-03-logout.md#isolated-a1-acceptance-and-l3-closure--2026-10-07).
 All owned containers/volumes, browsers/apps and listeners were stopped/removed. Policy-blocked temporary fixture/profile cleanup remains a nonblocking follow-up; do not inspect or delete retained contents without authorization. Local Secure=false is expected HTTP behavior, not production proof; habits/HU-06/full original HU-03 and remote delivery remain pending.
+## HU-06 dependency and full local closure — 2026-10-08
+
+The formerly deferred habits criterion is now proven with actual PostgreSQL 18.2 and native Auth.js browser logout on Node 22.23.3: session HTTP 200/null, absent session cookies, bare/catalog habits GET 401, valid POST 401/no insert, fresh/direct/Back dashboard denial and two-way synthetic-account owner isolation. All 30 recorded setup/behavior/cleanup steps passed; parent inspected 320 px visual readback. This closes HU-03 locally, not globally revoked/copied JWTs, production accounts/logout or a security review.
+
+Evidence: `C:\Users\vpere\.codex\hu06-builds\acceptance-c6ba223\acceptance-readback.md` and selected redacted `acceptance-edge.json` fields. Production-compiled snapshot 9476118 matches current application source/schema/config. Owned services/browser/proxy stopped with no listeners on 3106/55406/55407 and all 357 original fingerprints unchanged.
+
+Preserve the incident: Chrome timed out after 180 seconds before application assertions and logged GCM attempts despite flags. Successful Edge used a deny proxy (78 background requests blocked, zero external application requests observed), not OS-wide network enforcement. Historical production integration/deployment/PR20/21/CI remains user-supplied context, without new remote verification. No issue #19 or remote mutation.
+
+Earlier local-stage incompleteness notes describe their original evidence boundary and are superseded only for the newly observed local criterion. Native review remained explicitly declined; no approval/receipt. Engram mirror PENDING without registered runtime identity. Parent owns the evidence-only closure commit; future HU-06 PR/release and production account/logout checks need separate authorization.
