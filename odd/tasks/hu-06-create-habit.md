@@ -51,10 +51,19 @@ Deliver authenticated habit creation with durable owner-scoped dashboard visibil
 - Explicit APP_ORIGIN per preview is documented, not configured remotely; mutation fails closed until provided.
 - Mock tests cannot prove real DB persistence/browser-cookie logout. Real isolated DB/browser acceptance remains separately authorized and pending; HU-03 GET-after-logout checkbox stays open until that evidence exists.
 - API idempotency/distributed rate limiting and copied-token revocation are out of scope; manual retry after ambiguous outcome may duplicate an inserted habit.
-- Next: obtain explicit authorization for an isolated production build (tracked-file copy, fake process-only env, public font downloads only), then separately decide local isolated DB/browser acceptance. Do not run production or remote DB operations.
+- Next: obtain explicit authorization/supply for a portable Node22 runtime. Then fix isolated network guard to allow compiler loopback IPC while retaining Google-only outbound and no DB, rerun isolated default build once, and separately decide DB/browser acceptance. No runtime install currently authorized.
 
 ## Delivery status
 - All three implementation work units committed locally; branch chain and original user skills preserved. No push, PR or deployment.
 - Native reviews were declined per candidate (creation; catalog+dashboard). Global mode remains on. No security approval/receipt exists.
 - HU06-03/full HU-06 acceptance remains pending build and real persistence/browser evidence; HU-03 GET-after-real-logout still pending.
 - Engram mirror remains pending because no authoritative runtime session identity is registered.
+
+## Isolated build evidence
+- User authorized only a local tracked-file build with synthetic environment and unauthenticated public font downloads from fonts.googleapis.com/fonts.gstatic.com; no DB, production, runtime install, or other network destination.
+- Exact snapshot: bc005e5cd1e75a94685216ec11433b6f3552eb51 (410 tracked files, .env.example only; no actual env/credential files copied).
+- First output workspace: C:\Users\vpere\.codex\hu06-builds\build-bc005e5. Copied Prisma generation exit0; default Next16.2.6 build exit1 because node_modules junction points outside Turbopack filesystem root.
+- Local dependency recovery: C:\Users\vpere\.codex\hu06-builds\build-bc005e5-local-deps; 33,571 files/785,603,711 bytes, 1,733 remapped links verified inside copy. Prisma generation exit0; Next build exit1 because verification guard denied verified Turbopack loopback IPC during CSS compilation. This is an observed harness failure, not an application defect. Retained build.log; no alternate bundler/mocked fonts used.
+- Both attempts used system Node24.13.0, not required Node22. Bounded runtime lookup found only system24.13.0 and bundled24.19.0; no22. Stopped before guard changes/final retry; no runtime downloaded and no build-ipc.log created.
+- Original source HEAD/status and original .next/generated Prisma SHA-256 fingerprints unchanged; existing untracked BMAD skills preserved. No DB/browser/logout proof, completed production build, emitted route proof, native security approval, push or deploy.
+- Build/runtime acceptance remains BLOCKED on a Node22 runtime. Prior local test results do not establish Node22 verification. Node allowlist was defense-in-depth, not OS-wide native network enforcement.
