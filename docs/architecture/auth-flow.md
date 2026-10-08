@@ -104,6 +104,14 @@ Auth.js usa `session.maxAge = 2_592_000` para JWT/cookie con expiración renovab
 
 PM-01–PM-03 (2026-10-07): alcance de este navegador, sin revocar JWT copiados/otros dispositivos; etapa logout/dashboard aceptada con tres intentos aislados sobre `201ce13` (fuente `689cbb8`): cookie retirada, sesión 200/null, dashboard 307/login directo/Back, repetición sin sesión, teclado y 320 px. Confirmación 503 mostró aviso neutral y reintento sin éxito supuesto; el reintento real confirmó sesión nula. Aserciones iniciales de callback/localizador fueron límites del harness; origen del callback repetido desconocido. API hábitos diferida a HU-06 e historia completa pendiente; HTTP local no acredita Secure en producción ni aprobación de seguridad. Temporales retenidos por política requieren seguimiento, con contenedores/volúmenes/procesos ya detenidos.
 
+## Límite de creación HU06-01
+
+`POST /api/habits` autentica con `auth()` y verifica que la cuenta aún exista mediante consulta de `id` antes de validar la solicitud. Los callbacks JWT actuales no realizan esa comprobación. La inserción deriva `userId` exclusivamente de la identidad verificada y selecciona/proyecta solo campos escalares del hábito.
+
+La mutación exige `Origin` exacto frente al `APP_ORIGIN` del servidor, JSON y un cuerpo leído con límite real de 8 KiB. La protección CSRF del logout nativo de Auth.js no acredita protección de este endpoint: este aplica su propio control de origen. Todos sus resultados son privados y sin caché. No se modifican políticas de login, registro, expiración ni revocación de tokens.
+
+Las referencias anteriores a falta de publicación de HU-03 son evidencia histórica. Según el contexto proporcionado por el usuario, HU-03 local logout/dashboard fue integrado y desplegado en `468a57ce3e5ad57000c2b8dd65e682e2ba946080`; no se volvió a comprobar producción en esta unidad. La prueba real de GET hábitos tras logout permanece pendiente hasta implementar el catálogo y autorizar su aceptación. No se infiere aprobación de seguridad.
+
 ## Archivos relevantes
 
 | Archivo | Descripción |

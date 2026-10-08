@@ -27,15 +27,16 @@ POST /api/habits
 |--------|-------|-----------|
 | `Content-Type` | `application/json` | Sí |
 | Cookie | Sesión Auth.js | Sí |
+| `Origin` | Origen exacto configurado en `APP_ORIGIN` | Sí |
 
 ### Body
 
 | Campo | Tipo | Requerido | Validaciones |
 |-------|------|-----------|--------------|
-| `name` | `string` | Sí | No vacío, máx. 100 caracteres |
+| `name` | `string` | Sí | Recorte de espacios externos, 1–100 caracteres |
 | `type` | `"BINARY"` \| `"NUMERIC"` | Sí | Enum HabitType |
-| `unit` | `string` | Condicional | Requerido si `type = NUMERIC`; prohibido si `BINARY` |
-| `frequency` | `number[]` | Sí | Array de enteros 0–6, al menos 1 elemento, sin duplicados |
+| `unit` | `string` | Condicional | NUMERIC: recorte de espacios externos, 1–30 caracteres; BINARY: omitir la clave, rechazar incluso `null` |
+| `frequency` | `number[]` | Sí | Entre 1 y 7 enteros 0–6, sin duplicados ni coerción; persistencia ascendente |
 
 ```json
 {
@@ -171,7 +172,7 @@ POST /api/habits
 - [ ] `frequency` vacío retorna 400 con mensaje de al menos un día.
 - [ ] `frequency` con valores fuera de 0–6 retorna 400.
 - [ ] `type = NUMERIC` sin `unit` retorna 400.
-- [ ] `type = BINARY` con `unit` retorna 400 o ignora unit.
+- [ ] `type = BINARY` con `unit` retorna 400, incluso con `null`.
 - [ ] Sin sesión retorna 401.
 - [ ] Hábito creado pertenece al `userId` de la sesión activa.
 
@@ -181,15 +182,29 @@ POST /api/habits
 
 - Obtener `userId` de `auth()` — nunca confiar en userId del body.
 - Schema Zod: `createHabitSchema` en `src/lib/validations.ts`.
-- Ordenar `frequency` ascendente antes de persistir (opcional, consistencia).
+- Ordenar `frequency` ascendente después de validar, antes de persistir (obligatorio).
 
 ## Notas de seguridad
 
 - Verificar sesión activa antes de crear.
-- Sanitizar `name` y `unit` (trim, longitud máxima).
+- Validar texto con recorte de espacios externos y límites; no interpretar HTML. La UI posterior debe renderizarlo como texto.
 
 ---
 
 ## Modelo relacionado
 
 - [habit.md](../models/habit.md)
+
+## Contrato de protección HU06-01
+
+- Rechazar todas las claves desconocidas, incluidos `userId`, IDs y fechas. No convertir tipos de datos automáticamente. El propietario se obtiene exclusivamente de la sesión.
+- Autenticar antes de inspeccionar origen, media type o cuerpo. Identidad ausente/vacía o cuenta eliminada: 401. Consultar existencia con selección de `id` exclusivamente; fallos de autenticación, consulta o inserción: 500 neutral.
+- Comparar un único `Origin` canónico con `APP_ORIGIN`, configurado en servidor. Nunca inferirlo de `Host`, cabeceras reenviadas o URL de la solicitud. Origen ausente, `null`, extranjero, múltiple o no canónico: 403 (`FORBIDDEN`). Configuración ausente/inválida: 500 (`INTERNAL_ERROR`).
+- Aceptar `application/json`, opcionalmente `charset=utf-8`; otros formatos: 415 (`UNSUPPORTED_MEDIA_TYPE`). Cuerpo máximo: 8192 bytes reales, leído por streaming, con cancelación al exceder; `Content-Length` solo permite rechazo anticipado. Exceso: 413 (`PAYLOAD_TOO_LARGE`). JSON vacío, malformado, UTF-8 inválido o no objeto: 400 (`VALIDATION_ERROR`).
+- Todos los resultados del handler llevan `Cache-Control: private, no-store`. El DTO incluye únicamente campos escalares del hábito, sin relaciones ni información de cuenta. No registrar cuerpos, cookies, tokens o excepciones internas.
+- Esta unidad implementa solamente POST. El catálogo `GET /api/habits?view=catalog` y la UI persistente pertenecen a las siguientes unidades de HU-06; la agenda diaria permanece en HU-09. No se acredita todavía CA-01 ni el GET posterior a logout de HU-03.
+- No hay garantía de idempotencia ni revocación de JWT copiados. Un fallo ambiguo después de insertar puede producir duplicados ante reintento manual; no hacer reintentos automáticos.
+
+### Evidencia y límites
+
+Pruebas deterministas con Auth.js/Prisma simulados cubren validación, cuenta ausente/eliminada, propiedad, DTO, errores neutrales, origen exacto, formato, límite de streaming y caché. No equivalen a persistencia en PostgreSQL, logout con cookies reales, despliegue ni aprobación de seguridad; esas comprobaciones siguen pendientes y requieren autorización separada.

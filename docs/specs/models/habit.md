@@ -11,10 +11,10 @@ Representa un hábito que el usuario desea trackear. Puede ser **binario** (hech
 | Campo | Tipo | Requerido | Descripción | Validaciones |
 |-------|------|-----------|-------------|--------------|
 | `id` | `String` | Sí (auto) | Identificador único | `cuid()`, generado por Prisma |
-| `name` | `String` | Sí | Nombre del hábito | No vacío, máx. 100 caracteres |
+| `name` | `String` | Sí | Nombre del hábito | Recorte de espacios externos, 1–100 caracteres |
 | `type` | `HabitType` | Sí | Tipo de hábito | `BINARY` o `NUMERIC` |
-| `unit` | `String` | Condicional | Unidad de medida | Requerido si `type = NUMERIC`; nulo si `BINARY`. Ej: "km", "páginas", "vasos" |
-| `frequency` | `Int[]` | Sí | Días de la semana programados | Array de enteros 0–6, al menos 1 día. `0=Dom … 6=Sáb` |
+| `unit` | `String` | Condicional | Unidad de medida | NUMERIC: recorte de espacios externos, 1–30 caracteres; BINARY: nulo en persistencia, omitido en creación. Ej: "km", "páginas", "vasos" |
+| `frequency` | `Int[]` | Sí | Días de la semana programados | Entre 1 y 7 enteros distintos 0–6, orden ascendente. `0=Dom … 6=Sáb` |
 | `userId` | `String` | Sí | ID del usuario propietario | FK a `User.id` |
 | `createdAt` | `DateTime` | Sí (auto) | Fecha de creación | ISO 8601 en API |
 | `updatedAt` | `DateTime` | Sí (auto) | Última actualización | ISO 8601 en API |
@@ -108,6 +108,8 @@ enum HabitType {
 ---
 
 ## Specs relacionadas
+
+La creación valida estos límites en la aplicación; el esquema existente de PostgreSQL no los garantiza por sí solo. HU06-01 no introduce migraciones ni cambios manuales del cliente generado.
 
 - [create.md](../habits/create.md) — SCRUM-11 / HU-06
 - [update.md](../habits/update.md) — SCRUM-12 / HU-07
