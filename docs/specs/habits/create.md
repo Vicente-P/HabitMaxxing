@@ -202,9 +202,20 @@ POST /api/habits
 - Comparar un único `Origin` canónico con `APP_ORIGIN`, configurado en servidor. Nunca inferirlo de `Host`, cabeceras reenviadas o URL de la solicitud. Origen ausente, `null`, extranjero, múltiple o no canónico: 403 (`FORBIDDEN`). Configuración ausente/inválida: 500 (`INTERNAL_ERROR`).
 - Aceptar `application/json`, opcionalmente `charset=utf-8`; otros formatos: 415 (`UNSUPPORTED_MEDIA_TYPE`). Cuerpo máximo: 8192 bytes reales, leído por streaming, con cancelación al exceder; `Content-Length` solo permite rechazo anticipado. Exceso: 413 (`PAYLOAD_TOO_LARGE`). JSON vacío, malformado, UTF-8 inválido o no objeto: 400 (`VALIDATION_ERROR`).
 - Todos los resultados del handler llevan `Cache-Control: private, no-store`. El DTO incluye únicamente campos escalares del hábito, sin relaciones ni información de cuenta. No registrar cuerpos, cookies, tokens o excepciones internas.
-- Esta unidad implementa solamente POST. El catálogo `GET /api/habits?view=catalog` y la UI persistente pertenecen a las siguientes unidades de HU-06; la agenda diaria permanece en HU-09. No se acredita todavía CA-01 ni el GET posterior a logout de HU-03.
+- HU06-01 implementa POST; HU06-02 añade el catálogo `GET /api/habits?view=catalog` y HU06-03 integra formulario y catálogo persistente en el dashboard. La agenda diaria permanece en HU-09. La aceptación real de CA-01 y el GET posterior a logout de HU-03 siguen pendientes.
 - No hay garantía de idempotencia ni revocación de JWT copiados. Un fallo ambiguo después de insertar puede producir duplicados ante reintento manual; no hacer reintentos automáticos.
 
 ### Evidencia y límites
 
 Pruebas deterministas con Auth.js/Prisma simulados cubren validación, cuenta ausente/eliminada, propiedad, DTO, errores neutrales, origen exacto, formato, límite de streaming y caché. No equivalen a persistencia en PostgreSQL, logout con cookies reales, despliegue ni aprobación de seguridad; esas comprobaciones siguen pendientes y requieren autorización separada.
+
+## Dashboard y formulario — HU06-03
+
+- El guard servidor conserva la exigencia de identidad válida y el logout nativo existente. El cliente carga el catálogo sin caché al montar/revisitar y después de una creación confirmada; no hay self-fetch del servidor ni filtrado por día.
+- Formulario con nombre de hasta 100 caracteres, tipo binario/numérico, unidad numérica de hasta 30 caracteres y siete checkboxes semanales nativos. Usa el mismo schema estricto; errores asociados mediante ARIA y foco al primer campo inválido. Cambiar tipo limpia la unidad y un binario no la envía.
+- El bloqueo síncrono de envío y controles deshabilitados evitan solicitudes repetidas mientras una creación está pendiente. Solo una respuesta 201 con confirmación válida reinicia el formulario. Errores conservan los valores; transporte ambiguo/500 no implica éxito ni reintento automático y advierte sobre duplicados.
+- Creación y lectura son resultados separados: si la creación se confirma pero falla la recarga, se conserva la confirmación y se ofrece reintentar únicamente GET, no volver a crear.
+- “Mis hábitos” distingue carga, vacío, error con reintento y sesión no disponible. No conserva tarjetas tras errores/401; cambio de identidad reinicia el estado y cancela lecturas previas. Nombre/unidad se renderizan como texto, no HTML.
+- Conserva el orden del servidor y muestra tipo, unidad y días de todos los hábitos, incluidos los no programados para hoy. No muestra completados/pendientes ni adelanta HU-09.
+
+Las pruebas de componentes simulan fetch y verifican semántica de teclado, estados, cancelación y guard; no observan layout real de 320 px ni una recarga con PostgreSQL. La estructura adaptable usa tokens/clases existentes; la inspección visual y aceptación DB/navegador siguen pendientes. Build no ejecutado bajo esta autorización: `next/font/google` y la carga de `.env` de Next requieren un entorno aislado verificable sin red/secretos.

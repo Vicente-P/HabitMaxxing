@@ -201,6 +201,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ## 📝 EP-02 — Gestión de Hábitos
 
 ### 📖 HU-06 — Crear hábito `SCRUM-11`
+**Alcance acordado e implementación local HU-06:** creación estricta, API protegida y catálogo persistente “Mis hábitos” mediante `GET /api/habits?view=catalog`; incluye hábitos fuera del día actual. Formulario con unidad condicional (máximo 30 caracteres), días semanales y confirmación de creación separada de la recarga del catálogo. No incluye agenda diaria, registros, edición ni eliminación. Pruebas deterministas con dependencias simuladas no acreditan persistencia PostgreSQL, aceptación funcional en producción, logout real ni aprobación de seguridad. La comprobación GET después de logout de HU-03 permanece pendiente. [Contrato de creación](../specs/habits/create.md).
 > *"Como usuario, quiero crear un hábito con nombre, tipo y días de frecuencia, para comenzar a hacer seguimiento de él."*
 
 **Criterios de Aceptación:**
@@ -254,6 +255,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-09 — Listar hábitos en dashboard `SCRUM-14`
+**Frontera con HU-06:** la agenda diaria, filtros `day`/`date` y estados de completado permanecen planificados para HU-09. El catálogo mínimo persistente de HU-06 no satisface estos criterios diarios. GET autenticado sin `view=catalog` todavía devuelve 400; GET anónimo devuelve 401.
 > *"Como usuario, quiero ver todos mis hábitos en el dashboard, para tener una visión general de mi día."*
 
 **Criterios de Aceptación:**
