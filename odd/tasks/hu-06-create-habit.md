@@ -51,12 +51,12 @@ Deliver authenticated habit creation with durable owner-scoped dashboard visibil
 - Explicit APP_ORIGIN per preview is documented, not configured remotely; mutation fails closed until provided.
 - Mock tests cannot prove real DB persistence/browser-cookie logout. Real isolated DB/browser acceptance remains separately authorized and pending; HU-03 GET-after-logout checkbox stays open until that evidence exists.
 - API idempotency/distributed rate limiting and copied-token revocation are out of scope; manual retry after ambiguous outcome may duplicate an inserted habit.
-- Next: obtain explicit authorization/supply for a portable Node22 runtime. Then fix isolated network guard to allow compiler loopback IPC while retaining Google-only outbound and no DB, rerun isolated default build once, and separately decide DB/browser acceptance. No runtime install currently authorized.
+- Next: obtain separate authorization for disposable LOCAL PostgreSQL/browser acceptance with synthetic accounts; no production/remote DB. Node22 isolated build/test/typecheck/tracked-lint verification completed below.
 
 ## Delivery status
 - All three implementation work units committed locally; branch chain and original user skills preserved. No push, PR or deployment.
 - Native reviews were declined per candidate (creation; catalog+dashboard). Global mode remains on. No security approval/receipt exists.
-- HU06-03/full HU-06 acceptance remains pending build and real persistence/browser evidence; HU-03 GET-after-real-logout still pending.
+- HU06-03 implementation and Node22 production build/local checks passed; full HU-06 acceptance still awaits real persistence/browser evidence and visual320px check. HU-03 GET-after-real-logout still pending.
 - Engram mirror remains pending because no authoritative runtime session identity is registered.
 
 ## Isolated build evidence
@@ -66,4 +66,13 @@ Deliver authenticated habit creation with durable owner-scoped dashboard visibil
 - Local dependency recovery: C:\Users\vpere\.codex\hu06-builds\build-bc005e5-local-deps; 33,571 files/785,603,711 bytes, 1,733 remapped links verified inside copy. Prisma generation exit0; Next build exit1 because verification guard denied verified Turbopack loopback IPC during CSS compilation. This is an observed harness failure, not an application defect. Retained build.log; no alternate bundler/mocked fonts used.
 - Both attempts used system Node24.13.0, not required Node22. Bounded runtime lookup found only system24.13.0 and bundled24.19.0; no22. Stopped before guard changes/final retry; no runtime downloaded and no build-ipc.log created.
 - Original source HEAD/status and original .next/generated Prisma SHA-256 fingerprints unchanged; existing untracked BMAD skills preserved. No DB/browser/logout proof, completed production build, emitted route proof, native security approval, push or deploy.
-- Build/runtime acceptance remains BLOCKED on a Node22 runtime. Prior local test results do not establish Node22 verification. Node allowlist was defense-in-depth, not OS-wide native network enforcement.
+- Historical runtime blocker resolved by the portable Node22 verification below. Real DB/browser acceptance remains pending. Node allowlist is defense-in-depth, not OS-wide native network enforcement.
+
+## Node22 verification — resolved build/runtime blocker
+- User explicitly authorized an unauthenticated portable Node22 download from nodejs.org for this verification only, without global install/persistent PATH changes. Official index selected v22.23.3 Windowsx64; package https://nodejs.org/dist/v22.23.3/node-v22.23.3-win-x64.zip. SHA256 matched official SHASUMS256.txt before extraction/execution: 2b0ff57b049cda1bbcea2240eec20467018713c1efe1f7360c2681859b90ed71. No GPG verification claimed.
+- Portable runtime: C:\Users\vpere\.codex\hu06-builds\node22-portable. Fresh tracked snapshot9476118e0211447d630044da41824b4262b6fe36 at C:\Users\vpere\.codex\hu06-builds\build-9476118-node22; 410 tracked files, no realenv, 1,733 dependency links resolve insidecopy. No original source/config/font replacements.
+- VerifiedNode22 local copied CLI generation exit0 (9.528s), default Next16.2.6/Turbopack build exit0 (24.707s). Production route emission includes dynamic /api/habits and /dashboard. Parent spot-check verified node --version v22.23.3 and buildlog route/exit readback.
+- Node22 full Vitest: 11files/238tests pass; typecheck exit0. One non-failing React act warning remains in catalog revisit/401 test. Mocked DB/auth only, not real persistence/logout proof.
+- Initial unqualified isolated lint included output-only .cjs harness and failed13errors; leading-slash ignore attempt also failed. Final positive exact commit inventory lint of all36 trackedJS/TS/config/testfiles: exit0, zeroerrors/warnings, unchanged rules/ignores and no --fix/suppression. This proves tracked-file lint; do not claim failed unqualified runs passed.
+- Logs retained: build-node22.log, checks-node22.log, lint-node22.log, lint-tracked-node22.log in fresh isolated directory. Syntheticenv and telemetry/update suppression; external build HTTP(S) restricted to authorizedGooglefonts, legitimate verified loopbackcompilerIPC allowed; dummyDBport1 and PGports5432/6543 denied. No OS-wide network enforcement claim.
+- Original sourceHEAD/status, .next and generatedPrisma fingerprints unchanged throughout; no DB/browser/server/deployment/native approval. Existing untrackedBMADskills and prior isolatedoutputs preserved. Engrammirror pending runtimeidentity.
