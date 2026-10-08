@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createHabitSchema } from "@/lib/validations";
-import { createHabit, requireHabitOwner } from "@/lib/habits";
+import { createHabit, listHabitCatalog, requireHabitOwner } from "@/lib/habits";
 import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError, type HabitRequestError } from "@/lib/habit-request";
 
 const responseHeaders = { "Cache-Control": "private, no-store" };
@@ -26,6 +26,23 @@ export async function POST(request: Request) {
     }
     const habit = await createHabit(parsed.data, ownerId, prisma);
     return NextResponse.json({ data: habit }, { status: 201, headers: responseHeaders });
+  } catch {
+    return errorResponse(habitInternalError);
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const ownerId = await requireHabitOwner(await auth(), prisma);
+    if (!ownerId) return errorResponse({ status: 401, code: "UNAUTHORIZED", message: "Debes iniciar sesión para acceder a este recurso" });
+
+    const params = new URL(request.url).searchParams;
+    if (params.size !== 1 || params.get("view") !== "catalog") {
+      return errorResponse(habitValidationError, [{ field: "view", message: "Se requiere únicamente view=catalog" }]);
+    }
+
+    const habits = await listHabitCatalog(ownerId, prisma);
+    return NextResponse.json({ data: habits }, { status: 200, headers: responseHeaders });
   } catch {
     return errorResponse(habitInternalError);
   }

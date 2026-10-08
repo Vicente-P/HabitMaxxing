@@ -1,5 +1,30 @@
 # Endpoint: Listar hábitos
 
+> **Estado HU06-02:** implementado localmente el catálogo `GET /api/habits?view=catalog`. La agenda diaria HU-09 descrita más abajo permanece planificada, no implementada. No confundir catálogo de confirmación persistente con hábitos programados para hoy.
+
+## Catálogo implementado — HU-06 / SCRUM-11
+
+Consultar exactamente `GET /api/habits?view=catalog` con sesión Auth.js. Devuelve 200 `{ "data": [...] }` con todos los hábitos propios, sin filtrar por día; un catálogo vacío devuelve 200 `{ "data": [] }`. Orden estable: `createdAt` descendente y `id` ascendente como desempate.
+
+Cada elemento contiene únicamente `id`, `name`, `type`, `unit`, `frequency`, `userId`, `createdAt` y `updatedAt`. No contiene `todayLog`, `logs`, relaciones de usuario ni metadata de agenda. Los hábitos fuera del día actual permanecen visibles para la futura confirmación de creación en el dashboard.
+
+| Solicitud / resultado | Respuesta |
+|---|---|
+| Sesión ausente o identidad inválida/vacía | 401 `UNAUTHORIZED`, antes de validar query |
+| Cuenta eliminada | 401 `UNAUTHORIZED` |
+| GET sin parámetros, `view` repetido, valor distinto, claves extra (`day`, `date`, `userId`, etc.) | 400 `VALIDATION_ERROR` después de autenticar |
+| Fallo de autenticación, consulta de cuenta o catálogo | 500 `INTERNAL_ERROR`, mensaje neutral |
+
+La cuenta se verifica mediante selección exclusiva de `id`; la consulta de hábitos filtra únicamente por el propietario derivado de sesión. Todos los resultados llevan `Cache-Control: private, no-store`. GET no exige `Origin` ni `APP_ORIGIN` y no habilita CORS permisivo. Las protecciones de origen/JSON/límite de POST se mantienen independientes.
+
+La evidencia actual son pruebas deterministas con dependencias simuladas; no demuestra persistencia PostgreSQL, cookies reales después de logout ni aceptación de producción. HU-03 mantiene pendiente su comprobación real de GET después de logout; esta unidad no la marca completa ni acredita aprobación de seguridad.
+
+---
+
+## Agenda diaria planificada — HU-09 / SCRUM-14
+
+El contrato histórico siguiente se conserva para HU-09. Hasta implementarlo, GET autenticado sin `view=catalog` devuelve 400; GET anónimo, incluso sin parámetros, devuelve 401.
+
 ## Metadata
 
 | Campo | Valor |

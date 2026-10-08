@@ -33,9 +33,32 @@ export async function createHabit(input: CreateHabitInput, ownerId: string, data
     },
     select: habitSelect,
   });
+  return habitDto(habit);
+}
+
+function habitDto(habit: Habit) {
   return {
     id: habit.id, name: habit.name, type: habit.type, unit: habit.unit,
     frequency: habit.frequency, userId: habit.userId,
     createdAt: habit.createdAt, updatedAt: habit.updatedAt,
   };
+}
+
+type CatalogDatabase = {
+  habit: {
+    findMany(args: {
+      where: { userId: string };
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }];
+      select: typeof habitSelect;
+    }): Promise<Habit[]>;
+  };
+};
+
+export async function listHabitCatalog(ownerId: string, database: CatalogDatabase) {
+  const habits = await database.habit.findMany({
+    where: { userId: ownerId },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    select: habitSelect,
+  });
+  return habits.map(habitDto);
 }
