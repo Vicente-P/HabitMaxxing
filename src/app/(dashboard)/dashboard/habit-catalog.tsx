@@ -64,7 +64,7 @@ function CatalogContent({ ownerId }: { ownerId: string }) {
       {state.status !== "unauthorized" && <CreateHabitForm onCreated={reload} onUnauthorized={invalidateSession} />}
       <section aria-labelledby="habit-catalog-heading" className="min-w-0">
         <h2 id="habit-catalog-heading">Mis hábitos</h2>
-        <p className="mt-2 text-body-sm text-light-text-secondary">Todos tus hábitos configurados, incluidos los que no corresponden a hoy.</p>
+        <p className="mt-2 text-hm-caption text-hm-text-mid">Todos tus hábitos configurados, incluidos los que no corresponden a hoy.</p>
         <div className="mt-6" aria-live="polite" aria-busy={state.status === "loading"}>
           {state.status === "loading" && <p role="status">Cargando hábitos…</p>}
           {state.status === "unauthorized" && <p role="alert">Tu sesión ya no está disponible. Inicia sesión nuevamente.</p>}
@@ -75,7 +75,7 @@ function CatalogContent({ ownerId }: { ownerId: string }) {
           {state.status === "ready" && (state.habits.length === 0 ? <p className="card">Crea tu primer hábito para comenzar</p> : <ul className="space-y-3">
             {state.habits.map((habit) => <li key={habit.id} className="card min-w-0">
               <h3 className="break-words">{habit.name}</h3>
-              <p className="mt-2 break-words text-body-sm text-light-text-secondary">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
+              <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
               <p className="mt-3 flex flex-wrap gap-2" aria-label="Días programados">{habit.frequency.map((day) => <span className="badge-neutral" key={day}>{weekdayLabels[day]}</span>)}</p>
             </li>)}
           </ul>)}

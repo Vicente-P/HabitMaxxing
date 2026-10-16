@@ -93,14 +93,14 @@ export default function CreateHabitForm({ onCreated, onUnauthorized }: Props) {
   return (
     <section className="card min-w-0" aria-labelledby="create-habit-heading">
       <h2 id="create-habit-heading">Crear hábito</h2>
-      <p className="mt-2 text-body-sm text-light-text-secondary">Define qué quieres practicar y sus días de la semana.</p>
+      <p className="mt-2 text-hm-caption text-hm-text-mid">Define qué quieres practicar y sus días de la semana.</p>
       <form aria-label="Crear hábito" onSubmit={submit} noValidate className="mt-6 space-y-4">
         <fieldset disabled={pending} className="min-w-0 space-y-4">
           <legend className="sr-only">Configuración del hábito</legend>
           <div>
             <label htmlFor="habit-name">Nombre</label>
             <input id="habit-name" name="name" className={errors.name ? "input-error mt-1" : "input mt-1"} value={name} onChange={(event) => setName(event.target.value)} maxLength={100} aria-invalid={!!errors.name} aria-describedby={errors.name ? "habit-name-error" : undefined} />
-            {errors.name && <p id="habit-name-error" className="mt-1 text-body-sm text-danger-dark">{errors.name}</p>}
+            {errors.name && <p id="habit-name-error" className="mt-1 text-hm-caption text-hm-danger">{errors.name}</p>}
           </div>
           <div>
             <label htmlFor="habit-type">Tipo</label>
@@ -112,22 +112,22 @@ export default function CreateHabitForm({ onCreated, onUnauthorized }: Props) {
           {type === "NUMERIC" && <div>
             <label htmlFor="habit-unit">Unidad</label>
             <input id="habit-unit" name="unit" className={errors.unit ? "input-error mt-1" : "input mt-1"} value={unit} onChange={(event) => setUnit(event.target.value)} maxLength={30} aria-invalid={!!errors.unit} aria-describedby={errors.unit ? "habit-unit-error" : "habit-unit-hint"} />
-            <p id="habit-unit-hint" className="mt-1 text-body-sm text-light-text-secondary">Por ejemplo: kilómetros, páginas o minutos. Máximo 30 caracteres.</p>
-            {errors.unit && <p id="habit-unit-error" className="text-body-sm text-danger-dark">{errors.unit}</p>}
+            <p id="habit-unit-hint" className="mt-1 text-hm-caption text-hm-text-mid">Por ejemplo: kilómetros, páginas o minutos. Máximo 30 caracteres.</p>
+            {errors.unit && <p id="habit-unit-error" className="text-hm-caption text-hm-danger">{errors.unit}</p>}
           </div>}
           <fieldset className="min-w-0" aria-describedby={errors.frequency ? "habit-frequency-error" : undefined} aria-invalid={!!errors.frequency}>
             <legend>Días de la semana</legend>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {weekdayLabels.map((label, day) => <label key={day} className="flex min-h-11 items-center gap-2 rounded-md border border-light-border px-2 text-body-sm">
-                <input type="checkbox" name={`weekday-${day}`} checked={frequency.includes(day)} onChange={(event) => setFrequency((days) => event.target.checked ? [...days, day] : days.filter((value) => value !== day))} className="accent-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500" />
+              {weekdayLabels.map((label, day) => <label key={day} className="flex min-h-11 items-center gap-2 rounded-hm-sm border border-hm-border px-2 text-hm-caption text-hm-text">
+                <input type="checkbox" name={`weekday-${day}`} checked={frequency.includes(day)} onChange={(event) => setFrequency((days) => event.target.checked ? [...days, day] : days.filter((value) => value !== day))} className="accent-hm-accent focus-visible:ring-2 focus-visible:ring-hm-accent" />
                 {label}
               </label>)}
             </div>
-            {errors.frequency && <p id="habit-frequency-error" className="mt-1 text-body-sm text-danger-dark">{errors.frequency}</p>}
+            {errors.frequency && <p id="habit-frequency-error" className="mt-1 text-hm-caption text-hm-danger">{errors.frequency}</p>}
           </fieldset>
           <button type="submit" className="btn-primary w-full" disabled={pending}>{pending ? "Creando…" : "Crear hábito"}</button>
         </fieldset>
-        {message && <p role={success ? "status" : "alert"} className={`text-body-sm ${success ? "text-success-dark" : "text-danger-dark"}`}>{message}</p>}
+        {message && <p role={success ? "status" : "alert"} className={`text-hm-caption ${success ? "text-hm-success" : "text-hm-danger"}`}>{message}</p>}
       </form>
     </section>
   );

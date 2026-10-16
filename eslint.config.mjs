@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Auto-generated files — never lint these:
     "src/generated/**",
+    // Design mockup reference (Claude Design export, browser-run Babel); not application code.
+    "docs/design/mockup/**",
   ]),
 ]);
 
