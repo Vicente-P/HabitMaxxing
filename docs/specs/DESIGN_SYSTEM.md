@@ -13,6 +13,7 @@
 - Nunca escribas colores hex, tamaños o radios sueltos en componentes. Usa únicamente tokens `--hm-*` (ver abajo).
 - Nunca uses colores por defecto de Tailwind (`zinc-*`, `gray-*`, `white`, `black`) en la UI de la app.
 - No uses `dark:` ni `light:`: el tema lo resuelven los tokens. El tema oscuro es el predeterminado y el claro se activa con `.hm-light` o `[data-hm-theme="light"]`.
+- `pnpm lint` falla si encuentra en `src/` colores hex, colores por defecto (`zinc-N`, `gray-N`, `brand-N`, `white`, `black`) o variantes `dark:`/`light:`. La regla vive en `eslint.config.mjs`.
 - Los estilos inline de color o tipografía están prohibidos. El mockup los usa para leer variables; aquí se traducen a clases.
 
 Excepciones y decisiones de traducción del mockup al repo: [`docs/design/mockup/README.md`](../design/mockup/README.md#traducción-al-repo).
