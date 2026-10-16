@@ -54,6 +54,47 @@ type CatalogDatabase = {
   };
 };
 
+const dailyHabitSelect = {
+  ...habitSelect,
+  logs: {
+    select: { id: true, completed: true, value: true, date: true },
+  },
+} as const;
+
+type DailyHabit = Habit & { logs: Array<{ id: string; completed: boolean; value: number | null; date: Date }> };
+type DailyHabitQuerySelect = Omit<typeof dailyHabitSelect, "logs"> & {
+  logs: { where: { date: Date }; select: typeof dailyHabitSelect.logs.select };
+};
+type DailyAgendaDatabase = {
+  habit: {
+    findMany(args: {
+      where: { userId: string; frequency: { has: number } };
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }];
+      select: DailyHabitQuerySelect;
+    }): Promise<DailyHabit[]>;
+  };
+};
+
+export async function listDailyHabits(ownerId: string, day: number, date: string, database: DailyAgendaDatabase) {
+  const logsDate = new Date(`${date}T00:00:00.000Z`);
+  const habits = await database.habit.findMany({
+    where: { userId: ownerId, frequency: { has: day } },
+    orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+    select: {
+      ...dailyHabitSelect,
+      logs: { where: { date: logsDate }, select: dailyHabitSelect.logs.select },
+    },
+  });
+
+  return {
+    data: habits.map((habit) => ({
+      ...habitDto(habit),
+      todayLog: habit.logs[0] ? { ...habit.logs[0], date: habit.logs[0].date.toISOString().slice(0, 10) } : null,
+    })),
+    meta: { day, date, total: habits.length },
+  };
+}
+
 export async function listHabitCatalog(ownerId: string, database: CatalogDatabase) {
   const habits = await database.habit.findMany({
     where: { userId: ownerId },
