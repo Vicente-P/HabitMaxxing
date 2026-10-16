@@ -45,10 +45,10 @@ export default function LogoutButton() {
   return (
     <div>
       <button type="button" onClick={logout} disabled={pending}
-        className="rounded-lg bg-zinc-900 px-4 py-2 text-white disabled:opacity-50">
+        className="btn-secondary">
         {pending ? "Cerrando sesión…" : "Cerrar sesión"}
       </button>
-      {failed ? <p role="alert">No pudimos confirmar el cierre de sesión. Inténtalo de nuevo.</p> : null}
+      {failed ? <p role="alert" className="field-error">No pudimos confirmar el cierre de sesión. Inténtalo de nuevo.</p> : null}
     </div>
   );
 }

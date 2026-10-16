@@ -40,3 +40,9 @@ Aplicación brownfield de seguimiento de hábitos construida con Next.js, TypeSc
 - Las tablas de características del `README.md` describen parte del alcance objetivo y no prueban que una funcionalidad esté implementada; verifica siempre el código y los tests.
 
 <!-- /bmad:context -->
+
+## Sistema visual (manual, fuera del bloque administrado)
+
+- La fuente de verdad visual es el mockup versionado en `docs/design/mockup/`. Reemplaza por completo el design system anterior.
+- Implementa el frontend siguiendo la estructura del mockup de forma estricta. Si una implementación difiere del mockup, consulta al usuario como excepción antes de continuar; no decidas la desviación por tu cuenta.
+- Usa solo tokens `--hm-*` y las clases de `docs/specs/DESIGN_SYSTEM.md`. No escribas colores hex, colores por defecto de Tailwind ni `dark:`/`light:`; el tema lo resuelven los tokens.
