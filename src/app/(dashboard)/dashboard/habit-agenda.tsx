@@ -65,7 +65,7 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
             return <li key={habit.id} className="card flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="break-words">{habit.name}</h3>
-                <p className="mt-2 break-words text-body-sm text-light-text-secondary">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
+                <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
               </div>
               <span className={completed ? "badge-success" : "badge-neutral"}>{completed ? "Completado" : "Pendiente"}</span>
             </li>;

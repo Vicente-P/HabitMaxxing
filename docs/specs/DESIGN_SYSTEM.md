@@ -114,6 +114,7 @@ Definidos en `@layer components` de `globals.css`, con sus valores tomados del m
 | `.input` / `.input-error` | Campo de texto y estado de error |
 | `.field-error` | Mensaje de error bajo un campo |
 | `.badge-neutral` | Etiqueta neutra (días, estados) |
+| `.badge-success` | Estado completado (verde suave) |
 
 Átomos del mockup sin clase todavía (`HabitCheck`, `StreakBadge`, `Heatmap`, `YearHeatmap`, `WeekDots`, `ProgressBar`, `ProgressRing`, `Sparkline`, `HabitIcon`): se implementan cuando la historia correspondiente los necesite, siguiendo `docs/design/mockup/atoms.jsx`.
 
