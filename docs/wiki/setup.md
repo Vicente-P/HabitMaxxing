@@ -1,5 +1,12 @@
 # 💻 Etapa 4 — Desarrollo: Sprint 1
 
+> **Documento histórico.** Es la bitácora de cómo se inicializó el proyecto en el Sprint 1 y no se mantiene. Para instalar y configurar el entorno usa la [guía de instalación](../guides/setup.md), que es la fuente vigente.
+>
+> Diferencias conocidas con la guía:
+>
+> - Este documento recomienda el **Transaction Pooler** de Supabase para Prisma. Eso es incorrecto para migraciones: usa el **Session Pooler**, como indican la guía y [ADR-04](../architecture/decisions/ADR-04-supabase.md).
+> - Las ramas y comandos de ejemplo corresponden al Sprint 1 y pueden estar desactualizados.
+
 ## 🎯 Objetivo del Sprint 1
 
 Tener la **autenticación básica funcionando** cubriendo las siguientes historias de usuario:
