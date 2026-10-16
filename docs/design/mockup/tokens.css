@@ -1,0 +1,159 @@
+/* Habit Maxxing — design tokens (v2: violet purple + semantic + light/dark) */
+
+/* ─── Theme-independent tokens ──────────────────────────────────────── */
+:root {
+  /* Accent · Violet Purple */
+  --hm-accent: #7C3AED;
+  --hm-accent-hi: #8B5CF6;     /* hover */
+  --hm-accent-lo: #5B21B6;     /* pressed */
+  --hm-accent-glow: rgba(124, 58, 237, 0.40);
+
+  /* Semantic */
+  --hm-success: #10B981;       /* Completado — Emerald */
+  --hm-warn:    #F59E0B;       /* Racha activa — Amber */
+  --hm-danger:  #F43F5E;       /* Fallido — Rose */
+
+  /* Type */
+  --hm-font: "Inter", "InterDisplay", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --hm-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  /* Type scale (per spec) */
+  --hm-fs-heading: 28px;        /* h1 */
+  --hm-fs-subhead: 20px;        /* h2 */
+  --hm-fs-body: 15px;           /* body */
+  --hm-fs-caption: 13px;        /* caption */
+  --hm-fw-heading: 600;
+  --hm-fw-body: 400;
+  --hm-tracking-heading: -0.02em;
+  --hm-lh-body: 1.6;
+
+  /* Radii */
+  --hm-r-sm: 8px;               /* componentes */
+  --hm-r-md: 10px;
+  --hm-r-lg: 12px;              /* cards */
+  --hm-r-xl: 16px;
+
+  /* Spacing */
+  --hm-pad-card: 16px;
+  --hm-pad-card-lg: 20px;
+  --hm-gap-1: 8px;
+  --hm-gap-2: 12px;
+  --hm-gap-3: 16px;
+  --hm-border-w: 1px;           /* 0.5px requested but visually unreliable cross-browser */
+}
+
+/* ─── Dark (default) ────────────────────────────────────────────────── */
+:root,
+.hm-dark,
+[data-hm-theme="dark"] {
+  /* Surfaces — almost black with violet undertone */
+  --hm-bg: #0F0F11;
+  --hm-surface: #1A1A1F;
+  --hm-surface-2: #25252C;
+  --hm-surface-3: #2D2D35;
+
+  --hm-border: rgba(255, 255, 255, 0.08);
+  --hm-border-hi: rgba(255, 255, 255, 0.16);
+  --hm-border-lo: rgba(255, 255, 255, 0.05);
+
+  --hm-text-hi: #FAFAFA;
+  --hm-text: #E4E4E7;
+  --hm-text-mid: #A1A1AA;
+  --hm-text-low: #71717A;
+  --hm-text-dim: #52525B;
+
+  /* Soft accent fill — translucent on dark */
+  --hm-accent-soft: rgba(124, 58, 237, 0.18);
+  --hm-accent-soft-hi: rgba(124, 58, 237, 0.28);
+
+  /* Semantic soft fills */
+  --hm-success-soft: rgba(16, 185, 129, 0.18);
+  --hm-warn-soft:    rgba(245, 158, 11, 0.18);
+  --hm-danger-soft:  rgba(244, 63, 94, 0.18);
+
+  /* Heatmap (violet) */
+  --hm-heat-0: rgba(255, 255, 255, 0.05);
+  --hm-heat-1: rgba(124, 58, 237, 0.28);
+  --hm-heat-2: rgba(124, 58, 237, 0.48);
+  --hm-heat-3: rgba(124, 58, 237, 0.72);
+  --hm-heat-4: #7C3AED;
+
+  /* Selection */
+  --hm-selection: rgba(124, 58, 237, 0.35);
+
+  /* Shadow color (for accent-tinted glows) */
+  --hm-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+/* ─── Light ─────────────────────────────────────────────────────────── */
+.hm-light,
+[data-hm-theme="light"] {
+  --hm-bg: #FFFFFF;
+  --hm-surface: #F4F4F5;
+  --hm-surface-2: #E4E4E7;
+  --hm-surface-3: #D4D4D8;
+
+  --hm-border: rgba(0, 0, 0, 0.08);
+  --hm-border-hi: rgba(0, 0, 0, 0.16);
+  --hm-border-lo: rgba(0, 0, 0, 0.05);
+
+  --hm-text-hi: #09090B;
+  --hm-text: #18181B;
+  --hm-text-mid: #52525B;
+  --hm-text-low: #71717A;
+  --hm-text-dim: #A1A1AA;
+
+  /* Light-mode soft accent — the requested #EDE9FE */
+  --hm-accent-soft: #EDE9FE;
+  --hm-accent-soft-hi: #DDD6FE;
+
+  /* Semantic soft fills (light) */
+  --hm-success-soft: #D1FAE5;
+  --hm-warn-soft:    #FEF3C7;
+  --hm-danger-soft:  #FFE4E6;
+
+  /* Heatmap (violet on light) */
+  --hm-heat-0: #F4F4F5;
+  --hm-heat-1: #EDE9FE;
+  --hm-heat-2: #C4B5FD;
+  --hm-heat-3: #8B5CF6;
+  --hm-heat-4: #7C3AED;
+
+  --hm-selection: rgba(124, 58, 237, 0.20);
+}
+
+/* ─── Root reset for habit-maxxing surfaces ─────────────────────────── */
+.hm-root {
+  font-family: var(--hm-font);
+  color: var(--hm-text);
+  background: var(--hm-bg);
+  font-size: var(--hm-fs-body);
+  line-height: var(--hm-lh-body);
+  font-feature-settings: "cv11", "ss03", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+.hm-root *,
+.hm-root *::before,
+.hm-root *::after { box-sizing: border-box; }
+.hm-root button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+.hm-root input,
+.hm-root textarea { font-family: inherit; color: inherit; background: none; border: none; outline: none; }
+.hm-root h1, .hm-root h2, .hm-root h3, .hm-root h4 { margin: 0; font-weight: var(--hm-fw-heading); letter-spacing: var(--hm-tracking-heading); }
+.hm-root ::selection { background: var(--hm-selection); color: var(--hm-text-hi); }
+
+.hm-tnum { font-variant-numeric: tabular-nums; }
+
+.hm-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.hm-scroll::-webkit-scrollbar-thumb { background: var(--hm-border); border-radius: 3px; }
+.hm-scroll::-webkit-scrollbar-thumb:hover { background: var(--hm-border-hi); }
+
+.hm-focus:focus-visible { outline: 2px solid var(--hm-accent); outline-offset: 2px; }
+
+/* Type utility classes (per spec) */
+.hm-h1 { font-size: var(--hm-fs-heading); font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+.hm-h2 { font-size: var(--hm-fs-subhead); font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+.hm-body { font-size: var(--hm-fs-body); font-weight: 400; line-height: 1.6; }
+.hm-caption { font-size: var(--hm-fs-caption); font-weight: 400; color: var(--hm-text-mid); line-height: 1.5; }
+.hm-overline { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hm-text-low); }

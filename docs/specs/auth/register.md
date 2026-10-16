@@ -31,9 +31,11 @@ POST /api/auth/register
 
 | Campo | Tipo | Requerido | Validaciones |
 |-------|------|-----------|--------------|
-| `email` | `string` | Sí | Formato email válido |
-| `password` | `string` | Sí | Mínimo 8 caracteres |
-| `name` | `string` | No | Máx. 100 caracteres |
+| `email` | `string` | Sí | Recortar espacios exteriores, convertir a minúsculas, formato válido, máximo 254 caracteres |
+| `password` | `string` | Sí | Mínimo 8 caracteres y máximo 72 bytes UTF-8; el servidor debe aplicar el límite en bytes antes de bcrypt, que trunca entradas mayores |
+| `name` | `string` | No | Recortar espacios exteriores; vacío se normaliza a `null`; máximo 100 caracteres |
+
+El feedback de longitud en interfaz puede contar caracteres; no sustituye la validación del servidor de 72 bytes UTF-8 para la contraseña, ya que un carácter puede ocupar varios bytes.
 
 ```json
 {
@@ -86,23 +88,10 @@ Usuario creado exitosamente.
 {
   "error": {
     "code": "CONFLICT",
-    "message": "Este correo ya está en uso"
+    "message": "No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo"
   }
 }
 ```
-
-### 429 Too Many Requests — Rate limit excedido
-
-```json
-{
-  "error": {
-    "code": "ACCOUNT_LOCKED",
-    "message": "Demasiados intentos, intentá de nuevo en 1 hora"
-  }
-}
-```
-
-> Límite: máx. 3 intentos de registro por IP por hora. Ver [SPEC_CONVENTIONS — Rate limiting](../SPEC_CONVENTIONS.md).
 
 ### 500 Internal Server Error
 
@@ -120,21 +109,29 @@ Usuario creado exitosamente.
 ## Criterios de aceptación (Jira)
 
 - **CA-01:** Dado que soy usuario nuevo, cuando ingreso email válido y contraseña de mínimo 8 caracteres, entonces mi cuenta es creada y soy redirigido al dashboard.
-- **CA-02:** Dado que intento registrarme, cuando ingreso un email ya registrado, entonces veo "Este correo ya está en uso".
+- **CA-02:** Dado que intento registrarme y el registro no puede completarse con esos datos, entonces veo "No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo", sin revelar si existe una cuenta.
 - **CA-03:** Dado que intento registrarme, cuando ingreso una contraseña menor a 8 caracteres, entonces veo un mensaje con los requisitos de contraseña.
-- **CA-04:** Dado que completo el registro, cuando reviso mi bandeja de entrada, entonces recibo un email de bienvenida.
 
 ---
 
 ## Tests requeridos
 
-- [ ] Registro exitoso con email, password y name válidos retorna 201 y usuario sin password.
-- [ ] Registro exitoso sin `name` retorna 201 con `name: null`.
-- [ ] Email inválido retorna 400 con `VALIDATION_ERROR`.
-- [ ] Password menor a 8 caracteres retorna 400 con mensaje de requisitos.
-- [ ] Email duplicado retorna 409 con mensaje "Este correo ya está en uso".
-- [ ] Password se almacena hasheado (no en texto plano) en DB.
-- [ ] Body vacío o campos faltantes retorna 400.
+- [x] Registro exitoso con email, password y name válidos retorna 201 y usuario sin password.
+- [x] Registro exitoso sin `name` retorna 201 con `name: null`.
+- [x] Email inválido retorna 400 con `VALIDATION_ERROR`.
+- [x] Password menor a 8 caracteres retorna 400 con mensaje de requisitos.
+- [x] Email duplicado puede retornar 409 internamente; la interfaz muestra el mensaje neutral definido en CA-02, sin confirmar existencia.
+- [x] Email normalizado, trim y límites (254 email, 100 nombre, 72 bytes UTF-8 contraseña) se validan en servidor; nombre vacío se persiste como `null`.
+- [x] Password se almacena hasheado (no en texto plano) en DB.
+- [x] Body vacío o campos faltantes retorna 400.
+
+### Evidencia de aceptación — 2026-10-05
+
+API local: 201 con campos seguros para cuentas con/sin nombre; 400 para entradas inválidas/faltantes y límites excedidos; 409 con copy neutral para duplicado. Se verificaron normalización y máximos 254/100/72, nombre omitido nulo y hashes bcrypt costo 12 coincidentes, sin texto plano. La normalización de nombre vacío se comprobó por inspección del esquema; no se creó una cuenta adicional para ese caso.
+
+UI: registro y login válido llegan al dashboard; login inválido permanece con error neutral; foco por validación, teclado, controles pendientes y reflow de ambas pantallas a 320 px comprobados. Recuperación ante fallo de inicio automático: pruebas deterministas, no fallo inyectado en vivo. Lector de pantalla y zoom no ejercitados. Despliegue y logout no acreditados por este cierre.
+
+Evidencia detallada: [plan HU-01](../../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-01-account-registration.md#acceptance-outcome--2026-10-05).
 
 ---
 
@@ -142,7 +139,7 @@ Usuario creado exitosamente.
 
 - Hashear password con `bcryptjs` (`saltRounds: 12`) antes de `prisma.user.create()`.
 - Schema Zod: `registerSchema` en `src/lib/validations.ts`.
-- El email de bienvenida (CA-04) es responsabilidad del servicio de email; puede implementarse de forma asíncrona.
+- El envío de correo de bienvenida queda diferido a una historia futura; no forma parte de HU-01.
 - Tras 201, el frontend DEBE llamar a `signIn("credentials", { email, password })` de Auth.js para iniciar sesión automáticamente y redirigir al dashboard.
 
 > **Fase 2:** la verificación de email se implementará en una fase posterior. En el MVP, las cuentas quedan activas inmediatamente tras el registro.
@@ -151,7 +148,19 @@ Usuario creado exitosamente.
 
 - Nunca incluir `password` en la respuesta.
 - Normalizar email a minúsculas antes de persistir y comparar (ver [SPEC_CONVENTIONS — Normalización de email](../SPEC_CONVENTIONS.md)).
-- Rate limiting: máx. 3 intentos de registro por IP por hora (implementado en MVP).
+- La protección contra abuso y la limitación de frecuencia del registro quedan fuera de HU-01 y se difieren a una futura historia de infraestructura, sin clave de tracker asignada. No se define ni selecciona proveedor ni mecanismo en esta historia.
+
+## Contrato de pantalla de registro (HU-01)
+
+- Orden visual y de teclado: correo electrónico, nombre (opcional), contraseña y botón «Crear cuenta».
+- Cada control tiene etiqueta visible asociada; correo usa `type="email"`, `autocomplete="email"`; nombre `autocomplete="name"`; contraseña `type="password"`, `autocomplete="new-password"`. Indicar los campos opcionales en su etiqueta.
+- Validar al perder foco y al enviar; no interrumpir la escritura con errores prematuros. Errores específicos quedan junto al campo y se asocian mediante `aria-describedby`; marcar campos inválidos con `aria-invalid`.
+- Mientras se envía, exponer estado «Creando cuenta…», deshabilitar el botón y evitar envíos duplicados. Mantener los valores si el servidor rechaza la petición.
+- Conflicto 409, validación u otro rechazo del servidor se presentan con copy neutral y accionable, nunca indicando si el correo está registrado. Los fallos inesperados usan un aviso general sin detalles internos.
+- Tras creación 201, intentar inicio automático; si funciona, navegar al dashboard. Si falla, conservar la cuenta, informar «Tu cuenta fue creada, pero no pudimos iniciar sesión. Inicia sesión para continuar.» y ofrecer enlace al login; no repetir ni revertir el registro automáticamente.
+- En envío inválido, mover el foco al primer campo erróneo; anunciar el resumen de errores con una región accesible (`role="alert"` o mecanismo equivalente). El estado de envío/success se anuncia sin depender solo del color. El orden de foco sigue el orden visual y todos los controles funcionan con teclado, con foco visible.
+- Diseño adaptable: una columna, sin desplazamiento horizontal a 320 CSS px, campos y acciones utilizables con zoom/reflow y orientación estrecha; ampliar el contenedor solo en pantallas mayores sin alterar el orden.
+- HU-01 utiliza exclusivamente tema claro. Los tokens dark del sistema permanecen definidos para trabajo futuro, no se activan en esta historia.
 
 ---
 

@@ -15,11 +15,14 @@
 |------|---------|
 | Motor | PostgreSQL |
 | Proveedor | Supabase |
-| Conexión app | Session Pooler — `pooler.supabase.com:5432` (IPv4 compatible) |
+| Conexión runtime (Vercel) | Transaction Pooler — puerto `6543`, `?pgbouncer=true` en `DATABASE_URL` |
+| Conexión Prisma CLI/migraciones | `DIRECT_URL`: conexión directa o Session Pooler — puerto `5432` |
 | ORM | Prisma 7.8.0 |
 | Configuración CLI | `prisma.config.ts` (patrón Prisma 7 — URL fuera del schema) |
 
 ---
+
+La aplicación en Vercel usa `DATABASE_URL` con el Transaction Pooler (6543) y el parámetro `?pgbouncer=true`. Prisma CLI y las migraciones usan `DIRECT_URL` con conexión directa o Session Pooler (5432). Las migraciones existentes corresponden a los campos de autenticación actuales de `User`, por lo que HU-01 no requiere una migración de esquema. El estado aplicado en una base desplegada no se ha verificado y permanece pendiente de acceso a esa base. Consultar [Supabase: conexiones PostgreSQL](https://supabase.com/docs/guides/database/connecting-to-postgres), [Supabase: Prisma](https://supabase.com/docs/guides/database/prisma) y [Prisma: Supabase](https://www.prisma.io/docs/orm/overview/databases/supabase).
 
 ## Diagrama entidad-relación
 

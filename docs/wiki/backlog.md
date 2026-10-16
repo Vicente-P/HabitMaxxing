@@ -37,7 +37,7 @@ entonces [resultado esperado]
 | ❌ Requisito técnico | ✅ Criterio de aceptación |
 |---|---|
 | "Emitir un JWT tras login exitoso" | "Dado que ingreso credenciales correctas, cuando inicio sesión, entonces accedo a mi dashboard sin volver a ingresar mis datos" |
-| "Bloquear tras 5 intentos fallidos" | "Dado que ingresé 5 veces una contraseña incorrecta, cuando intento iniciar sesión nuevamente, entonces veo un mensaje indicando que mi cuenta está bloqueada temporalmente" |
+| "Bloquear tras 5 intentos fallidos" | "Dado que ingresé 5 veces una contraseña incorrecta, se aplica un bloqueo interno de 15 minutos; el mensaje externo sigue siendo Credenciales incorrectas" |
 
 ---
 
@@ -77,17 +77,19 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 
 **Criterios de Aceptación:**
 - CA-01: Dado que soy usuario nuevo, cuando ingreso email válido y contraseña de mínimo 8 caracteres, entonces mi cuenta es creada y soy redirigido al dashboard.
-- CA-02: Dado que intento registrarme, cuando ingreso un email ya registrado, entonces veo "Este correo ya está en uso".
+- CA-02: Dado que intento registrarme y el registro no puede completarse con esos datos, entonces veo "No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo", sin que el mensaje confirme si existe una cuenta.
 - CA-03: Dado que intento registrarme, cuando ingreso una contraseña menor a 8 caracteres, entonces veo un mensaje con los requisitos de contraseña.
-- CA-04: Dado que completo el registro, cuando reviso mi bandeja de entrada, entonces recibo un email de bienvenida.
 
 **Tareas Técnicas:**
 - T-01: Crear modelo User en base de datos (email, password hash, createdAt)
 - T-02: Crear endpoint POST /api/auth/register con validaciones
 - T-03: Implementar hash de contraseña con bcrypt
 - T-04: Crear formulario de registro en frontend con validaciones
-- T-05: Configurar envío de email de bienvenida
 - T-06: Escribir tests unitarios del endpoint
+
+El envío de un correo de bienvenida se difiere a una historia futura; no forma parte de HU-01.
+
+La protección contra abuso y la limitación de frecuencia del registro se difieren a una futura historia de infraestructura, sin clave de tracker asignada; no forman parte de HU-01.
 
 `Story Points: 3` `Prioridad: Alta` `Sprint: 1`
 
@@ -96,19 +98,23 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 ### 📖 HU-02 — Inicio de sesión `SCRUM-7`
 > *"Como usuario registrado, quiero iniciar sesión con mis credenciales, para acceder a mi perfil y hábitos guardados."*
 
+**Estado 2026-10-06:** etapa de autenticación aceptada localmente sobre `a7bb421`, sin aprobación de seguridad ni validación funcional en producción. [Plan y evidencia](../../_bmad-output/initiative-habitmaxxing-mvp/plan-hu-02-login.md). Decisiones aprobadas: transporte Auth.js nativo, privacidad uniforme, guard HU-02 y aceptación por etapas.
+
 **Criterios de Aceptación:**
-- CA-01: Dado que soy usuario registrado, cuando ingreso email y contraseña correctos, entonces accedo al dashboard con mis hábitos disponibles.
+- CA-01: Dado que soy usuario registrado, cuando ingreso email y contraseña correctos, entonces accedo al dashboard protegido (etapa A aceptada localmente). Hábitos disponibles se difieren a HU-06/lectura autenticada (etapa B no implementada); el CA-01 original completo sigue pendiente.
 - CA-02: Dado que intento iniciar sesión, cuando ingreso credenciales incorrectas, entonces veo "Credenciales incorrectas" sin especificar cuál campo falló.
-- CA-03: Dado que fallé el login 5 veces consecutivas, cuando intento iniciar sesión nuevamente, entonces veo "Cuenta bloqueada temporalmente, intenta en 15 minutos".
+- CA-03: Dado que fallé el login 5 veces consecutivas, cuando intento iniciar sesión nuevamente, se establece bloqueo interno de 15 minutos, sin extensión durante bloqueo; el mensaje externo es "Credenciales incorrectas", igual para email desconocido, contraseña errónea o cuenta bloqueada. Expiración y reinicio tras éxito se preservan.
 - CA-04: Dado que inicio sesión exitosamente, cuando cierro y vuelvo a abrir la app, entonces mi sesión sigue activa sin reingresar credenciales.
 
 **Tareas Técnicas:**
-- T-07: Crear endpoint POST /api/auth/login con validaciones
-- T-08: Implementar generación y firma de JWT
-- T-09: Implementar lógica de bloqueo tras 5 intentos fallidos
+- T-07: Reutilizar Credentials/handler Auth.js con loginSchema; sin endpoint login paralelo
+- T-08: Usar sesión JWT/cookie nativa de Auth.js; sin firma manual
+- T-09: Política transaccional de cinco fallos/15 minutos, expiración y reinicio; A1 local pasó con carreras reales y seis conflictos P2034 recuperados
 - T-10: Crear formulario de login en frontend con manejo de errores
-- T-11: Implementar persistencia de sesión con refresh token
-- T-12: Escribir tests unitarios del endpoint
+- T-11: Sesión nativa de 30 días renovable; A2 local pasó con cookie persistente y reinicio real de Chrome, sin refresh-token paralelo
+- T-12: Pruebas de política/provider/formulario/callbacks/guard; 51 deterministas observadas, no aceptación DB/navegador
+
+**Aceptación local:** A1 PostgreSQL aislado y A2 Chrome/sesión/cookies/reinicio/acceso protegido/teclado/320 px pasaron. Secure en producción, 30 días transcurridos y anuncios con tecnología asistiva no se comprobaron. Etapa B sigue diferida: no completar la historia original con hábitos ni afirmar aceptación en producción. Los antiguos T-07/T-08/T-11 de endpoint/JWT/refresh y texto de bloqueo específico quedan supersedidos.
 
 `Story Points: 5` `Prioridad: Alta` `Sprint: 1`
 
@@ -122,10 +128,14 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 - CA-02: Dado que cerré sesión, cuando intento acceder a una ruta protegida, entonces soy redirigido al login automáticamente.
 
 **Tareas Técnicas:**
-- T-13: Crear endpoint POST /api/auth/logout
-- T-14: Implementar invalidación de token en frontend
-- T-15: Redirigir a login tras cerrar sesión
-- T-16: Proteger rutas privadas con middleware de autenticación
+- T-13: Usar `signOut` nativo de Auth.js (CSRF/formulario/JSON); sin endpoint `/api/auth/logout` propio
+- T-14: Retirar sesión/cookie de este navegador mediante Auth.js, sin revocar JWT copiados u otros dispositivos
+- T-15: Navegar al login solo después de respuesta exitosa y JSON `null` explícito del endpoint nativo de sesión; fallo ambiguo muestra aviso neutral y habilita reintento
+- T-16: Control integrado tras el guard servidor HU-02, sin duplicar middleware/guard; pruebas deterministas conservan denegación anónima y fallo cerrado. Etapa logout/dashboard y denegación de hábitos tras logout verificadas localmente (cierre2026-10-08); producción/cuentas/logout no comprobados
+
+**Estado actual HU-03 (2026-10-08):** aceptación local completa: tras logout real se confirmó sesión 200/null, cookies de sesión ausentes, GET simple y catálogo 401, POST 401 sin inserción y denegación fresca/directa/Back del dashboard. Evidencia real aislada HU-06 con Node 22/PostgreSQL/Edge; producción/cuentas/logout no comprobados, sin revisión/aprobación de seguridad ni revocación de JWT copiados. Las notas de publicación siguientes son históricas; integración/despliegue previos son contexto del usuario, no nueva comprobación remota.
+
+**Estado histórico HU-03 (2026-10-07):** etapa logout/dashboard aceptada localmente sobre `201ce13` (fuente `689cbb8`) tras tres intentos aislados: cookie retirada, sesión 200/null, dashboard 307/login directo/Back, repetición sin sesión, teclado/320 px y confirmación 503 con aviso neutral/reintento sin éxito supuesto. PM-01–PM-03: navegador actual, sin revocación global; `/api/habits` 401 diferido a HU-06 e historia original completa incompleta. Fallos iniciales de aserciones del harness no demostraron defectos de fuente; origen del callback repetido desconocido. Temporales retenidos por política quedan como seguimiento; procesos/contenedores/volúmenes detenidos. No aceptación en producción/aprobación de seguridad ni publicación. T-13/T-14 antiguos de endpoint/token manual supersedidos.
 
 `Story Points: 1` `Prioridad: Alta` `Sprint: 1`
 
@@ -193,6 +203,7 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 ## 📝 EP-02 — Gestión de Hábitos
 
 ### 📖 HU-06 — Crear hábito `SCRUM-11`
+**HU-06 completa localmente — 2026-10-08, no desplegada:** creación estricta, API protegida y catálogo persistente “Mis hábitos” mediante `GET /api/habits?view=catalog`, incluidos hábitos fuera del día actual. Build Node 22 y 238 pruebas pasaron; aceptación real PostgreSQL/Edge con cuentas sintéticas comprobó persistencia tras recarga/revisita, aislamiento entre propietarios, envío único, recuperación solo de lectura, teclado y 320 px sin recorte. Logout real y GET simple/catálogo 401 cierran la dependencia local HU-03. HU-09 agenda diaria permanece planificada; no registros, edición ni eliminación. Evidencia: `C:\Users\vpere\.codex\hu06-builds\acceptance-c6ba223\acceptance-readback.md` (30 pasos aprobados). Producción no comprobada, preview APP_ORIGIN pendiente y revisiones nativas omitidas por decisión explícita, sin aprobación de seguridad. Primer Chrome registró intentos GCM y agotó tiempo; Edge bloqueó 78 solicitudes de fondo, cero solicitudes externas de la aplicación observadas, sin garantía de red del sistema operativo. [Contrato de creación](../specs/habits/create.md).
 > *"Como usuario, quiero crear un hábito con nombre, tipo y días de frecuencia, para comenzar a hacer seguimiento de él."*
 
 **Criterios de Aceptación:**
@@ -246,6 +257,7 @@ Son una unidad de **esfuerzo relativo**, no de tiempo. Se usa la escala de Fibon
 ---
 
 ### 📖 HU-09 — Listar hábitos en dashboard `SCRUM-14`
+**Frontera con HU-06:** la agenda diaria, filtros `day`/`date` y estados de completado permanecen planificados para HU-09. El catálogo mínimo persistente de HU-06 no satisface estos criterios diarios. GET autenticado sin `view=catalog` todavía devuelve 400; GET anónimo devuelve 401.
 > *"Como usuario, quiero ver todos mis hábitos en el dashboard, para tener una visión general de mi día."*
 
 **Criterios de Aceptación:**
