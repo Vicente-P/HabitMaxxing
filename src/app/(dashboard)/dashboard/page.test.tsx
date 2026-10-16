@@ -6,6 +6,7 @@ vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("./logout-button", () => ({ default: () => <button type="button">Cerrar sesión</button> }));
 vi.mock("./habit-catalog", () => ({ default: ({ ownerId }: { ownerId: string }) => <section data-testid="catalog" data-owner={ownerId}>Mis hábitos</section> }));
+vi.mock("./habit-agenda", () => ({ default: ({ ownerId }: { ownerId: string }) => <section data-testid="agenda" data-owner={ownerId}>Agenda de hoy</section> }));
 
 import DashboardPage from "./page";
 
@@ -35,6 +36,7 @@ describe("dashboard server session boundary", () => {
     expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
     expect(screen.getByTestId("catalog")).toHaveAttribute("data-owner", "u1");
+    expect(screen.getByTestId("agenda")).toHaveAttribute("data-owner", "u1");
   });
 
   it("fails closed when server authentication throws instead of returning protected content", async () => {

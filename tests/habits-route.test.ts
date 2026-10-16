@@ -72,9 +72,9 @@ describe("GET /api/habits catalog", () => {
   });
 
   it.each([
-    "", "?view=", "?view=daily", "?view=Catalog", "?view=catalog&view=catalog",
+    "?view=", "?view=daily", "?view=Catalog", "?view=catalog&view=catalog",
     "?view=catalog&view=daily", "?view=catalog&day=1", "?view=catalog&date=2026-10-08",
-    "?view=catalog&userId=foreign", "?view=catalog&extra=1", "?day=1", "?view=catalog&=x",
+    "?view=catalog&userId=foreign", "?view=catalog&extra=1", "?view=catalog&=x",
     "?view=catalog%00", "?view=catalog%20", "?view[]=catalog", "?VIEW=catalog",
   ])("rejects unsupported query %s before catalog access", async (query) => {
     const response = await GET(getRequest(query));
@@ -91,6 +91,58 @@ describe("GET /api/habits catalog", () => {
     expect(await response.json()).toEqual({ error: { code: "INTERNAL_ERROR", message: "Error interno del servidor" } });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     if (method !== "findMany") expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/habits daily agenda", () => {
+  const habit = { id: "scheduled", name: "Read", type: "BINARY", unit: null, frequency: [1, 3], userId: "owner", createdAt: new Date("2026-05-18T10:00:00.000Z"), updatedAt: new Date("2026-05-18T10:00:00.000Z") };
+  function getRequest(query = "") {
+    return new Request(`https://example.com/api/habits${query}`);
+  }
+
+  it("filters by the selected date weekday and returns that date's log", async () => {
+    const log = { id: "log", completed: true, value: null, date: new Date("2026-05-20T00:00:00.000Z") };
+    mocks.findMany.mockResolvedValue([{ ...habit, logs: [log] }]);
+    const response = await GET(getRequest("?date=2026-05-20"));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ data: [{ ...habit, createdAt: habit.createdAt.toISOString(), updatedAt: habit.updatedAt.toISOString(), todayLog: { ...log, date: "2026-05-20" } }], meta: { day: 3, date: "2026-05-20", total: 1 } });
+    expect(mocks.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: "owner", frequency: { has: 3 } } }));
+    expect(mocks.findMany.mock.calls[0][0].select.logs).toEqual({ where: { date: new Date("2026-05-20T00:00:00.000Z") }, select: { id: true, completed: true, value: true, date: true } });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("uses date weekday even when day conflicts and permits day without date", async () => {
+    await GET(getRequest("?date=2026-05-20&day=1"));
+    expect(mocks.findMany.mock.calls[0][0].where.frequency).toEqual({ has: 3 });
+    vi.clearAllMocks();
+    mocks.auth.mockResolvedValue({ user: { id: "owner" } });
+    mocks.findUnique.mockResolvedValue({ id: "owner" });
+    mocks.findMany.mockResolvedValue([]);
+    const response = await GET(getRequest("?day=1"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).meta.day).toBe(1);
+    expect(mocks.findMany.mock.calls[0][0].where.frequency).toEqual({ has: 1 });
+  });
+
+  it.each(["?date=2026-02-30", "?date=2026-13-01", "?date=2026-2-03", "?date=2026-05-20&date=2026-05-21", "?day=-1", "?day=7", "?day=1.0", "?day=01", "?extra=1", "?view=catalog&date=2026-05-20", "?userId=foreign"])("rejects invalid daily query %s", async (query) => {
+    const response = await GET(getRequest(query));
+    expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.findMany).not.toHaveBeenCalled();
+  });
+
+  it("returns no scheduled habits with date and total metadata", async () => {
+    mocks.findMany.mockResolvedValue([]);
+    const response = await GET(getRequest("?date=2026-05-20"));
+    expect(await response.json()).toEqual({ data: [], meta: { day: 3, date: "2026-05-20", total: 0 } });
+  });
+
+  it("authenticates before reading the daily agenda", async () => {
+    mocks.auth.mockResolvedValue(null);
+    const response = await GET(getRequest("?date=2026-05-20"));
+    expect(response.status).toBe(401);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.findMany).not.toHaveBeenCalled();
   });
 });
 afterEach(() => vi.unstubAllEnvs());
