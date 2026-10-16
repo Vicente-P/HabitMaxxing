@@ -1,25 +1,29 @@
 # Design System — HabitMaxxing
 
-> Fuente de verdad visual para agentes y desarrolladores.
-> **Estado:** integrado en `src/app/globals.css` y `src/app/layout.tsx`.
+> **Fuente de verdad visual:** el mockup "Habit Maxxing — Prototipo" (Claude Design).
+> Copia de referencia versionada en [`docs/design/mockup/`](../design/mockup/README.md).
+> Este documento resume las reglas de implementación; ante cualquier duda, el mockup manda.
+>
+> **Estado:** tokens, tipografía y clases de componente del mockup integrados en `src/app/globals.css`.
 
 ## Regla principal para agentes
 
-SIEMPRE usa las clases y tokens definidos en este documento.
-NUNCA hardcodees colores hex en componentes React.
-NUNCA uses estilos inline para colores o tipografía.
-Agrega variantes `dark:` cuando la historia soporte el tema oscuro; las historias light-only, como HU-01, usan solo los tokens claros.
+- Implementa el frontend siguiendo la estructura del mockup de forma estricta: mismos tokens, mismos componentes, misma jerarquía tipográfica y mismo tema por defecto.
+- Si algo no coincide con el mockup, **no lo decidas tú**: detén el cambio y consulta al usuario como excepción, indicando qué difiere, por qué y qué alternativa propones.
+- Nunca escribas colores hex, tamaños o radios sueltos en componentes. Usa únicamente tokens `--hm-*` (ver abajo).
+- Nunca uses colores por defecto de Tailwind (`zinc-*`, `gray-*`, `white`, `black`) en la UI de la app.
+- No uses `dark:` ni `light:`: el tema lo resuelven los tokens. El tema oscuro es el predeterminado y el claro se activa con `.hm-light` o `[data-hm-theme="light"]`.
+- Los estilos inline de color o tipografía están prohibidos. El mockup los usa para leer variables; aquí se traducen a clases.
+
+Excepciones y decisiones de traducción del mockup al repo: [`docs/design/mockup/README.md`](../design/mockup/README.md#traducción-al-repo).
 
 ---
 
 ## Personalidad visual
 
-- Minimalista moderno (Spotify, GitHub, Linear, Uber).
-- Acento: **Violet Purple** (`brand-500` = `#7C3AED`).
-- El sistema conserva tokens para modo claro y oscuro; cada historia declara los temas que soporta. HU-01 es exclusivamente de tema claro y no activa el tema oscuro. Los tokens dark se mantienen para trabajo futuro.
-- Tipografía sans-serif con jerarquía clara (Inter).
-- Cards con bordes sutiles (8% opacidad).
-- Espaciado generoso.
+- Minimalista moderno, con acento violeta y superficies casi negras con sutil tinte violeta.
+- Tipografía sans-serif (Inter) con jerarquía de 28/20/15/13/11 px. JetBrains Mono está disponible para datos numéricos.
+- Bordes sutiles (8 % de opacidad), espaciado generoso.
 
 ---
 
@@ -27,388 +31,129 @@ Agrega variantes `dark:` cuando la historia soporte el tema oscuro; las historia
 
 | Archivo | Rol |
 |---------|-----|
-| `src/app/globals.css` | Tokens (`@theme`), variantes, clases de componente |
-| `src/app/layout.tsx` | Carga de Inter (`--font-inter`) y `<html lang="es">` |
+| `docs/design/mockup/tokens.css` | Tokens exactos del mockup (referencia) |
+| `src/app/globals.css` | Tokens `--hm-*` en `:root`, mapeo a `@theme` y clases de componente |
+| `src/app/layout.tsx` | Carga de Inter (`--font-inter`) y JetBrains Mono (`--font-jetbrains-mono`), `<html lang="es">` |
 | `postcss.config.mjs` | Plugin `@tailwindcss/postcss` |
-| `.vscode/tailwind.css-data.json` | At-rules de Tailwind v4 para el editor |
 
-**No existe** `tailwind.config.ts`. Tailwind CSS 4 usa configuración CSS-first.
-
-### Estructura de `globals.css`
-
-```
-@import "tailwindcss"
-@custom-variant dark          → dark mode manual con clase .dark
-@theme { ... }                → colores, tipografía, radius, spacing, sombras, animaciones
-@layer base { ... }           → body, headings h1–h4, transiciones globales
-@layer components { ... }     → .card, .btn-*, .input, .badge-*, hábitos, heatmap, layout
-@layer utilities { ... }      → .text-balance, .scrollbar-hide
-```
-
-### Fuente
-
-Inter se carga con `next/font/google` en `layout.tsx`:
-
-```tsx
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-```
-
-El token `--font-sans` en `@theme` apunta a `var(--font-inter)`.
-
-### Dark mode
-
-Activación manual agregando `.dark` al `<html>`:
-
-```css
-@custom-variant dark (&:where(.dark, .dark *));
-```
-
-El toggle de tema con persistencia en `localStorage` está pendiente (SCRUM-21).
+No existe `tailwind.config.ts`. Tailwind CSS 4 usa configuración CSS-first.
 
 ---
 
-## Colores — Tokens y clases
+## Tokens
 
-### Brand (violeta)
+### Acento y semánticos
 
-| Token | Hex | Clase ejemplo |
-|-------|-----|---------------|
-| `brand-50` | `#EDE9FE` | `bg-brand-50` |
-| `brand-100` | `#DDD6FE` | `bg-brand-100` |
-| `brand-200` | `#C4B5FD` | `bg-brand-200` |
-| `brand-300` | `#A78BFA` | `bg-brand-300` |
-| `brand-400` | `#8B5CF6` | `bg-brand-400` |
-| `brand-500` | `#7C3AED` | `bg-brand-500` ← acento principal |
-| `brand-600` | `#6D28D9` | `bg-brand-600` ← hover |
-| `brand-700` | `#5B21B6` | `text-brand-700` |
-| `brand-800` | `#4C1D95` | `bg-brand-800` |
-| `brand-900` | `#3B0764` | `dark:bg-brand-900` |
+| Token | Valor (dark por defecto) | Clase de ejemplo |
+|-------|--------------------------|------------------|
+| `--hm-accent` | `#7C3AED` | `bg-hm-accent` |
+| `--hm-accent-hi` (hover) | `#8B5CF6` | `hover:bg-hm-accent-hi` |
+| `--hm-accent-lo` (pressed) | `#5B21B6` | `active:bg-hm-accent-lo` |
+| `--hm-on-accent` | `#FFFFFF` | `text-hm-on-accent` |
+| `--hm-success` | `#10B981` | `text-hm-success` |
+| `--hm-warn` | `#F59E0B` | `text-hm-warn` |
+| `--hm-danger` | `#F43F5E` | `text-hm-danger` |
 
-| Uso | Clase |
-|-----|-------|
-| Fondo principal | `bg-brand-500` |
-| Fondo hover | `bg-brand-600` |
-| Fondo sutil | `bg-brand-50 dark:bg-brand-900` |
-| Texto | `text-brand-500` |
-| Texto sobre oscuro | `text-brand-200` |
-| Borde | `border-brand-500` |
-| Ring focus | `ring-brand-500` |
+Fondos suaves: `--hm-accent-soft`, `--hm-success-soft`, `--hm-warn-soft`, `--hm-danger-soft`.
 
-### Semánticos
+### Superficies y texto
 
-| Estado | Tokens | Fondo | Texto |
-|--------|--------|-------|-------|
-| Éxito | `success-light` `#D1FAE5` · `success` `#10B981` · `success-dark` `#059669` | `bg-success-light` | `text-success-dark` |
-| Error | `danger-light` `#FFE4E6` · `danger` `#F43F5E` · `danger-dark` `#E11D48` | `bg-danger-light` | `text-danger-dark` |
-| Advertencia | `warning-light` `#FEF3C7` · `warning` `#F59E0B` · `warning-dark` `#D97706` | `bg-warning-light` | `text-warning-dark` |
+Dark (predeterminado):
 
-También disponibles como color sólido: `bg-success`, `bg-danger`, `bg-warning`, `text-success`, etc.
-
-### Superficies (light)
-
-| Token | Hex | Clase |
-|-------|-----|-------|
-| `light-bg-primary` | `#FFFFFF` | `bg-light-bg-primary` |
-| `light-bg-secondary` | `#F4F4F5` | `bg-light-bg-secondary` |
-| `light-bg-tertiary` | `#E4E4E7` | `bg-light-bg-tertiary` |
-| `light-text-primary` | `#09090B` | `text-light-text-primary` |
-| `light-text-secondary` | `#52525B` | `text-light-text-secondary` |
-| `light-text-tertiary` | `#A1A1AA` | `text-light-text-tertiary` |
-| `light-border` | `rgb(0 0 0 / 0.08)` | `border-light-border` |
-
-### Superficies (dark)
-
-| Token | Hex | Clase |
-|-------|-----|-------|
-| `dark-bg-primary` | `#0F0F11` | `dark:bg-dark-bg-primary` |
-| `dark-bg-secondary` | `#1A1A1F` | `dark:bg-dark-bg-secondary` |
-| `dark-bg-tertiary` | `#25252C` | `dark:bg-dark-bg-tertiary` |
-| `dark-text-primary` | `#FAFAFA` | `dark:text-dark-text-primary` |
-| `dark-text-secondary` | `#A1A1AA` | `dark:text-dark-text-secondary` |
-| `dark-text-tertiary` | `#71717A` | `dark:text-dark-text-tertiary` |
-| `dark-border` | `rgb(255 255 255 / 0.08)` | `dark:border-dark-border` |
-
-### Patrón light/dark en componentes
-
-```tsx
-<p className="text-light-text-primary dark:text-dark-text-primary">Texto</p>
-<div className="bg-light-bg-secondary dark:bg-dark-bg-secondary">Superficie</div>
-```
-
----
-
-## Tipografía
-
-Escala definida en `@theme`. Los elementos `h1`–`h4` reciben estilos automáticos en `@layer base`.
-
-| Clase | Tamaño | Line-height | Peso | Uso |
-|-------|--------|-------------|------|-----|
-| `text-heading-xl` | 28px | 1.2 | 600 | Títulos de página (`h1`) |
-| `text-heading-lg` | 22px | 1.3 | 600 | Títulos de sección (`h2`) |
-| `text-heading-md` | 20px | 1.4 | 600 | Subtítulos (`h3`) |
-| `text-heading-sm` | 16px | 1.4 | 600 | Labels de cards (`h4`) |
-| `text-body-lg` | 16px | 1.6 | 400 | Cuerpo principal |
-| `text-body-md` | 15px | 1.6 | 400 | Cuerpo estándar |
-| `text-body-sm` | 14px | 1.5 | 400 | Texto secundario, botones |
-| `text-caption` | 13px | 1.4 | 400 | Captions y metadata |
-| `text-label` | 12px | 1.3 | 500 | Labels de formularios |
-
----
-
-## Spacing, radius y sombras
-
-### Spacing extra
-
-| Clase | Valor |
+| Token | Valor |
 |-------|-------|
-| `p-4_5` / `gap-4_5` / `m-4_5` | 18px |
-| `p-13` / `gap-13` | 52px |
-| `p-15` / `gap-15` | 60px |
-| `p-18` / `gap-18` | 72px |
+| `--hm-bg` / `--hm-surface` / `--hm-surface-2` / `--hm-surface-3` | `#0F0F11` / `#1A1A1F` / `#25252C` / `#2D2D35` |
+| `--hm-border` / `--hm-border-hi` / `--hm-border-lo` | `rgba(255,255,255,.08 / .16 / .05)` |
+| `--hm-text-hi` / `--hm-text` / `--hm-text-mid` / `--hm-text-low` / `--hm-text-dim` | `#FAFAFA` / `#E4E4E7` / `#A1A1AA` / `#71717A` / `#52525B` |
 
-### Border radius
-
-| Clase | Valor | Uso |
-|-------|-------|-----|
-| `rounded-sm` | 6px | Badges, celdas heatmap |
-| `rounded-md` | 8px | Botones, inputs |
-| `rounded-lg` | 12px | Cards |
-| `rounded-xl` | 16px | Modales |
-| `rounded-full` | 9999px | Avatares, checks, badges |
-
-### Sombras
-
-| Clase | Uso |
-|-------|-----|
-| `shadow-card` | Cards en reposo |
-| `shadow-card-hover` | Cards interactivas al hover |
-| `shadow-brand` | Ring de focus brand |
-
----
-
-## Animaciones
-
-Definidas en `@theme` con `@keyframes` embebidos.
-
-| Clase | Duración | Uso |
-|-------|----------|-----|
-| `animate-fade-in` | 0.2s ease-out | Entrada de elementos |
-| `animate-streak-pulse` | 2s infinite | Indicador de racha activa |
-
----
-
-## Componentes — Clases personalizadas
-
-Todas definidas en `@layer components` de `globals.css`.
-Usar directamente en JSX con `className`.
-
-### Cards
-
-| Clase | Descripción |
-|-------|-------------|
-| `.card` | Contenedor con fondo, borde y padding |
-| `.card-hover` | Card interactiva con hover |
-
-### Botones
-
-No existe clase base `.btn`. Usar la variante directamente:
-
-| Clase | Descripción |
-|-------|-------------|
-| `.btn-primary` | CTA principal (violeta) |
-| `.btn-secondary` | Acción secundaria con borde |
-| `.btn-ghost` | Acción terciaria / cancelar |
-| `.btn-danger` | Acción destructiva |
-
-Estados incluidos: `disabled:`, `hover:`, `active:scale-95`, `focus:ring-2`.
-
-### Formularios
-
-| Clase | Descripción |
-|-------|-------------|
-| `.input` | Campo de texto base |
-| `.input-error` | Campo con borde y ring de error |
-| `.label` | Etiqueta de campo |
-| `.field-error` | Mensaje de error bajo el campo |
-
-### Badges
-
-| Clase | Descripción |
-|-------|-------------|
-| `.badge-success` | Hábito completado |
-| `.badge-danger` | Hábito fallido |
-| `.badge-warning` | Racha activa |
-| `.badge-brand` | Info de marca |
-| `.badge-neutral` | Estado neutro |
-
-### Hábitos
-
-| Clase | Descripción |
-|-------|-------------|
-| `.habit-card` | Card de hábito en dashboard (incluye hover) |
-| `.check-circle-empty` | Hábito pendiente |
-| `.check-circle-done` | Completado (violeta) |
-| `.check-circle-success` | Completado (verde) |
+Light (`.hm-light`): valores definidos en `docs/design/mockup/tokens.css`.
 
 ### Heatmap
 
-| Clase | Descripción |
-|-------|-------------|
-| `.heatmap-grid` | Grid 7 columnas |
-| `.heatmap-cell-done` | Día completado |
-| `.heatmap-cell-failed` | Día fallido |
-| `.heatmap-cell-empty` | Día no programado |
+`--hm-heat-0` … `--hm-heat-4`, de vacío a acento pleno. Usa `bg-hm-heat-N`.
 
-### Progreso y layout
+### Tipografía
 
-| Clase | Descripción |
-|-------|-------------|
-| `.progress-bar` | Contenedor de barra |
-| `.progress-fill` | Relleno (usar `w-*` para porcentaje) |
-| `.streak-display` | Indicador de racha animado |
-| `.page-container` | Contenedor max-w-2xl centrado |
-| `.page-header` | Header de página con acciones |
-| `.divider` | Separador horizontal |
-| `.empty-state` | Estado vacío sin datos |
+| Clase | Tamaño | Peso | Uso |
+|-------|--------|------|-----|
+| `text-hm-h1` | 28px, lh 1.15, tracking -0.02em | 600 | Título de página (`h1`) |
+| `text-hm-h2` | 20px, lh 1.2 | 600 | Sección (`h2`) |
+| `text-hm-body` | 15px, lh 1.6 | 400 | Cuerpo |
+| `text-hm-caption` | 13px, lh 1.5 | 400 | Descripciones, ayudas, errores |
+| `text-hm-overline` | 11px, uppercase, tracking 0.08em | 600 | Etiquetas de sección |
 
-### Utilidades custom
+Los elementos `h1`, `h2`, `h3` y `h4` reciben estilos base en `@layer base`.
 
-| Clase | Descripción |
-|-------|-------------|
-| `.text-balance` | `text-wrap: balance` |
-| `.scrollbar-hide` | Oculta scrollbar |
+### Radios
 
----
+| Clase | Valor | Uso |
+|-------|-------|-----|
+| `rounded-hm-sm` | 8px | Inputs, botones secundarios |
+| `rounded-hm-md` | 10px | Botón primario |
+| `rounded-hm-lg` | 12px | Cards |
+| `rounded-hm-xl` | 16px | Modales |
 
-## Ejemplos de uso
+### Sombras
 
-### Card con hábito
-
-```tsx
-<div className="habit-card">
-  <div className="flex items-center gap-3">
-    <div className="check-circle-done">✓</div>
-    <div>
-      <p className="text-body-md text-light-text-primary dark:text-dark-text-primary">
-        Correr 5km
-      </p>
-      <p className="text-caption text-light-text-secondary dark:text-dark-text-secondary">
-        5.2 km registrados
-      </p>
-    </div>
-  </div>
-  <span className="badge-warning">🔥 12 días</span>
-</div>
-```
-
-### Formulario de login
-
-```tsx
-<div className="space-y-4">
-  <div>
-    <label className="label" htmlFor="email">Email</label>
-    <input id="email" className="input" type="email" placeholder="tu@email.com" />
-  </div>
-  <div>
-    <label className="label" htmlFor="password">Contraseña</label>
-    <input id="password" className="input" type="password" />
-    <p className="field-error">La contraseña es incorrecta</p>
-  </div>
-  <button type="button" className="btn-primary w-full">Iniciar sesión</button>
-</div>
-```
-
-### Barra de progreso
-
-```tsx
-<div className="progress-bar">
-  <div className="progress-fill w-4/5" />
-</div>
-```
-
-### Página con layout
-
-```tsx
-<div className="page-container">
-  <header className="page-header">
-    <h1>Mis hábitos</h1>
-    <button type="button" className="btn-primary">Nuevo</button>
-  </header>
-  <div className="card">...</div>
-</div>
-```
+`shadow-hm-glow` para el resplandor del botón primario.
 
 ---
 
-## Convenciones de implementación (Tailwind v4)
+## Componentes
 
-### Agregar un token nuevo
+Definidos en `@layer components` de `globals.css`, con sus valores tomados del mockup.
 
-1. Definir variable en `@theme` de `globals.css`.
-2. Documentar la clase resultante en este archivo.
-3. Verificar con `pnpm build`.
+| Clase | Uso |
+|-------|-----|
+| `.page-container` | Contenedor centrado de página |
+| `.card` | Superficie con borde sutil |
+| `.btn-primary` | Acción principal (acento, texto `hm-on-accent`) |
+| `.btn-secondary` | Acción secundaria (borde, texto medio) |
+| `.label` | Etiqueta de campo |
+| `.input` / `.input-error` | Campo de texto y estado de error |
+| `.field-error` | Mensaje de error bajo un campo |
+| `.badge-neutral` | Etiqueta neutra (días, estados) |
 
-### Agregar una clase de componente
-
-1. Crear en `@layer components` de `globals.css`.
-2. Usar solo `@apply` con **utilidades de Tailwind**, no con otras clases custom.
-3. Documentar en la tabla de componentes de este archivo.
-
-> **Importante:** Tailwind v4 no permite `@apply card` dentro de `.card-hover`.
-> Cada variante debe incluir sus propias utilidades (ver `.btn-primary`, `.habit-card`).
-
-### Agregar una animación
-
-1. Definir `@keyframes` dentro de `@theme`.
-2. Registrar con `--animate-nombre: keyframes duración easing`.
-3. Usar como `animate-nombre`.
+Átomos del mockup sin clase todavía (`HabitCheck`, `StreakBadge`, `Heatmap`, `YearHeatmap`, `WeekDots`, `ProgressBar`, `ProgressRing`, `Sparkline`, `HabitIcon`): se implementan cuando la historia correspondiente los necesite, siguiendo `docs/design/mockup/atoms.jsx`.
 
 ---
 
-## Reglas estrictas para agentes
+## Pantallas de referencia
 
-### Siempre hacer
+| Archivo del mockup | Contenido |
+|--------------------|-----------|
+| `docs/design/mockup/ios-frame.jsx` | Marco de dispositivo iOS para vistas móviles |
+| `docs/design/mockup/desktop-dashboards.jsx` | Dashboards desktop (Dense, Quiet, Vibrant) |
+| `docs/design/mockup/desktop-habit-screens.jsx` | Detalle de hábito y creación en desktop |
+| `docs/design/mockup/mobile-screens.jsx` | Pantallas móviles, barra de pestañas |
+| `docs/design/mockup/app.jsx` | Composición de la app |
 
-- Usar `.card` o `.card-hover` para contenedores con fondo
-- Usar `.btn-primary` para acciones principales
-- Usar `.input` y `.label` en formularios
-- Usar `.badge-*` para estados y etiquetas
-- Aplicar las variantes de tema requeridas por la historia; no exigir `dark:` en flujos declarados light-only como HU-01.
-- Usar `text-heading-*` / `text-body-*` para tipografía
-- Agregar tokens nuevos en `@theme` de `globals.css`
+---
 
-### Nunca hacer
+## Excepciones
 
-- Hardcodear colores: `style={{ color: '#7C3AED' }}`
-- Usar colores Tailwind default (`bg-zinc-*`, `text-gray-*`) para UI de la app
-- Omitir variante `dark:` en historias que declaren soporte de tema oscuro
-- Crear `tailwind.config.ts`
-- Usar `@apply` entre clases custom del mismo `@layer components`
-- Usar `font-bold` / `font-semibold` fuera de la escala tipográfica
+Antes de implementar algo que no esté en el mockup, consulta al usuario. Una excepción aprobada se registra en el feature doc de la historia (`odd/tasks/`) con su motivo, y no se generaliza a otras pantallas.
 
 ---
 
 ## Checklist pre-entrega
 
 ```
-□ ¿Usé clases del design system (no colores hardcodeados)?
-□ ¿Las variantes de tema corresponden a los temas declarados por la historia?
-□ ¿Los botones usan .btn-primary / .btn-secondary / .btn-ghost?
-□ ¿Los inputs usan .input y los labels .label?
-□ ¿Las cards usan .card o .card-hover?
-□ ¿La tipografía sigue text-heading-* / text-body-*?
-□ ¿pnpm typecheck && pnpm lint && pnpm build pasan?
+□ ¿Usé solo tokens --hm-* y clases de este documento (sin hex ni colores por defecto)?
+□ ¿Los textos usan text-hm-h1/h2/body/caption/overline?
+□ ¿Los botones usan .btn-primary o .btn-secondary?
+□ ¿Los campos usan .label, .input y .field-error?
+□ ¿Las cards usan .card?
+□ ¿Cualquier desviación del mockup fue consultada y aprobada?
+□ ¿pnpm typecheck && pnpm lint && pnpm exec vitest run && pnpm build pasan?
 ```
 
 ---
 
 ## Referencias
 
-- Implementación: `src/app/globals.css`
-- Layout y fuente: `src/app/layout.tsx`
+- Mockup (fuente de verdad): https://claude.ai/artifact/TRXGZovYXH5eeMhkJ8D9rS
+- Copia versionada: [`docs/design/mockup/`](../design/mockup/README.md)
+- Implementación: `src/app/globals.css`, `src/app/layout.tsx`
 - Convenciones técnicas: `docs/specs/SPEC_CONVENTIONS.md`
-- Toggle dark mode (pendiente): backlog SCRUM-21
+- Toggle de tema (pendiente): backlog SCRUM-21
