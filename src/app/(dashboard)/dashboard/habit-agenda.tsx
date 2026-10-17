@@ -109,11 +109,10 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
               <div className="flex min-w-0 items-start gap-3">
                 {habit.type === "BINARY" && <HabitCheck checked={completed} label={`Completar ${habit.name}`} disabled={saving.has(habit.id)} onToggle={() => void toggle(habit)} />}
                 <div className="min-w-0">
-                  <h3 className="break-words">{habit.name}</h3>
+                  <h3 className={`break-words ${completed ? "text-hm-text-mid line-through decoration-hm-text-dim" : "text-hm-text-hi"}`}>{habit.name}</h3>
                   <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
                 </div>
               </div>
-              <span className={completed ? "badge-success" : "badge-neutral"}>{completed ? "Completado" : "Pendiente"}</span>
               {toggleErrors[habit.id] && <p role="alert" className="w-full text-hm-caption text-hm-danger">{toggleErrors[habit.id]}</p>}
             </li>;
           })}

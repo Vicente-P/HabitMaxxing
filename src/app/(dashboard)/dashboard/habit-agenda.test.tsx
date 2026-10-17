@@ -20,8 +20,8 @@ describe("current-day habit agenda", () => {
     render(<HabitAgenda ownerId="owner" />);
     expect(await screen.findByRole("heading", { name: "Agenda de hoy" })).toBeInTheDocument();
     expect(screen.getByText("Leer")).toBeInTheDocument();
-    expect(screen.getByText("Completado")).toBeInTheDocument();
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Completar Escribir" })).toHaveAttribute("aria-pressed", "false");
     expect(fetchMock).toHaveBeenCalledWith("/api/habits", expect.objectContaining({ cache: "no-store" }));
   });
 
@@ -36,6 +36,20 @@ describe("current-day habit agenda", () => {
     render(<HabitAgenda ownerId="owner" />);
     expect(await screen.findByText("No tienes hábitos programados para este día")).toBeInTheDocument();
     expect(screen.queryByText("Crea tu primer hábito para comenzar")).not.toBeInTheDocument();
+  });
+});
+
+describe("completed card presentation (mockup)", () => {
+  it("shows no textual status badge and strikes through only completed titles", async () => {
+    fetchMock.mockImplementation((url: string) => Promise.resolve(url === "/api/habits?view=catalog"
+      ? catalogResponse([catalogHabit])
+      : dailyResponse([{ ...dailyHabit, todayLog: { id: "log", completed: true, value: null, date: "2026-10-12" } }, { ...dailyHabit, id: "h2", name: "Escribir" }])));
+    render(<HabitAgenda ownerId="owner" />);
+    const done = await screen.findByRole("heading", { name: "Leer" });
+    expect(screen.queryByText("Completado")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pendiente")).not.toBeInTheDocument();
+    expect(done).toHaveClass("line-through", "text-hm-text-mid");
+    expect(screen.getByRole("heading", { name: "Escribir" })).not.toHaveClass("line-through");
   });
 });
 
@@ -55,11 +69,11 @@ describe("binary completion toggle", () => {
     render(<HabitAgenda ownerId="owner" />);
     const button = await screen.findByRole("button", { name: "Completar Leer" });
     expect(button).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
 
     await userEvent.click(button);
 
-    await waitFor(() => expect(screen.getByText("Completado")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true"));
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true");
     expect(logCalls()).toHaveLength(1);
     expect(logCalls()[0][1]).toMatchObject({ method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", headers: { "Content-Type": "application/json" } });
@@ -74,9 +88,9 @@ describe("binary completion toggle", () => {
 
     await userEvent.click(button);
 
-    await waitFor(() => expect(screen.getByText("Pendiente")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false"));
     expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ completed: false });
-    expect(screen.queryByText("Completado")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("flips back to completed on a second press after a revert", async () => {
@@ -84,16 +98,16 @@ describe("binary completion toggle", () => {
     render(<HabitAgenda ownerId="owner" />);
     const button = await screen.findByRole("button", { name: "Completar Leer" });
     await userEvent.click(button);
-    await waitFor(() => expect(screen.getByText("Pendiente")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false"));
     await userEvent.click(screen.getByRole("button", { name: "Completar Leer" }));
-    await waitFor(() => expect(screen.getByText("Completado")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true"));
     expect(logCalls().map(([, init]) => JSON.parse(String(init.body)).completed)).toEqual([false, true]);
   });
 
   it("treats a log saved with completed false as pending", async () => {
     mockAgenda({ id: "log", completed: false, value: null, date: "2026-10-12" });
     render(<HabitAgenda ownerId="owner" />);
-    expect(await screen.findByText("Pendiente")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
 
@@ -113,7 +127,7 @@ describe("binary completion toggle", () => {
 
     resolveSave(Response.json(savedLog(true)));
     await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toBeEnabled());
-    expect(screen.getByText("Completado")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it.each([
@@ -129,7 +143,7 @@ describe("binary completion toggle", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("No se pudo actualizar el hábito. Inténtalo de nuevo.");
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Completar Leer" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
@@ -142,7 +156,7 @@ describe("binary completion toggle", () => {
     render(<HabitAgenda ownerId="owner" />);
     await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Tu sesión ya no está disponible. Inicia sesión nuevamente.");
-    expect(screen.getByText("Pendiente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("offers no toggle for numeric habits", async () => {
