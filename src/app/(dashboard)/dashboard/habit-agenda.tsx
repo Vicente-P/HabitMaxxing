@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { formatFrequency } from "@/features/habits";
 import HabitCheck from "./habit-check";
 
 const dailySchema = z.object({
@@ -102,16 +103,14 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
         {state.status === "loading" && <p role="status">Cargando agenda…</p>}
         {state.status === "unauthorized" && <p role="alert">Tu sesión ya no está disponible. Inicia sesión nuevamente.</p>}
         {state.status === "error" && <p role="alert">No se pudo cargar la agenda de hoy.</p>}
-        {state.status === "ready" && state.habits.length > 0 && <ul className="space-y-3">
-          {state.habits.map((habit) => {
+        {state.status === "ready" && state.habits.length > 0 && <ul>
+          {state.habits.map((habit, index) => {
             const completed = habit.todayLog?.completed === true;
-            return <li key={habit.id} className="card flex flex-wrap items-start justify-between gap-3">
-              <div className="flex min-w-0 items-start gap-3">
-                {habit.type === "BINARY" && <HabitCheck checked={completed} label={`Completar ${habit.name}`} disabled={saving.has(habit.id)} onToggle={() => void toggle(habit)} />}
-                <div className="min-w-0">
-                  <h3 className={`break-words ${completed ? "text-hm-text-mid line-through decoration-hm-text-dim" : "text-hm-text-hi"}`}>{habit.name}</h3>
-                  <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
-                </div>
+            return <li key={habit.id} className={`flex flex-wrap items-center gap-x-[18px] border-b border-hm-border-lo px-1 py-[18px]${index === 0 ? " border-t" : ""}`}>
+              {habit.type === "BINARY" && <HabitCheck checked={completed} label={`Completar ${habit.name}`} disabled={saving.has(habit.id)} onToggle={() => void toggle(habit)} />}
+              <div className="min-w-0 flex-1">
+                <h3 className={`break-words ${completed ? "text-hm-text-mid line-through decoration-hm-text-dim" : "text-hm-text-hi"}`}>{habit.name}</h3>
+                <p className="mt-1 break-words text-hm-caption text-hm-text-low">{formatFrequency(habit.frequency)}</p>
               </div>
               {toggleErrors[habit.id] && <p role="alert" className="w-full text-hm-caption text-hm-danger">{toggleErrors[habit.id]}</p>}
             </li>;

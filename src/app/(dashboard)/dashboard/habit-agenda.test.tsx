@@ -53,6 +53,27 @@ describe("completed card presentation (mockup)", () => {
   });
 });
 
+describe("mockup row structure", () => {
+  it("renders bordered rows instead of cards with the mockup frequency subtitle", async () => {
+    fetchMock.mockImplementation((url: string) => Promise.resolve(url === "/api/habits?view=catalog"
+      ? catalogResponse([catalogHabit])
+      : dailyResponse([
+        { ...dailyHabit, frequency: [0, 1, 2, 3, 4, 5, 6] },
+        { ...dailyHabit, id: "h2", name: "Escribir", frequency: [1, 2, 3, 4, 5] },
+        { ...dailyHabit, id: "h3", name: "Correr", type: "NUMERIC", unit: "km", frequency: [5, 3, 1] },
+      ])));
+    const { container } = render(<HabitAgenda ownerId="owner" />);
+    await screen.findByRole("heading", { name: "Leer" });
+    const rows = screen.getAllByRole("listitem");
+    expect(container.querySelector(".card")).toBeNull();
+    expect(rows).toHaveLength(3);
+    rows.forEach((row) => expect(row).toHaveClass("border-b", "border-hm-border-lo"));
+    expect(rows[0]).toHaveClass("border-t");
+    expect(rows[1]).not.toHaveClass("border-t");
+    expect(rows.map((row) => row.querySelector("p")?.textContent)).toEqual(["Todos los días", "L–V", "L · X · V"]);
+  });
+});
+
 describe("binary completion toggle", () => {
   const savedLog = (completed: boolean) => ({ data: { id: "log", habitId: "h1", date: "2026-10-12", completed, value: null, createdAt: "2026-10-12T10:00:00.000Z" } });
 
@@ -162,7 +183,8 @@ describe("binary completion toggle", () => {
   it("offers no toggle for numeric habits", async () => {
     mockAgenda(null, { type: "NUMERIC", unit: "páginas" });
     render(<HabitAgenda ownerId="owner" />);
-    expect(await screen.findByText("Numérico · páginas")).toBeInTheDocument();
+    expect(await screen.findByText("L")).toBeInTheDocument();
+    expect(screen.queryByText(/Numérico/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 });
