@@ -109,8 +109,8 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
             return <li key={habit.id} className={`flex flex-wrap items-center gap-x-[18px] border-b border-hm-border-lo px-1 py-[18px]${index === 0 ? " border-t" : ""}`}>
               {habit.type === "BINARY" && <HabitCheck checked={completed} label={`Completar ${habit.name}`} disabled={saving.has(habit.id)} onToggle={() => void toggle(habit)} />}
               <div className="min-w-0 flex-1">
-                <h3 className={`break-words ${completed ? "text-hm-text-mid line-through decoration-hm-text-dim" : "text-hm-text-hi"}`}>{habit.name}</h3>
-                <p className="mt-1 break-words text-hm-caption text-hm-text-low">{formatFrequency(habit.frequency)}</p>
+                <h3 className={`break-words text-[16px] font-semibold leading-[1.2] ${completed ? "text-hm-text-mid line-through decoration-hm-text-dim" : "text-hm-text-hi"}`}>{habit.name}</h3>
+                <p className="mt-1 break-words text-[12px] text-hm-text-low">{formatFrequency(habit.frequency)}</p>
               </div>
               {toggleErrors[habit.id] && <p role="alert" className="w-full text-hm-caption text-hm-danger">{toggleErrors[habit.id]}</p>}
             </li>;

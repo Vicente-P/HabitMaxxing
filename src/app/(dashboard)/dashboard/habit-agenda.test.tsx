@@ -70,6 +70,10 @@ describe("mockup row structure", () => {
     rows.forEach((row) => expect(row).toHaveClass("border-b", "border-hm-border-lo"));
     expect(rows[0]).toHaveClass("border-t");
     expect(rows[1]).not.toHaveClass("border-t");
+    rows.forEach((row) => {
+      expect(row.querySelector("h3")).toHaveClass("text-[16px]", "font-semibold", "leading-[1.2]");
+      expect(row.querySelector("p")).toHaveClass("text-[12px]", "mt-1", "text-hm-text-low");
+    });
     expect(rows.map((row) => row.querySelector("p")?.textContent)).toEqual(["Todos los días", "L–V", "L · X · V"]);
   });
 });
