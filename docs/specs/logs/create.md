@@ -163,18 +163,9 @@ POST /api/habits/:id/logs
 }
 ```
 
-### 403 Forbidden
-
-```json
-{
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "No tienes permiso para registrar este hábito"
-  }
-}
-```
-
 ### 404 Not Found
+
+Se devuelve tanto si el hábito no existe como si pertenece a otro usuario (respuesta idéntica, para evitar enumeración de ids; mismo enfoque privacy-uniform de HU-02).
 
 ```json
 {
@@ -225,9 +216,9 @@ POST /api/habits/:id/logs
 
 ### Binario
 
-- [ ] Toggle a completado crea log con `completed: true` y fecha actual.
-- [ ] Toggle a pendiente actualiza log con `completed: false`.
-- [ ] Segundo toggle revierte estado (CA-02).
+- [x] Toggle a completado crea log con `completed: true` y fecha actual.
+- [x] Toggle a pendiente actualiza log con `completed: false`.
+- [x] Segundo toggle revierte estado (CA-02).
 
 ### Numérico
 
@@ -238,12 +229,12 @@ POST /api/habits/:id/logs
 
 ### General
 
-- [ ] Registro en día no programado retorna 400.
-- [ ] Registro en fecha futura retorna 400.
-- [ ] Hábito de otro usuario retorna 403.
-- [ ] Hábito inexistente retorna 404.
-- [ ] Sin sesión retorna 401.
-- [ ] Constraint `@@unique([habitId, date])` respetado via upsert.
+- [x] Registro en día no programado retorna 400.
+- [x] Registro en fecha futura retorna 400.
+- [x] Hábito de otro usuario retorna 404, idéntico al de un hábito inexistente.
+- [x] Hábito inexistente retorna 404.
+- [x] Sin sesión retorna 401.
+- [x] Constraint `@@unique([habitId, date])` respetado via upsert.
 
 ---
 
@@ -254,9 +245,17 @@ POST /api/habits/:id/logs
 - Para NUMERIC: establecer `completed: true` automáticamente cuando `value > 0`.
 - Schema Zod: `createLogSchema` con discriminated union por `HabitType`.
 
+### Decisiones implementadas en HU-10 (binario)
+
+- Revertir **actualiza** el log a `completed: false` (no lo elimina); la agenda trata un log con `completed: false` igual que la ausencia de log.
+- Un hábito `NUMERIC` recibe 400 `VALIDATION_ERROR` hasta que HU-11 implemente `value`; el campo `value` aún no se acepta en el body.
+- Divergencia con la spec original (403 para hábito ajeno), resuelta por el usuario: un hábito de otro usuario responde 404 `NOT_FOUND`, byte a byte igual al de un hábito inexistente, para evitar enumeración de ids (consistente con HU-02). El 403 `FORBIDDEN` sigue usándose solo para la guarda de `Origin`.
+- "Hoy" y "fecha futura" usan la fecha UTC del servidor; no hay soporte de zona horaria del usuario.
+- Los tests de Numérico y el `createLogSchema` con unión discriminada quedan pendientes de HU-11; HU-10 valida el body con `binaryLogSchema`.
+
 ## Notas de seguridad
 
-- Verificar ownership del hábito antes de registrar.
+- Verificar ownership del hábito antes de registrar; un fallo de ownership se reporta como 404.
 
 ---
 

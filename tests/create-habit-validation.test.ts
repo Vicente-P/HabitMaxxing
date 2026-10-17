@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createHabitSchema } from "@/lib/validations";
+import { createHabitSchema } from "@/features/habits";
 
 const binary = { name: " Read ", type: "BINARY", frequency: [6, 0, 3] };
 
