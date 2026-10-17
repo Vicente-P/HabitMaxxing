@@ -1,7 +1,8 @@
-import type { Habit, HabitLog, NewHabit, ScheduledHabit } from "../domain/habit";
+import type { Habit, HabitLog, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
 import type { HabitRepository } from "./habit-repository";
 
-type Stored = Habit & { logs: HabitLog[] };
+type StoredLog = HabitLog & { createdAt?: Date };
+type Stored = Habit & { logs: StoredLog[] };
 
 /** Test double that applies the repository contract: owner scoping, weekday filter, per-date log, ordering. */
 export class InMemoryHabitRepository implements HabitRepository {
@@ -35,6 +36,31 @@ export class InMemoryHabitRepository implements HabitRepository {
     return this.ordered(ownerId)
       .filter((habit) => habit.frequency.includes(day))
       .map((stored) => ({ ...this.toHabit(stored), log: stored.logs.find((log) => log.date === logDate) ?? null }));
+  }
+
+  async findById(habitId: string): Promise<Habit | null> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId);
+    return stored ? this.toHabit(stored) : null;
+  }
+
+  async upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId);
+    if (!stored) throw new Error(`Unknown habit ${habitId}`);
+    const existing = stored.logs.find((log) => log.date === date);
+    if (existing) {
+      existing.completed = completed;
+      return this.toSavedLog(habitId, existing);
+    }
+    this.sequence += 1;
+    const log: StoredLog = { id: `log-${this.sequence}`, completed, value: null, date, createdAt: new Date(this.sequence * 1000) };
+    stored.logs.push(log);
+    return this.toSavedLog(habitId, log);
+  }
+
+  private toSavedLog(habitId: string, log: StoredLog): SavedHabitLog {
+    return { id: log.id, habitId, date: log.date, completed: log.completed, value: log.value, createdAt: log.createdAt ?? new Date(0) };
   }
 
   private toHabit(stored: Stored): Habit {

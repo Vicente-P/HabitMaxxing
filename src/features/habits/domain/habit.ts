@@ -27,4 +27,14 @@ export type HabitLog = {
   date: string;
 };
 
+/** A persisted completion record as returned to clients (`date` is YYYY-MM-DD). */
+export type SavedHabitLog = {
+  id: string;
+  habitId: string;
+  date: string;
+  completed: boolean;
+  value: number | null;
+  createdAt: Date;
+};
+
 export type ScheduledHabit = Habit & { log: HabitLog | null };

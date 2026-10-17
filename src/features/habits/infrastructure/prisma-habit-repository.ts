@@ -19,7 +19,9 @@ function toHabit(row: Habit): Habit {
   };
 }
 
-export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit">): HabitRepository {
+const savedLogSelect = { id: true, habitId: true, date: true, completed: true, value: true, createdAt: true } as const;
+
+export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit" | "habitLog">): HabitRepository {
   return {
     async create(habit) {
       const row = await database.habit.create({
@@ -39,6 +41,22 @@ export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit"
         select: habitSelect,
       });
       return rows.map(toHabit);
+    },
+
+    async findById(habitId) {
+      const row = await database.habit.findUnique({ where: { id: habitId }, select: habitSelect });
+      return row ? toHabit(row) : null;
+    },
+
+    async upsertBinaryLog(habitId, date, completed) {
+      const day = new Date(`${date}T00:00:00.000Z`);
+      const row = await database.habitLog.upsert({
+        where: { habitId_date: { habitId, date: day } },
+        create: { habitId, date: day, completed },
+        update: { completed },
+        select: savedLogSelect,
+      });
+      return { ...row, date: row.date.toISOString().slice(0, 10) };
     },
 
     async listScheduledForDay(ownerId, day, logDate) {
