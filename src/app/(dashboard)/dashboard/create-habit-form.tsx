@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { createHabitSchema } from "@/lib/validations";
+import { createHabitSchema } from "@/features/habits";
 
 export const weekdayLabels = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 type Field = "name" | "unit" | "frequency";

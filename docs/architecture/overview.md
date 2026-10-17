@@ -59,8 +59,13 @@ src/
 ├── lib/                            # Lógica y utilidades mezcladas (a migrar)
 │   ├── prisma.ts                   # Singleton de PrismaClient
 │   ├── auth.ts                     # Configuración de Auth.js
-│   ├── habits.ts, habit-request.ts, login-policy.ts
-│   └── validations.ts              # Schemas de Zod
+│   ├── login-policy.ts
+│   └── validations.ts              # Schemas de Zod (registro y login)
+├── features/                       # Migradas según ADR-05
+│   ├── habits/{domain,application,infrastructure}/
+│   └── auth/{application,infrastructure}/   # Guard de sesión (requireHabitOwner)
+├── shared/
+│   └── http/                       # Guardas HTTP de hábitos (habit-request)
 ├── test/                           # Setup de Vitest
 ├── types/index.ts                  # Tipos globales
 └── generated/prisma/               # Cliente generado (no editar)
@@ -76,8 +81,8 @@ Definida en [ADR-05](decisions/ADR-05-estructura-por-feature.md): `src/features/
 
 | Feature | Estado de migración |
 |---------|---------------------|
-| habits | Pendiente |
-| auth | Pendiente |
+| habits | Migrada en backend (dominio, casos de uso, puerto `HabitRepository` y adaptador Prisma); la UI sigue en `src/app/(dashboard)/dashboard/` |
+| auth | Parcial: guard de sesión `requireHabitOwner` en `src/features/auth/`; registro, login y `validations.ts` pendientes |
 
 ---
 

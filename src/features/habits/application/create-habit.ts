@@ -1,4 +1,4 @@
-import type { CreateHabitInput } from "@/lib/validations";
+import type { CreateHabitInput } from "../domain/create-habit-schema";
 import type { Habit } from "../domain/habit";
 import type { HabitRepository } from "./habit-repository";
 

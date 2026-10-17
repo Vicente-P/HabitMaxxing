@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { createHabitSchema } from "@/lib/validations";
-import { requireHabitOwner } from "@/lib/habits";
-import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError, type HabitRequestError } from "@/lib/habit-request";
+import { createPrismaUserLookup, requireHabitOwner } from "@/features/auth";
+import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError, type HabitRequestError } from "@/shared/http/habit-request";
+import { createHabitSchema } from "@/features/habits";
 import { createHabit } from "@/features/habits/application/create-habit";
 import { listDailyHabits } from "@/features/habits/application/list-daily-habits";
 import { listHabitCatalog } from "@/features/habits/application/list-habit-catalog";
@@ -11,6 +11,7 @@ import { resolveDailyAgendaQuery } from "@/features/habits/domain/daily-query";
 import { createPrismaHabitRepository } from "@/features/habits/infrastructure/prisma-habit-repository";
 
 const habitRepository = createPrismaHabitRepository(prisma);
+const userLookup = createPrismaUserLookup(prisma);
 const responseHeaders = { "Cache-Control": "private, no-store" };
 
 function errorResponse(error: HabitRequestError, details?: Array<{ field: string; message: string }>) {
@@ -19,7 +20,7 @@ function errorResponse(error: HabitRequestError, details?: Array<{ field: string
 
 export async function POST(request: Request) {
   try {
-    const ownerId = await requireHabitOwner(await auth(), prisma);
+    const ownerId = await requireHabitOwner(await auth(), userLookup);
     if (!ownerId) return errorResponse({ status: 401, code: "UNAUTHORIZED", message: "Debes iniciar sesión para acceder a este recurso" });
 
     const requestError = checkHabitRequest(request, process.env.APP_ORIGIN);
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const ownerId = await requireHabitOwner(await auth(), prisma);
+    const ownerId = await requireHabitOwner(await auth(), userLookup);
     if (!ownerId) return errorResponse({ status: 401, code: "UNAUTHORIZED", message: "Debes iniciar sesión para acceder a este recurso" });
 
     const params = new URL(request.url).searchParams;
