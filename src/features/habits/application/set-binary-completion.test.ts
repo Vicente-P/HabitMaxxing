@@ -84,8 +84,10 @@ describe("setBinaryCompletion", () => {
     expect(repository.habits[0].logs).toHaveLength(0);
   });
 
-  it("rejects a habit owned by someone else", async () => {
-    expect(await run({ ownerId: "intruder" })).toEqual({ ok: false, error: "FORBIDDEN" });
+  it("reports a habit owned by someone else exactly like a missing one", async () => {
+    const foreign = await run({ ownerId: "intruder" });
+    expect(foreign).toEqual({ ok: false, error: "NOT_FOUND" });
+    expect(foreign).toEqual(await run({ habitId: "missing" }));
     expect(repository.habits[0].logs).toHaveLength(0);
   });
 

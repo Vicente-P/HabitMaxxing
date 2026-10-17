@@ -13,7 +13,6 @@ const userLookup = createPrismaUserLookup(prisma);
 
 const completionErrors: Record<SetBinaryCompletionError, HabitRequestError> = {
   NOT_FOUND: { status: 404, code: "NOT_FOUND", message: "Hábito no encontrado" },
-  FORBIDDEN: { status: 403, code: "FORBIDDEN", message: "No tienes permiso para registrar este hábito" },
   NUMERIC_NOT_SUPPORTED: { ...habitValidationError, message: "El registro de hábitos numéricos aún no está disponible" },
   FUTURE_DATE: { ...habitValidationError, message: "No se puede registrar en fechas futuras" },
   NOT_SCHEDULED: { ...habitValidationError, message: "Este hábito no está programado para este día" },

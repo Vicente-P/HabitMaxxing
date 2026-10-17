@@ -84,12 +84,22 @@ describe("POST /api/habits/:id/logs errors", () => {
     expect(mocks.upsertLog).not.toHaveBeenCalled();
   });
 
-  it("returns 403 for another user's habit without writing", async () => {
+  it("returns 404 for another user's habit without writing", async () => {
     mocks.findHabit.mockResolvedValue({ ...habitRow, userId: "someone-else" });
     const response = await call(request());
-    expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: { code: "FORBIDDEN", message: "No tienes permiso para registrar este hábito" } });
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: { code: "NOT_FOUND", message: "Hábito no encontrado" } });
     expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it("answers a foreign habit and a missing habit with byte-identical responses", async () => {
+    mocks.findHabit.mockResolvedValue({ ...habitRow, userId: "someone-else" });
+    const foreign = await call(request());
+    mocks.findHabit.mockResolvedValue(null);
+    const missing = await call(request());
+    expect(foreign.status).toBe(missing.status);
+    expect(await foreign.text()).toBe(await missing.text());
+    expect([...foreign.headers.entries()]).toEqual([...missing.headers.entries()]);
   });
 
   it("returns 404 for a missing habit", async () => {

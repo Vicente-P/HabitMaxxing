@@ -10,7 +10,7 @@ export type SetBinaryCompletionInput = {
   date?: string;
 };
 
-export type SetBinaryCompletionError = "NOT_FOUND" | "FORBIDDEN" | "NUMERIC_NOT_SUPPORTED" | "FUTURE_DATE" | "NOT_SCHEDULED";
+export type SetBinaryCompletionError = "NOT_FOUND" | "NUMERIC_NOT_SUPPORTED" | "FUTURE_DATE" | "NOT_SCHEDULED";
 
 export type SetBinaryCompletionResult =
   | { ok: true; log: SavedHabitLog }
@@ -26,8 +26,8 @@ export async function setBinaryCompletion(
   now: Date = new Date(),
 ): Promise<SetBinaryCompletionResult> {
   const habit = await repository.findById(input.habitId);
-  if (!habit) return { ok: false, error: "NOT_FOUND" };
-  if (habit.userId !== input.ownerId) return { ok: false, error: "FORBIDDEN" };
+  // A foreign habit is indistinguishable from a missing one so ids cannot be enumerated.
+  if (!habit || habit.userId !== input.ownerId) return { ok: false, error: "NOT_FOUND" };
   if (habit.type !== "BINARY") return { ok: false, error: "NUMERIC_NOT_SUPPORTED" };
 
   const today = utcToday(now);

@@ -22,7 +22,7 @@ Contrato completo: [`docs/specs/logs/create.md`](../specs/logs/create.md).
 | Fecha | Por defecto la fecha UTC del servidor; no se aceptan fechas futuras; el día de la semana debe estar en `frequency` |
 | Persistencia | Upsert por `(habitId, date)`. Revertir actualiza `completed: false`; no elimina el registro |
 | Respuesta 200 | `{ "data": { id, habitId, date, completed, value: null, createdAt } }` |
-| Errores | 400 día no programado / fecha futura / hábito NUMERIC (aún no soportado), 403 hábito de otro usuario, 404 hábito inexistente, 500 `INTERNAL_ERROR` |
+| Errores | 400 día no programado / fecha futura / hábito NUMERIC (aún no soportado), 404 hábito inexistente o de otro usuario (respuesta idéntica, sin enumeración de ids), 500 `INTERNAL_ERROR` |
 | Cabeceras | `Cache-Control: private, no-store` en todas las respuestas |
 
 ## Endpoints planeados
