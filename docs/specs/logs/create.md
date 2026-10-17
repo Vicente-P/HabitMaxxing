@@ -225,9 +225,9 @@ POST /api/habits/:id/logs
 
 ### Binario
 
-- [ ] Toggle a completado crea log con `completed: true` y fecha actual.
-- [ ] Toggle a pendiente actualiza log con `completed: false`.
-- [ ] Segundo toggle revierte estado (CA-02).
+- [x] Toggle a completado crea log con `completed: true` y fecha actual.
+- [x] Toggle a pendiente actualiza log con `completed: false`.
+- [x] Segundo toggle revierte estado (CA-02).
 
 ### Numérico
 
@@ -238,12 +238,12 @@ POST /api/habits/:id/logs
 
 ### General
 
-- [ ] Registro en día no programado retorna 400.
-- [ ] Registro en fecha futura retorna 400.
-- [ ] Hábito de otro usuario retorna 403.
-- [ ] Hábito inexistente retorna 404.
-- [ ] Sin sesión retorna 401.
-- [ ] Constraint `@@unique([habitId, date])` respetado via upsert.
+- [x] Registro en día no programado retorna 400.
+- [x] Registro en fecha futura retorna 400.
+- [x] Hábito de otro usuario retorna 403.
+- [x] Hábito inexistente retorna 404.
+- [x] Sin sesión retorna 401.
+- [x] Constraint `@@unique([habitId, date])` respetado via upsert.
 
 ---
 
@@ -253,6 +253,14 @@ POST /api/habits/:id/logs
 - Validar que el día de la semana de `date` esté en `habit.frequency`.
 - Para NUMERIC: establecer `completed: true` automáticamente cuando `value > 0`.
 - Schema Zod: `createLogSchema` con discriminated union por `HabitType`.
+
+### Decisiones implementadas en HU-10 (binario)
+
+- Revertir **actualiza** el log a `completed: false` (no lo elimina); la agenda trata un log con `completed: false` igual que la ausencia de log.
+- Un hábito `NUMERIC` recibe 400 `VALIDATION_ERROR` hasta que HU-11 implemente `value`; el campo `value` aún no se acepta en el body.
+- Hábito ajeno responde 403 y hábito inexistente 404 (revela la existencia del id).
+- "Hoy" y "fecha futura" usan la fecha UTC del servidor; no hay soporte de zona horaria del usuario.
+- Los tests de Numérico y el `createLogSchema` con unión discriminada quedan pendientes de HU-11; HU-10 valida el body con `binaryLogSchema`.
 
 ## Notas de seguridad
 

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createPrismaUserLookup, requireHabitOwner } from "@/features/auth";
-import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError, type HabitRequestError } from "@/shared/http/habit-request";
+import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError } from "@/shared/http/habit-request";
+import { habitErrorResponse as errorResponse, habitResponseHeaders as responseHeaders } from "@/shared/http/habit-response";
 import { createHabitSchema } from "@/features/habits";
 import { createHabit } from "@/features/habits/application/create-habit";
 import { listDailyHabits } from "@/features/habits/application/list-daily-habits";
@@ -12,11 +13,6 @@ import { createPrismaHabitRepository } from "@/features/habits/infrastructure/pr
 
 const habitRepository = createPrismaHabitRepository(prisma);
 const userLookup = createPrismaUserLookup(prisma);
-const responseHeaders = { "Cache-Control": "private, no-store" };
-
-function errorResponse(error: HabitRequestError, details?: Array<{ field: string; message: string }>) {
-  return NextResponse.json({ error: { code: error.code, message: error.message, ...(details ? { details } : {}) } }, { status: error.status, headers: responseHeaders });
-}
 
 export async function POST(request: Request) {
   try {
