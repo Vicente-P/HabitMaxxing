@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createHabitSchema } from "@/lib/validations";
-import { createHabit, listDailyHabits, listHabitCatalog, requireHabitOwner } from "@/lib/habits";
+import { requireHabitOwner } from "@/lib/habits";
 import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError, type HabitRequestError } from "@/lib/habit-request";
+import { createHabit } from "@/features/habits/application/create-habit";
+import { listDailyHabits } from "@/features/habits/application/list-daily-habits";
+import { listHabitCatalog } from "@/features/habits/application/list-habit-catalog";
+import { resolveDailyAgendaQuery } from "@/features/habits/domain/daily-query";
+import { createPrismaHabitRepository } from "@/features/habits/infrastructure/prisma-habit-repository";
 
+const habitRepository = createPrismaHabitRepository(prisma);
 const responseHeaders = { "Cache-Control": "private, no-store" };
 
 function errorResponse(error: HabitRequestError, details?: Array<{ field: string; message: string }>) {
@@ -24,7 +30,7 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return errorResponse(habitValidationError, parsed.error.issues.map((issue) => ({ field: String(issue.path[0] ?? "form"), message: issue.message })));
     }
-    const habit = await createHabit(parsed.data, ownerId, prisma);
+    const habit = await createHabit(parsed.data, ownerId, habitRepository);
     return NextResponse.json({ data: habit }, { status: 201, headers: responseHeaders });
   } catch {
     return errorResponse(habitInternalError);
@@ -41,7 +47,7 @@ export async function GET(request: Request) {
       if (params.size !== 1 || params.get("view") !== "catalog") {
         return errorResponse(habitValidationError, [{ field: "view", message: "Se requiere únicamente view=catalog" }]);
       }
-      const habits = await listHabitCatalog(ownerId, prisma);
+      const habits = await listHabitCatalog(ownerId, habitRepository);
       return NextResponse.json({ data: habits }, { status: 200, headers: responseHeaders });
     }
 
@@ -50,22 +56,11 @@ export async function GET(request: Request) {
       return errorResponse(habitValidationError, [{ field: "query", message: "Los parámetros permitidos son date y day" }]);
     }
 
-    const requestedDate = params.get("date");
-    if (requestedDate !== null) {
-      const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) ? new Date(`${requestedDate}T00:00:00.000Z`) : null;
-      if (!parsedDate || !Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== requestedDate) {
-        return errorResponse(habitValidationError, [{ field: "date", message: "La fecha debe tener formato YYYY-MM-DD válido" }]);
-      }
+    const query = resolveDailyAgendaQuery({ date: params.get("date"), day: params.get("day") }, new Date().toISOString().slice(0, 10));
+    if (!query.ok) {
+      return errorResponse(habitValidationError, [{ field: query.field, message: query.message }]);
     }
-    const requestedDay = params.get("day");
-    if (requestedDay !== null && !/^[0-6]$/.test(requestedDay)) {
-      return errorResponse(habitValidationError, [{ field: "day", message: "El día debe ser un entero entre 0 y 6" }]);
-    }
-
-    const currentDate = new Date().toISOString().slice(0, 10);
-    const date = requestedDate ?? currentDate;
-    const day = requestedDate !== null ? new Date(`${requestedDate}T00:00:00.000Z`).getUTCDay() : requestedDay !== null ? Number(requestedDay) : new Date(`${currentDate}T00:00:00.000Z`).getUTCDay();
-    const result = await listDailyHabits(ownerId, day, date, prisma);
+    const result = await listDailyHabits(ownerId, query.day, query.date, habitRepository);
     return NextResponse.json(result, { status: 200, headers: responseHeaders });
   } catch {
     return errorResponse(habitInternalError);
