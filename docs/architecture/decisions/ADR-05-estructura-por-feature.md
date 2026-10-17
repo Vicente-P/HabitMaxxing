@@ -87,6 +87,7 @@ Se elimina la duplicación de setup: `docs/guides/setup.md` y `docs/wiki/setup.m
 ✅ Lógica de dominio testeable sin infraestructura.  
 ✅ Prisma confinado a `infrastructure/`.  
 ⚠️ Migración con costo: mover archivos y actualizar imports y tests. Se hace por feature, al tocar historias nuevas, no en un solo cambio masivo.  
-⚠️ Las reglas de dependencia deben vigilarse; considerar una regla de lint (por ejemplo, `eslint-plugin-boundaries`) cuando se acepte este ADR.  
+✅ Las reglas de dependencia se vigilan con `no-restricted-imports` en `eslint.config.mjs` (sin dependencias nuevas). Las features se detectan solas desde `src/features/`. Si la lista de patrones se vuelve engorrosa, evaluar `eslint-plugin-boundaries`.  
+⚠️ La regla cubre `domain/`, `application/` y los imports entre features; `infrastructure/` y `ui/` solo tienen la prohibición entre features, y `src/app` queda libre porque es la capa de composición.  
 ⚠️ Durante la transición coexisten dos estilos; documentar en `architecture/overview.md` qué features ya migraron.  
 ⚠️ `docs/architecture/overview.md` debe actualizarse para reflejar la estructura real, antes o junto con la aceptación de este ADR.
