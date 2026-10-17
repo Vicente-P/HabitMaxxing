@@ -48,8 +48,9 @@ describe("completed card presentation (mockup)", () => {
     const done = await screen.findByRole("heading", { name: "Leer" });
     expect(screen.queryByText("Completado")).not.toBeInTheDocument();
     expect(screen.queryByText("Pendiente")).not.toBeInTheDocument();
-    expect(done).toHaveClass("line-through", "text-hm-text-mid");
-    expect(screen.getByRole("heading", { name: "Escribir" })).not.toHaveClass("line-through");
+    expect(done).toHaveClass("md:line-through", "md:text-hm-text-mid", "md:decoration-hm-text-dim");
+    expect(done).not.toHaveClass("line-through");
+    expect(screen.getByRole("heading", { name: "Escribir" })).not.toHaveClass("md:line-through");
   });
 });
 
@@ -71,8 +72,8 @@ describe("mockup row structure", () => {
     expect(rows[0]).toHaveClass("border-t");
     expect(rows[1]).not.toHaveClass("border-t");
     rows.forEach((row) => {
-      expect(row.querySelector("h3")).toHaveClass("text-[16px]", "font-semibold", "leading-[1.2]");
-      expect(row.querySelector("p")).toHaveClass("text-[12px]", "mt-1", "text-hm-text-low");
+      expect(row.querySelector("h3")).toHaveClass("text-[14px]", "md:text-[16px]", "font-semibold", "leading-[1.2]", "text-hm-text-hi");
+      expect(row.querySelector("p")).toHaveClass("text-[11px]", "md:text-[12px]", "mt-0.5", "md:mt-1", "text-hm-text-low");
     });
     expect(rows.map((row) => row.querySelector("p")?.textContent)).toEqual(["Todos los días", "L–V", "L · X · V"]);
   });
