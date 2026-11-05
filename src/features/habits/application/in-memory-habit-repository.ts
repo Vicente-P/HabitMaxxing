@@ -35,7 +35,7 @@ export class InMemoryHabitRepository implements HabitRepository {
     this.throwIfFailing();
     return this.ordered(ownerId)
       .filter((habit) => habit.frequency.includes(day))
-      .map((stored) => ({ ...this.toHabit(stored), log: stored.logs.find((log) => log.date === logDate) ?? null }));
+      .map((stored) => ({ ...this.toHabit(stored), log: this.toDayLog(stored.logs.find((log) => log.date === logDate)) }));
   }
 
   async findById(habitId: string): Promise<Habit | null> {
@@ -73,6 +73,11 @@ export class InMemoryHabitRepository implements HabitRepository {
     const log: StoredLog = { id: `log-${this.sequence}`, completed: true, value, date, createdAt: new Date(this.sequence * 1000) };
     stored.logs.push(log);
     return this.toSavedLog(habitId, log);
+  }
+
+  /** Day logs expose only id, completed, value and date, like the Prisma adapter's select. */
+  private toDayLog(log: StoredLog | undefined): HabitLog | null {
+    return log ? { id: log.id, completed: log.completed, value: log.value, date: log.date } : null;
   }
 
   private toSavedLog(habitId: string, log: StoredLog): SavedHabitLog {
