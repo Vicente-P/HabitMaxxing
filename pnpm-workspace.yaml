@@ -3,3 +3,6 @@ allowBuilds:
   prisma: true
   sharp: false
   unrs-resolver: false
+  cpu-features: false
+  protobufjs: false
+  ssh2: false
