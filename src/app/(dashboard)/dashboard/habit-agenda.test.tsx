@@ -185,11 +185,140 @@ describe("binary completion toggle", () => {
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("offers no toggle for numeric habits", async () => {
+  it("offers no completion toggle for numeric habits", async () => {
     mockAgenda(null, { type: "NUMERIC", unit: "páginas" });
     render(<HabitAgenda ownerId="owner" />);
     expect(await screen.findByText("L")).toBeInTheDocument();
     expect(screen.queryByText(/Numérico/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Completar/ })).not.toBeInTheDocument();
+  });
+});
+
+describe("numeric value registration", () => {
+  const numericHabit = { ...dailyHabit, name: "Correr", type: "NUMERIC", unit: "km" };
+  const savedValue = (value: number) => ({ data: { id: "log", habitId: "h1", date: "2026-10-12", completed: true, value, createdAt: "2026-10-12T10:00:00.000Z" } });
+  const logCalls = () => fetchMock.mock.calls.filter(([url]) => url === "/api/habits/h1/logs");
+
+  function mockAgenda(todayLog: unknown = null, save?: (body: { value: number }) => Promise<Response>) {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (url === "/api/habits/h1/logs") {
+        const body = JSON.parse(String(init?.body));
+        return save ? save(body) : Promise.resolve(Response.json(savedValue(body.value)));
+      }
+      return Promise.resolve(url === "/api/habits?view=catalog" ? catalogResponse([catalogHabit]) : dailyResponse([{ ...numericHabit, todayLog }]));
+    });
+  }
+
+  it("renders a number input with the unit and a confirm button instead of the check", async () => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    expect(input).toHaveAttribute("type", "number");
+    expect(input).toHaveAttribute("step", "any");
+    expect(input).toHaveAttribute("inputmode", "decimal");
+    expect(screen.getByText("km")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar Correr" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Completar Correr" })).not.toBeInTheDocument();
+  });
+
+  it("posts only the value, then shows it with the unit", async () => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.type(await screen.findByLabelText("Valor de Correr"), "5");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+
+    expect(await screen.findByText("5 km")).toBeInTheDocument();
+    expect(logCalls()).toHaveLength(1);
+    expect(logCalls()[0][1]).toMatchObject({ method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", headers: { "Content-Type": "application/json" } });
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ value: 5 });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("prefills today's value and shows it with the unit, and a new value replaces it", async () => {
+    mockAgenda({ id: "log", completed: true, value: 5, date: "2026-10-12" });
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    expect(input).toHaveValue(5);
+    expect(screen.getByText("5 km")).toBeInTheDocument();
+
+    await userEvent.clear(input);
+    await userEvent.type(input, "8.5");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+
+    expect(await screen.findByText("8.5 km")).toBeInTheDocument();
+    expect(screen.queryByText("5 km")).not.toBeInTheDocument();
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ value: 8.5 });
+  });
+
+  it.each([["0"], ["-3"], ["-0.5"], [""]])("shows 'El valor debe ser mayor a 0' for %j without posting", async (typed) => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    if (typed) await userEvent.type(input, typed);
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("El valor debe ser mayor a 0");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(logCalls()).toHaveLength(0);
+  });
+
+  it("clears the validation error after a valid value is saved", async () => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    await userEvent.type(input, "0");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+    await screen.findByRole("alert");
+    await userEvent.clear(input);
+    await userEvent.type(input, "3");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+    expect(await screen.findByText("3 km")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("shows the server validation message from a 400 response", async () => {
+    mockAgenda(null, () => Promise.resolve(Response.json({
+      error: { code: "VALIDATION_ERROR", message: "Datos de entrada inválidos", details: [{ field: "value", message: "El valor debe ser mayor a 0" }] },
+    }, { status: 400 })));
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.type(await screen.findByLabelText("Valor de Correr"), "5");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("El valor debe ser mayor a 0");
+  });
+
+  it("disables the input and button while in flight and ignores extra submissions", async () => {
+    let resolveSave: (response: Response) => void = () => undefined;
+    mockAgenda(null, () => new Promise<Response>((resolve) => { resolveSave = resolve; }));
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    await userEvent.type(input, "5");
+    const button = screen.getByRole("button", { name: "Registrar Correr" });
+
+    await userEvent.click(button);
+    expect(button).toBeDisabled();
+    expect(input).toBeDisabled();
+    await userEvent.click(button);
+    expect(logCalls()).toHaveLength(1);
+
+    resolveSave(Response.json(savedValue(5)));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Registrar Correr" })).toBeEnabled());
+    expect(screen.getByText("5 km")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["server error", () => Promise.resolve(Response.json({ error: { code: "INTERNAL_ERROR" } }, { status: 500 })), "No se pudo actualizar el hábito. Inténtalo de nuevo."],
+    ["network failure", () => Promise.reject(new Error("offline")), "No se pudo actualizar el hábito. Inténtalo de nuevo."],
+    ["unauthorized", () => Promise.resolve(Response.json({ error: { code: "UNAUTHORIZED" } }, { status: 401 })), "Tu sesión ya no está disponible. Inicia sesión nuevamente."],
+  ])("keeps the previous value and shows an error after a %s", async (_name, failure, message) => {
+    mockAgenda({ id: "log", completed: true, value: 5, date: "2026-10-12" }, failure);
+    render(<HabitAgenda ownerId="owner" />);
+    const input = await screen.findByLabelText("Valor de Correr");
+    await userEvent.clear(input);
+    await userEvent.type(input, "9");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(screen.getByText("5 km")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Registrar Correr" })).toBeEnabled();
   });
 });
