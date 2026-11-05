@@ -220,7 +220,7 @@ Ordenadas por relación entre valor y costo. Ninguna está implementada.
 
 | # | Mejora | Estado |
 |---|--------|--------|
-| 1 | Tests de integración del repositorio contra PostgreSQL real | Plan en [ADR-06](../architecture/decisions/ADR-06-tests-de-integracion-con-postgres.md) (propuesto) |
+| 1 | Tests de integración del repositorio contra PostgreSQL real | Plan en [ADR-06](../architecture/decisions/ADR-06-tests-de-integracion-con-postgres.md) (aceptado, en implementación) |
 | 2 | Suite de contrato compartida entre `InMemoryHabitRepository` y el adaptador de Prisma | Incluida en ADR-06 |
 | 3 | E2E con Playwright de pocos flujos críticos (registro → login → crear hábito → marcarlo → logout): cubre cookies de sesión, redirecciones, layout y responsive | Pendiente; conviene con más pantallas estables |
 | 4 | Umbral de cobertura en CI solo para `src/features/**` (objetivo realista, p. ej. 80 %) | Pendiente |

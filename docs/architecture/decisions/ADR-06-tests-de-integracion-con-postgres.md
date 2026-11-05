@@ -2,7 +2,7 @@
 
 ## Estado
 
-Propuesto. Cambia tooling (dependencias de desarrollo, configuración de Vitest y CI), por lo que requiere aprobación explícita antes de implementarse. Ninguna tarea de este plan está ejecutada.
+Aceptado (2026-11-05). El usuario aprobó el cambio de tooling y las dos decisiones de la sección "Decisiones". Implementación incremental: T1–T4 primero; T5 (CI) queda diferido hasta que el CI de GitHub vuelva a ejecutarse (bloqueo de facturación); T6 al cierre.
 
 ---
 
@@ -79,7 +79,8 @@ Cada tarea es un commit revisable. Total estimado: 350–450 líneas, entre cód
 - **Docker obligatorio para correr la integración en local.** Se acepta: el comando unitario sigue sin requerirlo.
 - **Versión de PostgreSQL:** usar la misma versión mayor que Supabase. Verificarla antes de T2 y fijarla en un solo lugar.
 
-## Decisiones abiertas
+## Decisiones tomadas sobre las preguntas abiertas
 
-1. Testcontainers (más cómodo, requiere Docker y una dependencia) frente a una URL de prueba por `docker compose` (sin dependencia nueva). Recomendación: Testcontainers en local y servicio en CI.
-2. Si `pnpm test:integration` debe bloquear el merge (check requerido) o ser informativo al inicio.
+1. **Testcontainers en local y servicio PostgreSQL en el CI.** El proyecto lo mantiene una sola persona con Docker ya instalado; Testcontainers elimina la preparación manual. Se descarta la URL de prueba con `docker compose` por la fricción de levantarla y bajarla. En el CI se usa el contenedor de servicio de GitHub, sin Testcontainers.
+2. **El job de integración será informativo al inicio** y pasará a check requerido cuando el CI esté operativo y estable durante unas semanas. Un check requerido que hoy no puede ejecutarse bloquearía los merges.
+3. **Orden:** T1–T4 (se verifican en local y dan casi todo el valor) antes que T5 (no verificable en remoto por ahora).
