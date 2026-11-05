@@ -296,6 +296,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-11 — Registrar hábito numérico `SCRUM-16`
+**Estado HU-11 (2026-11-05):** implementada localmente en `feature/SCRUM-16-registrar-habito-numerico`, pendiente de PR: `POST /api/habits/:id/logs` acepta `value` > 0 para hábitos numéricos (reemplaza el registro del día) y la agenda muestra input numérico con unidad ("5 km"), sin meta.
 > *"Como usuario, quiero ingresar un valor numérico en mi hábito, para registrar cuánto realicé ese día."*
 
 **Criterios de Aceptación:**
