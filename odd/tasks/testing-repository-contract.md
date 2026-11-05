@@ -13,12 +13,13 @@ Implement T1-T4 of ADR-06 (`docs/architecture/decisions/ADR-06-tests-de-integrac
 
 ## Tasks
 
-- [ ] T1 (S1) - contract suite against in-memory - worker - commit: pending
-- [ ] T2 (S2, S3) - integration project, global setup, safeguard - worker - commit: pending
-- [ ] T3 (S4) - contract against Prisma/PostgreSQL - worker - commit: pending
-- [ ] T4 (S5, S6) - database-only cases and proof of value - worker - commit: pending
-- [ ] T6 - docs (testing guide, setup, ADR-06 note) - parent - commit: pending
+- [x] T1 (S1) - contract suite against in-memory - worker - commit: b2c6c81
+- [x] T2 (S2, S3) - integration project, global setup, safeguard - worker - commit: c905329, 9664978 (allowBuilds fix)
+- [x] T3 (S4) - contract against Prisma/PostgreSQL - worker - commit: eafaba3
+- [x] T4 (S5, S6) - database-only cases and proof of value - worker - commit: eafaba3 (S6 proof reported by the worker)
+- [x] T6 - docs (testing guide, setup, ADR-06 note) - parent - commit: this commit
 
 ## Log
 
 - L1 (user, verbatim): "Si estoy de acuerdo" (approving: Testcontainers locally and a PostgreSQL service in CI; informative CI job first; T1-T4 before T5) after "Dejemos eso documentado y arma el plan para mejoras 1 y 2".
+- L2 (evidence): clean clone `pnpm install --frozen-lockfile` failed with ERR_PNPM_IGNORED_BUILDS (cpu-features, protobufjs, ssh2 via testcontainers); fixed with `allowBuilds: false` (9664978) and re-verified in a clean clone: install exit 0, 423 unit tests, typecheck. T5 (CI job) deferred by decision (billing lock); ADR-06 itself is in PR #36.
