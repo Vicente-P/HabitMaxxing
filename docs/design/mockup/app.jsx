@@ -6,6 +6,7 @@ const {
   HabitDetail, CreateHabit,
   MobileDashboard, MobileHabitDetail, MobileCreateHabit,
   IOSDevice, hmColors: c,
+  DesktopLogin, DesktopSignup, MobileLogin, MobileSignup,
 } = window;
 
 // Browser-window chrome — theme-aware via CSS vars.
@@ -60,6 +61,31 @@ function MobileFrame({ children, theme = 'dark' }) {
 function App() {
   return (
     <DesignCanvas>
+
+      <DCSection id="auth" title="Acceso · Login y registro"
+        subtitle="Formulario a la izquierda, panel de marca con heatmap a la derecha. Estados: focus violeta, error rose, fuerza de contraseña semántica.">
+        <DCArtboard id="a-login" label="Login · Dark" width={1280} height={820}>
+          <DesktopFrame title="habit-maxxing.app/login" theme="dark"><DesktopLogin /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="a-login-error" label="Login · Error" width={1280} height={820}>
+          <DesktopFrame title="habit-maxxing.app/login" theme="dark"><DesktopLogin withError /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="a-signup" label="Registro · Dark" width={1280} height={820}>
+          <DesktopFrame title="habit-maxxing.app/signup" theme="dark"><DesktopSignup /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="a-signup-light" label="Registro · Light" width={1280} height={820}>
+          <DesktopFrame title="habit-maxxing.app/signup" theme="light"><DesktopSignup /></DesktopFrame>
+        </DCArtboard>
+        <DCArtboard id="a-m-login" label="Login · Mobile" width={420} height={900}>
+          <MobileFrame theme="dark"><MobileLogin /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="a-m-signup" label="Registro · Mobile" width={420} height={900}>
+          <MobileFrame theme="dark"><MobileSignup /></MobileFrame>
+        </DCArtboard>
+        <DCArtboard id="a-m-login-light" label="Login · Mobile Light" width={420} height={900}>
+          <MobileFrame theme="light"><MobileLogin /></MobileFrame>
+        </DCArtboard>
+      </DCSection>
 
       {/* ── SECTION 1 — Sistema final aplicado ────────────────────── */}
       <DCSection id="system" title="Sistema · Violet purple + colores semánticos"
