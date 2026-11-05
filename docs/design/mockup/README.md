@@ -6,7 +6,7 @@ Fuente de verdad visual de la plataforma. Reemplaza por completo el design syste
 |-------|-------|
 | Origen | Artifact "Habit Maxxing — Prototipo", hecho con Claude Design |
 | Enlace | https://claude.ai/artifact/TRXGZovYXH5eeMhkJ8D9rS |
-| Versión exportada | `1792190389-e73e` (2026-10-16) |
+| Versión exportada | Export de Claude Design del 2026-11-05 (reemplaza a `1792190389-e73e`, 2026-10-16). Tokens sin cambios; suma pantallas de auth y flujo desktop completo |
 | Tema por defecto | Oscuro (`:root`) |
 
 Los archivos de esta carpeta son una copia de lectura. No se importan en la app: el código de producción vive en `src/` y se implementa a partir de estas referencias.
@@ -19,7 +19,8 @@ Los archivos de esta carpeta son una copia de lectura. No se importan en la app:
 | `atoms.jsx` | Átomos: `Icon`, `HabitCheck`, `StreakBadge`, `Heatmap`, `YearHeatmap`, `WeekDots`, `ProgressBar`, `ProgressRing`, `Sparkline`, `HabitIcon` |
 | `ios-frame.jsx` | Marco de dispositivo iOS, barra de estado, lista, teclado |
 | `desktop-dashboards.jsx` | Dashboards desktop: Dense, Quiet, Vibrant |
-| `desktop-habit-screens.jsx` | Detalle de hábito y creación de hábito, desktop |
+| `desktop-flow.jsx` | Flujo completo desktop: detalle de hábito y creación (reemplaza a `desktop-habit-screens.jsx`) |
+| `auth-screens.jsx` | Login y registro, desktop y móvil: formulario + panel de marca con heatmap, estados de error y fuerza de contraseña |
 | `mobile-screens.jsx` | Dashboard móvil, detalle, creación, estadísticas, barra de pestañas |
 | `app.jsx` | Composición de la app (usa `DashboardVibrant`) |
 
