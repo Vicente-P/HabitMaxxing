@@ -95,10 +95,10 @@ describe("setBinaryCompletion", () => {
     expect(await run({ habitId: "missing" })).toEqual({ ok: false, error: "NOT_FOUND" });
   });
 
-  it("rejects numeric habits until numeric values are supported", async () => {
+  it("rejects a completion toggle on a numeric habit as a type mismatch", async () => {
     repository.habits[0].type = "NUMERIC";
     repository.habits[0].unit = "pages";
-    expect(await run()).toEqual({ ok: false, error: "NUMERIC_NOT_SUPPORTED" });
+    expect(await run()).toEqual({ ok: false, error: "TYPE_MISMATCH" });
     expect(repository.habits[0].logs).toHaveLength(0);
   });
 

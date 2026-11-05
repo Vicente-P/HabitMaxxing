@@ -11,4 +11,6 @@ export interface HabitRepository {
   findById(habitId: string): Promise<Habit | null>;
   /** Creates or updates the single binary log of the habit on `date` (YYYY-MM-DD) with `completed`; never deletes. */
   upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog>;
+  /** Creates or replaces the single numeric log of the habit on `date` (YYYY-MM-DD) with `completed: true` and `value`. */
+  upsertNumericLog(habitId: string, date: string, value: number): Promise<SavedHabitLog>;
 }
