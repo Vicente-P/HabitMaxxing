@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { formatFrequency } from "@/features/habits";
 import HabitCheck from "./habit-check";
+import NumericValueField from "./numeric-value-field";
 
 const dailySchema = z.object({
   data: z.array(z.object({
@@ -41,6 +42,7 @@ async function fetchAgenda(ownerId: string, signal: AbortSignal): Promise<Agenda
 
 const savedLogSchema = z.object({ data: z.object({ id: z.string().min(1), completed: z.boolean(), value: z.number().nullable(), date: z.string() }) });
 const unauthorizedMessage = "Tu sesión ya no está disponible. Inicia sesión nuevamente.";
+const serverErrorSchema = z.object({ error: z.object({ details: z.array(z.object({ field: z.string(), message: z.string() })).optional() }) });
 const toggleErrorMessage = "No se pudo actualizar el hábito. Inténtalo de nuevo.";
 
 export default function HabitAgenda({ ownerId }: { ownerId: string }) {
@@ -63,7 +65,11 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
     return () => { active.current = false; controller.abort(); };
   }, [ownerId]);
 
-  async function toggle(habit: DailyHabit) {
+  function toggle(habit: DailyHabit) {
+    return save(habit, { completed: habit.todayLog?.completed !== true });
+  }
+
+  async function save(habit: DailyHabit, payload: { completed: boolean } | { value: number }) {
     if (inFlight.current.has(habit.id)) return;
     inFlight.current.add(habit.id);
     setSaving(new Set(inFlight.current));
@@ -72,10 +78,15 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
     try {
       const response = await fetch(`/api/habits/${encodeURIComponent(habit.id)}/logs`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: habit.todayLog?.completed !== true }),
+        body: JSON.stringify(payload),
         credentials: "same-origin", cache: "no-store", redirect: "error",
       });
       if (response.status === 401) failure = unauthorizedMessage;
+      else if (response.status === 400 && "value" in payload) {
+        // Surface the server's own validation message for the value field when it sends one.
+        const parsedError = serverErrorSchema.safeParse(await response.json().catch(() => null));
+        failure = parsedError.success ? parsedError.data.error.details?.find((detail) => detail.field === "value")?.message ?? toggleErrorMessage : toggleErrorMessage;
+      }
       else if (response.status !== 200) failure = toggleErrorMessage;
       else {
         const parsed = savedLogSchema.safeParse(await response.json());
@@ -112,6 +123,7 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
                 <h3 className={`break-words text-[14px] font-semibold leading-[1.2] text-hm-text-hi md:text-[16px]${completed ? " md:text-hm-text-mid md:line-through md:decoration-hm-text-dim" : ""}`}>{habit.name}</h3>
                 <p className="mt-0.5 break-words text-[11px] text-hm-text-low md:mt-1 md:text-[12px]">{formatFrequency(habit.frequency)}</p>
               </div>
+              {habit.type === "NUMERIC" && <NumericValueField habitName={habit.name} unit={habit.unit} savedValue={habit.todayLog?.value ?? null} disabled={saving.has(habit.id)} onSubmit={(value) => void save(habit, { value })} />}
               {toggleErrors[habit.id] && <p role="alert" className="w-full text-hm-caption text-hm-danger">{toggleErrors[habit.id]}</p>}
             </li>;
           })}

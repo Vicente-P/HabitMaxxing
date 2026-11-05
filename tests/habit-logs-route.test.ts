@@ -15,6 +15,8 @@ const today = "2026-05-20"; // Wednesday
 const everyDay = [0, 1, 2, 3, 4, 5, 6];
 const habitRow = { id: "habit", name: "Read", type: "BINARY", unit: null, frequency: everyDay, userId: "owner", createdAt: new Date(0), updatedAt: new Date(0) };
 
+const numericRow = { ...habitRow, type: "NUMERIC", unit: "km" };
+
 function request(body: unknown = { completed: true }, headers: Record<string, string> = {}) {
   return new Request("https://untrusted.example/api/habits/habit/logs", {
     method: "POST", headers: { origin, "content-type": "application/json", ...headers }, body: JSON.stringify(body),
@@ -33,7 +35,7 @@ beforeEach(() => {
   mocks.findUser.mockResolvedValue({ id: "owner" });
   mocks.findHabit.mockResolvedValue(habitRow);
   mocks.upsertLog.mockImplementation(async ({ create, update }) => ({
-    id: "log", habitId: create.habitId, date: create.date, completed: update.completed, value: null, createdAt: new Date("2026-05-20T10:00:00.000Z"),
+    id: "log", habitId: create.habitId, date: create.date, completed: update.completed, value: update.value ?? null, createdAt: new Date("2026-05-20T10:00:00.000Z"),
   }));
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); });
@@ -59,6 +61,37 @@ describe("POST /api/habits/:id/logs success", () => {
     expect(response.status).toBe(200);
     expect((await response.json()).data).toMatchObject({ completed: false, value: null });
     expect(mocks.upsertLog.mock.calls[0][0].update).toEqual({ completed: false });
+  });
+
+  it("registers a positive value on a numeric habit as a completed log", async () => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    const response = await call(request({ value: 5 }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: { id: "log", habitId: "habit", date: today, completed: true, value: 5, createdAt: "2026-05-20T10:00:00.000Z" },
+    });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.upsertLog).toHaveBeenCalledWith(expect.objectContaining({
+      where: { habitId_date: { habitId: "habit", date: new Date(`${today}T00:00:00.000Z`) } },
+      create: { habitId: "habit", date: new Date(`${today}T00:00:00.000Z`), completed: true, value: 5 },
+      update: { completed: true, value: 5 },
+    }));
+  });
+
+  it("accepts decimals and an explicit past scheduled date for numeric habits", async () => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    const response = await call(request({ date: "2026-05-13", value: 3.5 }));
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).toMatchObject({ date: "2026-05-13", value: 3.5 });
+  });
+
+  it("replaces the day's record through the same upsert key on a second value", async () => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    await call(request({ value: 5 }));
+    await call(request({ value: 8 }));
+    expect(mocks.upsertLog).toHaveBeenCalledTimes(2);
+    expect(mocks.upsertLog.mock.calls[1][0].where).toEqual(mocks.upsertLog.mock.calls[0][0].where);
+    expect(mocks.upsertLog.mock.calls[1][0].update).toEqual({ completed: true, value: 8 });
   });
 
   it("accepts an explicit past scheduled date", async () => {
@@ -125,11 +158,65 @@ describe("POST /api/habits/:id/logs errors", () => {
     expect(mocks.upsertLog).not.toHaveBeenCalled();
   });
 
-  it("returns 400 for numeric habits", async () => {
-    mocks.findHabit.mockResolvedValue({ ...habitRow, type: "NUMERIC", unit: "pages" });
-    const response = await call(request());
+  it("returns 400 with a value detail for a completion body sent to a numeric habit", async () => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    const response = await call(request({ completed: true }));
     expect(response.status).toBe(400);
-    expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
+    const { error } = await response.json();
+    expect(error).toMatchObject({ code: "VALIDATION_ERROR", message: "Datos de entrada inválidos" });
+    expect(error.details).toEqual([{ field: "value", message: "Este hábito requiere un valor numérico" }]);
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 with a completed detail for a value body sent to a binary habit", async () => {
+    const response = await call(request({ value: 5 }));
+    expect(response.status).toBe(400);
+    const { error } = await response.json();
+    expect(error.details).toEqual([{ field: "completed", message: "Este hábito requiere el campo completed" }]);
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it.each([0, -3, -0.5])("returns 400 'El valor debe ser mayor a 0' for value %d", async (value) => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    const response = await call(request({ value }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Datos de entrada inválidos", details: [{ field: "value", message: "El valor debe ser mayor a 0" }] },
+    });
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it.each(["5", null, true, [5]])("returns 400 with a value detail for non-numeric value %j", async (value) => {
+    const response = await call(request({ value }));
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.details).toContainEqual({ field: "value", message: expect.any(String) });
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 for another user's numeric habit, byte-identical to a missing one", async () => {
+    mocks.findHabit.mockResolvedValue({ ...numericRow, userId: "someone-else" });
+    const foreign = await call(request({ value: 5 }));
+    mocks.findHabit.mockResolvedValue(null);
+    const missing = await call(request({ value: 5 }));
+    expect(foreign.status).toBe(404);
+    expect(await foreign.text()).toBe(await missing.text());
+    expect([...foreign.headers.entries()]).toEqual([...missing.headers.entries()]);
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a numeric value on a future date", async () => {
+    mocks.findHabit.mockResolvedValue(numericRow);
+    const response = await call(request({ value: 5, date: "2026-05-21" }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: { code: "VALIDATION_ERROR", message: "No se puede registrar en fechas futuras" } });
+    expect(mocks.upsertLog).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for a numeric value on a day the habit is not scheduled", async () => {
+    mocks.findHabit.mockResolvedValue({ ...numericRow, frequency: [1] });
+    const response = await call(request({ value: 5 }));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: { code: "VALIDATION_ERROR", message: "Este hábito no está programado para este día" } });
     expect(mocks.upsertLog).not.toHaveBeenCalled();
   });
 

@@ -257,7 +257,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-09 — Listar hábitos en dashboard `SCRUM-14`
-**Frontera con HU-06:** la agenda diaria, filtros `day`/`date` y estados de completado permanecen planificados para HU-09. El catálogo mínimo persistente de HU-06 no satisface estos criterios diarios. GET autenticado sin `view=catalog` todavía devuelve 400; GET anónimo devuelve 401.
+**Estado HU-09 (2026-11-05):** implementada y mergeada en `develop` (agenda diaria sobre `GET /api/habits` con filtros `date`/`day`, estado de completado, estado vacío distinto para “sin hábitos” y “sin hábitos ese día”). El catálogo de HU-06 se conserva como `GET /api/habits?view=catalog`. Detalle y evidencia en `odd/tasks/hu-09-daily-agenda.md`.
 > *"Como usuario, quiero ver todos mis hábitos en el dashboard, para tener una visión general de mi día."*
 
 **Criterios de Aceptación:**
@@ -278,6 +278,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ## ✅ EP-03 — Registro Diario
 
 ### 📖 HU-10 — Registrar hábito binario `SCRUM-15`
+**Estado HU-10 (2026-11-05):** implementada y mergeada en `develop` (PR #33): `POST /api/habits/:id/logs` con toggle de completado, 404 uniforme para hábitos ajenos o inexistentes y check de completado en la agenda diaria según el mockup. Incluye la preparación ADR-05 (`src/features/habits/`). Histórico en `odd/tasks/hu-10-binary-log.md`. Los hábitos numéricos quedan para HU-11.
 > *"Como usuario, quiero marcar un hábito binario como completado, para registrar que lo cumplí hoy."*
 
 **Criterios de Aceptación:**
@@ -295,6 +296,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-11 — Registrar hábito numérico `SCRUM-16`
+**Estado HU-11 (2026-11-05):** implementada localmente en `feature/SCRUM-16-registrar-habito-numerico`, pendiente de PR: `POST /api/habits/:id/logs` acepta `value` > 0 para hábitos numéricos (reemplaza el registro del día) y la agenda muestra input numérico con unidad ("5 km"), sin meta.
 > *"Como usuario, quiero ingresar un valor numérico en mi hábito, para registrar cuánto realicé ese día."*
 
 **Criterios de Aceptación:**

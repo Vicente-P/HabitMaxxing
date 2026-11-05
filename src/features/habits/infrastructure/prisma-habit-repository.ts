@@ -59,6 +59,17 @@ export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit"
       return { ...row, date: row.date.toISOString().slice(0, 10) };
     },
 
+    async upsertNumericLog(habitId, date, value) {
+      const day = new Date(`${date}T00:00:00.000Z`);
+      const row = await database.habitLog.upsert({
+        where: { habitId_date: { habitId, date: day } },
+        create: { habitId, date: day, completed: true, value },
+        update: { completed: true, value },
+        select: savedLogSelect,
+      });
+      return { ...row, date: row.date.toISOString().slice(0, 10) };
+    },
+
     async listScheduledForDay(ownerId, day, logDate) {
       const rows = await database.habit.findMany({
         where: { userId: ownerId, frequency: { has: day } },

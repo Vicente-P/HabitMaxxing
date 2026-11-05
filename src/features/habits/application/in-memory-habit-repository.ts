@@ -59,6 +59,22 @@ export class InMemoryHabitRepository implements HabitRepository {
     return this.toSavedLog(habitId, log);
   }
 
+  async upsertNumericLog(habitId: string, date: string, value: number): Promise<SavedHabitLog> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId);
+    if (!stored) throw new Error(`Unknown habit ${habitId}`);
+    const existing = stored.logs.find((log) => log.date === date);
+    if (existing) {
+      existing.completed = true;
+      existing.value = value;
+      return this.toSavedLog(habitId, existing);
+    }
+    this.sequence += 1;
+    const log: StoredLog = { id: `log-${this.sequence}`, completed: true, value, date, createdAt: new Date(this.sequence * 1000) };
+    stored.logs.push(log);
+    return this.toSavedLog(habitId, log);
+  }
+
   private toSavedLog(habitId: string, log: StoredLog): SavedHabitLog {
     return { id: log.id, habitId, date: log.date, completed: log.completed, value: log.value, createdAt: log.createdAt ?? new Date(0) };
   }

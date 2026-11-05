@@ -240,6 +240,18 @@
     @apply w-full rounded-hm-sm border border-hm-danger bg-hm-surface px-3 py-2.5 text-hm-body text-hm-text focus:outline-hm-danger;
   }
 
+  .value-field {
+    @apply flex h-11 items-center gap-2 rounded-hm-md border border-hm-border bg-hm-surface px-3 transition-all duration-150 focus-within:border-hm-accent focus-within:ring-[3px] focus-within:ring-hm-accent-soft;
+  }
+
+  .value-field-error {
+    @apply border-hm-danger ring-[3px] ring-hm-danger-soft focus-within:border-hm-danger focus-within:ring-hm-danger-soft;
+  }
+
+  .value-input {
+    @apply w-20 min-w-0 bg-transparent text-hm-body font-medium text-hm-text-hi tabular-nums outline-none disabled:opacity-50;
+  }
+
   .auth-field {
     @apply flex h-11 items-center gap-2.5 rounded-hm-md border border-hm-border bg-hm-surface px-3 text-hm-text-low transition-all duration-150 focus-within:border-hm-accent focus-within:text-hm-accent focus-within:ring-[3px] focus-within:ring-hm-accent-soft;
   }
