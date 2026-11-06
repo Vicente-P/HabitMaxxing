@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { z } from "zod";
 import AuthIcon from "../../(auth)/auth-icons";
 import CreateHabitForm, { weekdayLabels } from "./create-habit-form";
@@ -88,7 +89,7 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
           </div>}
           {state.status === "ready" && (state.habits.length === 0 ? <p className="card">Crea tu primer hábito para comenzar</p> : <ul className="space-y-3">
             {state.habits.map((habit) => <li key={habit.id} className="card min-w-0">
-              <h3 className="break-words">{habit.name}</h3>
+              <h3 className="break-words"><Link href={`/habits/${encodeURIComponent(habit.id)}`}>{habit.name}</Link></h3>
               <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
               <p className="mt-3 flex flex-wrap gap-2" aria-label="Días programados">{habit.frequency.map((day) => <span className="badge-neutral" key={day}>{weekdayLabels[day]}</span>)}</p>
               <button type="button" className="btn-secondary mt-3 inline-flex items-center gap-2" aria-label={`Editar ${habit.name}`} onClick={() => setEditing(habit)}>

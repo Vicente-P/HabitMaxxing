@@ -204,6 +204,31 @@ export function describeHabitRepositoryContract(
       });
     });
 
+    describe("listLogDays", () => {
+      it("returns an empty list for a habit without logs", async () => {
+        await seed("h", 1000);
+        expect(await repository.listLogDays("h")).toEqual([]);
+      });
+
+      it("returns only that habit's logs as date and completed, oldest first, with exact dates", async () => {
+        await seed("h", 1000);
+        await seed("other", 2000);
+        await repository.upsertBinaryLog("h", "2026-01-01", true);
+        await repository.upsertBinaryLog("h", "2025-12-31", false);
+        await repository.upsertNumericLog("h", "2028-02-29", 3);
+        await repository.upsertBinaryLog("other", "2026-05-23", true);
+        expect(await repository.listLogDays("h")).toEqual([
+          { date: "2025-12-31", completed: false },
+          { date: "2026-01-01", completed: true },
+          { date: "2028-02-29", completed: true },
+        ]);
+      });
+
+      it("returns an empty list for a missing habit", async () => {
+        expect(await repository.listLogDays("missing")).toEqual([]);
+      });
+    });
+
     describe("loggedWeekdays", () => {
       it("returns an empty list for a habit without logs", async () => {
         await seed("h", 1000);

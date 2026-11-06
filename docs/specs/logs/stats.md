@@ -76,8 +76,16 @@ GET /api/habits/:id/stats
 - Iterar hacia atrás desde hoy (o último día programado transcurrido).
 - Contar días programados consecutivos con `completed: true`.
 - Días **no programados** se ignoran — no rompen ni suman.
-- Si la racha se rompió: `current: 0`, `previous: X` (racha anterior más larga).
+- Si la racha se rompió: `current: 0`, `previous: X` (la racha que se acaba de romper, es decir, la más reciente; no la más larga).
 - `isActive: true` si el último día programado transcurrido está completado.
+
+**Decisiones HU-12 (2026-11-05, implementadas en `calculateStreak` en `src/features/habits/domain/streak.ts`):**
+
+- Hoy programado y aún sin completar (sin log o `completed: false`) no rompe ni suma, porque el día no ha terminado; completado suma +1.
+- `previous` es la racha rota más recientemente antes de la posición actual (con `current > 0`, la racha anterior al último fallo; `0` si no hay).
+- Los días anteriores al primer log no extienden ni rompen la racha.
+- Por ahora `GET /api/habits/:id/stats` devuelve solo `{ habitId, streak }`; `month` y `completion` llegan con HU-14, y mientras tanto cualquier query param responde 400 `VALIDATION_ERROR`.
+- Un hábito ajeno responde el mismo 404 `NOT_FOUND` ("Hábito no encontrado") que uno inexistente.
 
 ### Lógica de cumplimiento (HU-14 / SCRUM-19)
 
@@ -265,10 +273,10 @@ GET /api/habits/:id/heatmap
 
 ### Racha
 
-- [ ] 5 días programados consecutivos completados → `current: 5`.
-- [ ] Día no programado entre días completados no rompe racha.
-- [ ] Día programado incumplido rompe racha → `current: 0`, `previous: N`.
-- [ ] Sin registros → `current: 0`, `previous: 0`.
+- [x] 5 días programados consecutivos completados → `current: 5`.
+- [x] Día no programado entre días completados no rompe racha.
+- [x] Día programado incumplido rompe racha → `current: 0`, `previous: N`.
+- [x] Sin registros → `current: 0`, `previous: 0`.
 
 ### Heatmap
 

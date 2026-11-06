@@ -48,6 +48,11 @@ export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit"
       return row ? toHabit(row) : null;
     },
 
+    async listLogDays(habitId) {
+      const rows = await database.habitLog.findMany({ where: { habitId }, select: { date: true, completed: true }, orderBy: { date: "asc" } });
+      return rows.map((row) => ({ date: row.date.toISOString().slice(0, 10), completed: row.completed }));
+    },
+
     async update(habitId, ownerId, changes) {
       // The owner is part of the write itself, so a foreign habit can never be modified.
       const { count } = await database.habit.updateMany({ where: { id: habitId, userId: ownerId }, data: changes });
