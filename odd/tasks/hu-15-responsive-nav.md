@@ -15,7 +15,7 @@ Story: `docs/wiki/backlog.md` HU-15; visual source: mockup `Sidebar`/`SidebarNav
 
 ## Tasks
 
-- [x] T1 (S1-S7) - layout shell, sidebar, tab bar, /habits route, nav state, unit + E2E tests, docs - worker - commit:
+- [x] T1 (S1-S7) - layout shell, sidebar, tab bar, /habits route, nav state, unit + E2E tests, docs - worker - commit: 4491aba
 - [x] T2 (S1-S5) - parent: review, run checks, screenshots against the mockup - parent - commit: n/a (orphaned dashboard-habits removed; unit 693, E2E 15, typecheck, lint 0 errors; screenshots match the mockup shell)
 
 ## Log
