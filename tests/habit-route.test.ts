@@ -109,9 +109,10 @@ describe("PATCH /api/habits/:id ownership", () => {
 
   it("returns 404 when the owner-scoped write matches nothing", async () => {
     mocks.updateHabits.mockResolvedValue({ count: 0 });
-    const response = await call(request({ name: "Raced" }));
+    const response = await call(request({ name: "Raced", frequency: [1] }));
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual(notFound);
+    expect(mocks.findLogs).not.toHaveBeenCalled();
   });
 
   it.each([null, {}, { user: {} }, { user: { id: " " } }])("returns 401 before origin/body checks for session %j", async (session) => {
@@ -147,6 +148,28 @@ describe("PATCH /api/habits/:id validation", () => {
     const response = await call(request({ userId: "someone-else" }));
     expect(response.status).toBe(400);
     expect((await response.json()).error.details[0].field).toBe("userId");
+    expect(mocks.updateHabits).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '{"name":"Mine","__proto__":{"userId":"someone-else"}}',
+    '{"__proto__":{"name":"Mine"}}',
+  ])("returns 400 for a __proto__ key instead of ignoring it: %s", async (raw) => {
+    const req = new Request("https://x/api/habits/habit", { method: "PATCH", headers: { origin, "content-type": "application/json" }, body: raw });
+    const response = await call(req);
+    expect(response.status).toBe(400);
+    expect((await response.json()).error.details).toEqual([{ field: "__proto__", message: "Campo no permitido" }]);
+    expect(mocks.findHabit).not.toHaveBeenCalled();
+    expect(mocks.updateHabits).not.toHaveBeenCalled();
+  });
+
+  it("answers unit on a foreign binary habit exactly like a missing habit", async () => {
+    current = { ...binary, userId: "someone-else" };
+    const foreign = await call(request({ unit: "x" }));
+    current = null;
+    const missing = await call(request({ unit: "x" }), "missing");
+    expect(foreign.status).toBe(404);
+    expect(await foreign.text()).toBe(await missing.text());
     expect(mocks.updateHabits).not.toHaveBeenCalled();
   });
 

@@ -52,7 +52,7 @@ export class InMemoryHabitRepository implements HabitRepository {
     this.sequence += 1;
     if (changes.name !== undefined) stored.name = changes.name;
     if (changes.unit !== undefined) stored.unit = changes.unit;
-    if (changes.frequency !== undefined) stored.frequency = changes.frequency;
+    if (changes.frequency !== undefined) stored.frequency = [...changes.frequency];
     stored.updatedAt = new Date(Math.max(stored.updatedAt.getTime() + 1, this.sequence * 1000));
     return this.toHabit(stored);
   }
