@@ -13,7 +13,7 @@ Contract: `docs/specs/logs/stats.md` section 1 (completion); story: `docs/wiki/b
 
 ## Tasks
 
-- [x] T1 (S1-S5) - completion domain, `/stats` month + completion, stat grid, tests, docs - worker - commit:
+- [x] T1 (S1-S5) - completion domain, `/stats` month + completion, stat grid, tests, docs - worker - commit: 7091395
 - [x] T2 (S1-S4) - parent review and checks (Risk: none expected; read-only) - parent - commit: n/a (reviewed; unit 623, integration 42, typecheck, lint 0 errors)
 
 ## Log
