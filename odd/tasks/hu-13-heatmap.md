@@ -14,7 +14,7 @@ Contract: `docs/specs/logs/stats.md` section 2; story: `docs/wiki/backlog.md` HU
 
 ## Tasks
 
-- [x] T1 (S1-S6) - month days domain, GET logs route, repository read, Actividad card + day panel, tests, docs - worker - commit:
+- [x] T1 (S1-S6) - month days domain, GET logs route, repository read, Actividad card + day panel, tests, docs - worker - commit: 6e533a5
 - [x] T2 (S1-S5) - parent review and checks (Risk: none expected; read-only) - parent - commit: n/a (reviewed; unit 664, integration 44, typecheck, lint 0 errors)
 
 ## Log
