@@ -18,6 +18,10 @@ const eslintConfig = defineConfig([
     "src/generated/**",
     // Design mockup reference (Claude Design export, browser-run Babel); not application code.
     "docs/design/mockup/**",
+    // Playwright outputs (generated).
+    "playwright-report/**",
+    "test-results/**",
+    "blob-report/**",
   ]),
 ]);
 
