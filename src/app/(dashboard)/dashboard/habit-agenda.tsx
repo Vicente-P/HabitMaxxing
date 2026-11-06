@@ -45,11 +45,11 @@ const unauthorizedMessage = "Tu sesión ya no está disponible. Inicia sesión n
 const serverErrorSchema = z.object({ error: z.object({ details: z.array(z.object({ field: z.string(), message: z.string() })).optional() }) });
 const toggleErrorMessage = "No se pudo actualizar el hábito. Inténtalo de nuevo.";
 
-export default function HabitAgenda({ ownerId }: { ownerId: string }) {
-  return <AgendaContent key={ownerId} ownerId={ownerId} />;
+export default function HabitAgenda({ ownerId, refreshKey = 0 }: { ownerId: string; refreshKey?: number }) {
+  return <AgendaContent key={ownerId} ownerId={ownerId} refreshKey={refreshKey} />;
 }
 
-function AgendaContent({ ownerId }: { ownerId: string }) {
+function AgendaContent({ ownerId, refreshKey }: { ownerId: string; refreshKey: number }) {
   const [state, setState] = useState<AgendaState>({ status: "loading", habits: [], hasCatalogHabits: false });
   const [saving, setSaving] = useState<ReadonlySet<string>>(new Set());
   const [toggleErrors, setToggleErrors] = useState<Record<string, string>>({});
@@ -63,7 +63,7 @@ function AgendaContent({ ownerId }: { ownerId: string }) {
       if (!controller.signal.aborted) setState(nextState);
     });
     return () => { active.current = false; controller.abort(); };
-  }, [ownerId]);
+  }, [ownerId, refreshKey]);
 
   function toggle(habit: DailyHabit) {
     return save(habit, { completed: habit.todayLog?.completed !== true });

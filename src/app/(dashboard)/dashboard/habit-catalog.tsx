@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import AuthIcon from "../../(auth)/auth-icons";
 import CreateHabitForm, { weekdayLabels } from "./create-habit-form";
 
 const catalogSchema = z.object({ data: z.array(z.object({
@@ -24,12 +25,16 @@ async function fetchCatalog(ownerId: string, signal: AbortSignal): Promise<Catal
   }
 }
 
-export default function HabitCatalog({ ownerId }: { ownerId: string }) {
+type CatalogProps = { ownerId: string; onHabitsChanged?: () => void };
+
+export default function HabitCatalog({ ownerId, onHabitsChanged }: CatalogProps) {
   // Changing the server identity discards every form and catalog state synchronously.
-  return <CatalogContent key={ownerId} ownerId={ownerId} />;
+  return <CatalogContent key={ownerId} ownerId={ownerId} onHabitsChanged={onHabitsChanged} />;
 }
 
-function CatalogContent({ ownerId }: { ownerId: string }) {
+function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
+  // A snapshot of the habit being edited: the form must not depend on the catalog list, which empties while it reloads.
+  const [editing, setEditing] = useState<CatalogHabit | null>(null);
   const [state, setState] = useState<CatalogState>({ status: "loading", habits: [] });
   const request = useRef<AbortController | null>(null);
 
@@ -59,9 +64,18 @@ function CatalogContent({ ownerId }: { ownerId: string }) {
     setState({ status: "unauthorized", habits: [] });
   }
 
+  function saved() {
+    onHabitsChanged?.();
+    return reload();
+  }
+
   return (
     <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-      {state.status !== "unauthorized" && <CreateHabitForm onCreated={reload} onUnauthorized={invalidateSession} />}
+      {state.status !== "unauthorized" && <CreateHabitForm
+        key={editing ? `edit-${editing.id}` : "create"}
+        onCreated={reload} onUnauthorized={invalidateSession}
+        habit={editing ?? undefined} onSaved={saved} onCancel={() => setEditing(null)}
+      />}
       <section aria-labelledby="habit-catalog-heading" className="min-w-0">
         <h2 id="habit-catalog-heading">Mis hábitos</h2>
         <p className="mt-2 text-hm-caption text-hm-text-mid">Todos tus hábitos configurados, incluidos los que no corresponden a hoy.</p>
@@ -77,6 +91,9 @@ function CatalogContent({ ownerId }: { ownerId: string }) {
               <h3 className="break-words">{habit.name}</h3>
               <p className="mt-2 break-words text-hm-caption text-hm-text-mid">{habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`}</p>
               <p className="mt-3 flex flex-wrap gap-2" aria-label="Días programados">{habit.frequency.map((day) => <span className="badge-neutral" key={day}>{weekdayLabels[day]}</span>)}</p>
+              <button type="button" className="btn-secondary mt-3 inline-flex items-center gap-2" aria-label={`Editar ${habit.name}`} onClick={() => setEditing(habit)}>
+                <AuthIcon name="edit" />Editar
+              </button>
             </li>)}
           </ul>)}
         </div>
