@@ -9,6 +9,14 @@ beforeEach(() => vi.stubGlobal("fetch", fetchMock));
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals(); });
 
 describe("persistent habit catalog", () => {
+  it("links only the habit name to its detail page, encoding the id", async () => {
+    fetchMock.mockResolvedValue(Response.json({ data: [{ ...habit, id: "a/b c", name: "Leer" }] }));
+    render(<HabitCatalog ownerId="owner" />);
+    const link = await screen.findByRole("link", { name: "Leer" });
+    expect(link).toHaveAttribute("href", "/habits/a%2Fb%20c");
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 3 })).toContainElement(link);
+  });
   it("fetches uncached on mount and remount, retaining off-day records as text", async () => {
     fetchMock.mockImplementation(() => Promise.resolve(Response.json({ data: [{ ...habit, name: "<script>literal</script>" }] })));
     const view = render(<HabitCatalog ownerId="owner" />);

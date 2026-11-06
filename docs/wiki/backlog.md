@@ -331,6 +331,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-52: Mostrar racha actual en el detalle del hábito
 - T-53: Escribir tests unitarios de la lógica de racha
 
+**Estado HU-12 (2026-11-05):** implementada localmente en `feature/SCRUM-17-racha-actual`, pendiente de PR: `calculateStreak` (hoy pendiente no rompe; `previous` = última racha rota), `GET /api/habits/:id/stats` solo con la racha (el endpoint es `/stats` en lugar del `/streak` de T-51; hábito ajeno responde 404) y nueva pantalla `/habits/[id]` con "Racha actual" y "Racha anterior", enlazada desde el nombre en Mis hábitos. Detalle en `odd/tasks/hu-12-streak.md`.
+
 `Story Points: 3` `Prioridad: Alta` `Sprint: 4`
 
 ---
