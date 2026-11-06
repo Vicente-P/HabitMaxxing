@@ -72,7 +72,8 @@ describe("persistent habit catalog", () => {
     fetchMock.mockResolvedValueOnce(Response.json({ data: [] }));
     fetchMock.mockResolvedValueOnce(Response.json({ data: { id: "habit" } }, { status: 201 }));
     fetchMock.mockResolvedValueOnce(refreshSucceeds ? Response.json({ data: [habit] }) : new Response("", { status: 500 }));
-    render(<HabitCatalog ownerId="owner" />); await screen.findByText("Crea tu primer hábito para comenzar");
+    const onHabitsChanged = vi.fn();
+    render(<HabitCatalog ownerId="owner" onHabitsChanged={onHabitsChanged} />); await screen.findByText("Crea tu primer hábito para comenzar");
     const user = userEvent.setup();
     await user.type(screen.getByRole("textbox", { name: "Nombre" }), "Read");
     await user.click(screen.getByRole("checkbox", { name: "Lunes" }));
@@ -83,6 +84,8 @@ describe("persistent habit catalog", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock.mock.calls.filter(([, options]) => options.method === "POST")).toHaveLength(1);
     expect(screen.getByRole("textbox", { name: "Nombre" })).toHaveValue("");
+    // The daily agenda refreshes too (HU-09 agenda after a creation).
+    expect(onHabitsChanged).toHaveBeenCalledTimes(1);
   });
 });
 

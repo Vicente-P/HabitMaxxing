@@ -37,7 +37,7 @@ export async function createHabit(page: Page, habit: { name: string; unit?: stri
   await expect(catalog(page).getByRole("link", { name: habit.name })).toBeVisible();
 }
 
-/** The agenda is fetched on load (creation only refreshes the catalog), so reload to see new habits there. */
+/** Reloads the dashboard and waits for the agenda (creation also refreshes it; kept for flows that need a fresh load). */
 export async function reloadAgenda(page: Page) {
   await page.reload();
   await expect(page.getByText("Cargando agenda…")).toBeHidden();

@@ -48,7 +48,7 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
         <h1 className="mb-3 break-words">{habit.name}</h1>
         <div className="flex flex-wrap items-center gap-3 text-hm-body">
           <div className="flex items-center gap-1.5 font-semibold text-hm-accent">
-            <AuthIcon name="flame" size={14} className="fill-current stroke-0" />
+            <AuthIcon name="flame" size={14} filled />
             <span>Racha actual: {days(streak.current)}</span>
           </div>
           <span aria-hidden="true" className="text-hm-text-dim">·</span>

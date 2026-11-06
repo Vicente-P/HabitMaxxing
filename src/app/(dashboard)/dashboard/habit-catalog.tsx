@@ -135,7 +135,7 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
     <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
       {state.status !== "unauthorized" && <CreateHabitForm
         key={editing ? `edit-${editing.id}` : "create"}
-        onCreated={reload} onUnauthorized={invalidateSession}
+        onCreated={() => { onHabitsChanged?.(); return reload(); }} onUnauthorized={invalidateSession}
         habit={editing ?? undefined} onSaved={saved} onCancel={() => setEditing(null)}
       />}
       <section aria-labelledby="habit-catalog-heading" className="min-w-0">

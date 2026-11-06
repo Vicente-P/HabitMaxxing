@@ -15,9 +15,10 @@ const PATHS = {
 export type AuthIconName = keyof typeof PATHS;
 
 /** Line icons from docs/design/mockup/atoms.jsx (Icon), 16px grid. */
-export default function AuthIcon({ name, size = 16, className = "" }: { name: AuthIconName; size?: number; className?: string }) {
+/** `filled` paints the glyph as a solid shape (mockup `fill={...} stroke={0}`), e.g. the streak flame. */
+export default function AuthIcon({ name, size = 16, className = "", filled = false }: { name: AuthIconName; size?: number; className?: string; filled?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" className={`shrink-0 fill-none stroke-current ${className}`} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true" className={`shrink-0 ${filled ? "fill-current stroke-none" : "fill-none stroke-current"} ${className}`} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d={PATHS[name]} />
     </svg>
   );
