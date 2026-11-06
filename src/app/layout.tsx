@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { PWA_COLORS } from "@/lib/pwa";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
@@ -18,6 +19,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "HabitMaxxing",
   description: "Trackeá tus hábitos diarios",
+  applicationName: "HabitMaxxing",
+  appleWebApp: { capable: true, title: "HabitMaxxing", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_COLORS.background,
 };
 
 export default function RootLayout({

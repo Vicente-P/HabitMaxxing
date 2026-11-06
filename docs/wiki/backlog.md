@@ -413,6 +413,38 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 
 ---
 
+## 📱 EP-06 — App instalable (PWA)
+
+> Origen: pedido del usuario (2026-11-06, Android Samsung S23): la app en el inicio del celular como acceso directo, sin aspecto de navegador, con recordatorios y funcionando sin internet. Se parte en cuatro historias mergeables por separado, en este orden.
+
+### 📖 HU-18 — App instalable
+**Estado HU-18 (2026-11-06):** implementada localmente en `feature/pwa-instalable`, pendiente de PR: `src/app/manifest.ts` (`display: standalone`, `start_url: /dashboard`), íconos PNG generados con `next/og` en `/icons/{192,512,maskable}` más `apple-icon`, `themeColor` y metadatos de Apple. Los colores literales viven solo en `src/lib/pwa.ts` (excepción documentada en `DESIGN_SYSTEM.md`, con test anti-desfase contra `globals.css`). Verificada con unit y E2E contra el build real. **Pendiente en dispositivo:** instalar en el S23 desde Chrome tras desplegar.
+
+- CA-01: Dado que abro la app en Chrome para Android, cuando elijo "Instalar app", entonces queda un ícono en el inicio.
+- CA-02: Dado que abro la app desde ese ícono, entonces se muestra en pantalla completa, sin barra del navegador, y arranca en la agenda de hoy.
+
+`Prioridad: Media`
+
+### 📖 HU-19 — Lectura sin conexión
+- CA-01: Dado que ya abrí la app con conexión, cuando me quedo sin internet, entonces puedo abrirla y ver la agenda de hoy y mis hábitos con los últimos datos conocidos.
+- CA-02: Dado que estoy sin conexión, entonces veo un aviso claro de que los datos pueden no estar al día.
+
+Notas: service worker con caché del shell y de las lecturas autenticadas. Debe vaciarse al cerrar sesión. `Prioridad: Media`
+
+### 📖 HU-20 — Registro sin conexión
+- CA-01: Dado que estoy sin conexión, cuando marco o registro un hábito, entonces el cambio se ve de inmediato y queda pendiente.
+- CA-02: Dado que vuelve la conexión, entonces los cambios pendientes se sincronizan sin duplicarse ni desmarcarse.
+
+Notas: requiere un ADR. El log binario es hoy un *toggle*, que no es seguro de reintentar; hay que pasarlo a "fijar estado del día" (idempotente) y encolar en IndexedDB. Cambia el contrato de `POST /api/habits/:id/logs`. `Prioridad: Media`
+
+### 📖 HU-21 — Recordatorios push
+- CA-01: Dado que activé los recordatorios y elegí una hora, cuando llega esa hora y tengo hábitos pendientes, entonces recibo una notificación en el celular aunque la app esté cerrada.
+- CA-02: Dado que desactivo los recordatorios, entonces dejo de recibirlos.
+
+Notas: requiere un ADR. Web Push (claves VAPID), tabla nueva de suscripciones (cambio de modelo de datos), hora y zona horaria por usuario, y un disparador periódico: el Cron de Vercel en plan Hobby corre una vez al día, así que haría falta un plan de pago o un scheduler externo. `Prioridad: Media`
+
+---
+
 ## 📊 Resumen del Backlog
 
 | Épica | Historias | Story Points | Sprint |
