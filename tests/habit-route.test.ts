@@ -2,17 +2,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-  auth: vi.fn(), findUser: vi.fn(), findHabit: vi.fn(), updateHabits: vi.fn(), findLogs: vi.fn(),
+  auth: vi.fn(), findUser: vi.fn(), findHabit: vi.fn(), updateHabits: vi.fn(), deleteHabits: vi.fn(), findLogs: vi.fn(),
 }));
 vi.mock("@/lib/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: { findUnique: mocks.findUser },
-    habit: { findUnique: mocks.findHabit, updateMany: mocks.updateHabits },
+    habit: { findUnique: mocks.findHabit, updateMany: mocks.updateHabits, deleteMany: mocks.deleteHabits },
     habitLog: { findMany: mocks.findLogs },
   },
 }));
-import { PATCH } from "@/app/api/habits/[id]/route";
+import { DELETE, PATCH } from "@/app/api/habits/[id]/route";
 
 const origin = "https://habit-maxxing.vercel.app";
 const stored = {
@@ -210,6 +210,85 @@ describe("PATCH /api/habits/:id validation", () => {
   it.each(["auth", "findUser", "findHabit", "updateHabits", "findLogs"] as const)("returns a neutral 500 when %s fails", async (name) => {
     mocks[name].mockRejectedValue(new Error("secret detail"));
     const response = await call(request({ frequency: [1] }));
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: { code: "INTERNAL_ERROR", message: "Error interno del servidor" } });
+  });
+});
+
+describe("DELETE /api/habits/:id (HU-08)", () => {
+  function deleteRequest(headers: Record<string, string> = {}) {
+    return new Request("https://untrusted.example/api/habits/habit", { method: "DELETE", headers: { origin, ...headers } });
+  }
+  const callDelete = (req: Request, id = "habit") => DELETE(req, { params: Promise.resolve({ id }) });
+  let rows: string[];
+
+  beforeEach(() => {
+    rows = ["habit"];
+    mocks.deleteHabits.mockImplementation(async ({ where }) => {
+      if (current?.userId !== where.userId || !rows.includes(where.id)) return { count: 0 };
+      rows = rows.filter((id) => id !== where.id);
+      return { count: 1 };
+    });
+  });
+
+  it("deletes the owner's habit with an owner-scoped deleteMany and returns the id", async () => {
+    const response = await callDelete(deleteRequest());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ data: { message: "Hábito eliminado exitosamente", id: "habit" } });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.deleteHabits).toHaveBeenCalledTimes(1);
+    expect(mocks.deleteHabits).toHaveBeenCalledWith({ where: { id: "habit", userId: "owner" } });
+    expect(rows).toEqual([]);
+  });
+
+  it("needs no JSON content type", async () => {
+    expect((await callDelete(deleteRequest({ "content-type": "text/plain" }))).status).toBe(200);
+  });
+
+  it("answers a foreign habit and a missing habit with byte-identical 404 and deletes nothing", async () => {
+    current = { ...stored, userId: "someone-else" };
+    const foreign = await callDelete(deleteRequest());
+    expect(rows).toEqual(["habit"]);
+    const missing = await callDelete(deleteRequest(), "missing");
+    expect(foreign.status).toBe(404);
+    expect(await foreign.clone().json()).toEqual(notFound);
+    expect(foreign.status).toBe(missing.status);
+    expect([...foreign.headers.entries()]).toEqual([...missing.headers.entries()]);
+    expect(await foreign.text()).toBe(await missing.text());
+  });
+
+  it("returns 404 on the second delete of the same habit", async () => {
+    expect((await callDelete(deleteRequest())).status).toBe(200);
+    const second = await callDelete(deleteRequest());
+    expect(second.status).toBe(404);
+    expect(await second.json()).toEqual(notFound);
+  });
+
+  it.each([null, {}, { user: {} }, { user: { id: " " } }])("returns 401 before the origin check for session %j", async (session) => {
+    mocks.auth.mockResolvedValue(session);
+    const response = await callDelete(deleteRequest({ origin: "null" }));
+    expect(response.status).toBe(401);
+    expect((await response.json()).error.code).toBe("UNAUTHORIZED");
+    expect(mocks.deleteHabits).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 for a deleted account without deleting", async () => {
+    mocks.findUser.mockResolvedValue(null);
+    expect((await callDelete(deleteRequest())).status).toBe(401);
+    expect(mocks.deleteHabits).not.toHaveBeenCalled();
+  });
+
+  it.each(["https://foreign.example", "null"])("returns 403 for origin %s without deleting", async (value) => {
+    const response = await callDelete(deleteRequest({ origin: value }));
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({ error: { code: "FORBIDDEN", message: "Solicitud no permitida" } });
+    expect(mocks.deleteHabits).not.toHaveBeenCalled();
+    expect(rows).toEqual(["habit"]);
+  });
+
+  it.each(["auth", "findUser", "deleteHabits"] as const)("returns a neutral 500 when %s fails", async (name) => {
+    mocks[name].mockRejectedValue(new Error("secret detail"));
+    const response = await callDelete(deleteRequest());
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: { code: "INTERNAL_ERROR", message: "Error interno del servidor" } });
   });

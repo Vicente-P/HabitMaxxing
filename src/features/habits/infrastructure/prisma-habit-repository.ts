@@ -67,6 +67,12 @@ export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit"
       return [...days].sort((a, b) => a - b);
     },
 
+    async delete(habitId, ownerId) {
+      // The owner is part of the write itself, so a foreign habit can never be deleted; logs cascade in the database.
+      const { count } = await database.habit.deleteMany({ where: { id: habitId, userId: ownerId } });
+      return count > 0;
+    },
+
     async upsertBinaryLog(habitId, date, completed) {
       const day = new Date(`${date}T00:00:00.000Z`);
       const row = await database.habitLog.upsert({

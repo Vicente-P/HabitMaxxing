@@ -6,6 +6,7 @@ const PATHS = {
   arrowRight: "M3 8h10M9 4l4 4-4 4",
   arrowLeft: "M13 8H3M7 4 3 8l4 4",
   edit: "M11 2l3 3-9 9H2v-3l9-9z",
+  trash: "M3 4h10M5 4V2h6v2M6 4v9M10 4v9M4 4l1 10h6l1-10",
   check: "M3 9l3 3 7-8",
   flame: "M8 1.5c.5 2 2.5 3 2.5 5.5a2.5 2.5 0 0 1-5 0c0-1 .5-1.5 1-2-.5 2 1.5 2 1.5 0 0-1.5-1.5-2.5 0-3.5z",
 } as const;

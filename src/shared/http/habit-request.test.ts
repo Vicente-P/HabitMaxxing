@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { checkHabitRequest, readHabitBody } from "./habit-request";
+import { checkHabitOrigin, checkHabitRequest, readHabitBody } from "./habit-request";
 
 const origin = "https://habit-maxxing.vercel.app";
 function request(headers: HeadersInit = {}, body = "{}") {
@@ -62,5 +62,29 @@ describe("bounded body reading", () => {
     const req = new Request("https://example.com", { method: "POST", body, duplex: "half" } as RequestInit);
     expect(await readHabitBody(req)).toMatchObject({ error: { status: 413 } });
     expect(cancelled).toBe(true);
+  });
+});
+
+describe("checkHabitRequest is unchanged by the origin-only check", () => {
+  it("still requires origin and JSON content type, in that order", () => {
+    expect(checkHabitRequest(request(), origin)).toBeNull();
+    expect(checkHabitRequest(request({ origin: "https://evil.example", "content-type": "text/plain" }), origin)).toEqual({ status: 403, code: "FORBIDDEN", message: "Solicitud no permitida" });
+    expect(checkHabitRequest(request({ "content-type": "text/plain" }), origin)).toEqual({ status: 415, code: "UNSUPPORTED_MEDIA_TYPE", message: "Se requiere contenido JSON" });
+    expect(checkHabitRequest(request(), undefined)?.status).toBe(500);
+  });
+});
+
+describe("checkHabitOrigin (bodiless mutations)", () => {
+  const bodiless = (headers: HeadersInit = {}) => new Request("https://untrusted.example/api/habits/h", { method: "DELETE", headers: { origin, ...headers } });
+  it("accepts the configured origin without any content type", () => {
+    expect(checkHabitOrigin(bodiless(), origin)).toBeNull();
+  });
+  it.each(["", "null", "https://evil.example", `${origin}/`])("rejects origin %s with 403", (value) => {
+    expect(checkHabitOrigin(bodiless({ origin: value }), origin)).toEqual({ status: 403, code: "FORBIDDEN", message: "Solicitud no permitida" });
+  });
+  it("rejects a missing origin and fails closed on a bad config", () => {
+    const req = bodiless(); req.headers.delete("origin");
+    expect(checkHabitOrigin(req, origin)?.status).toBe(403);
+    expect(checkHabitOrigin(bodiless(), undefined)?.status).toBe(500);
   });
 });

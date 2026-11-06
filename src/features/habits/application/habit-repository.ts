@@ -15,6 +15,8 @@ export interface HabitRepository {
   update(habitId: string, ownerId: string, changes: HabitChanges): Promise<Habit | null>;
   /** Distinct weekdays (0 = Sunday), sorted ascending, on which the habit has any log. */
   loggedWeekdays(habitId: string): Promise<number[]>;
+  /** Permanently deletes the habit and all its logs only when `ownerId` owns it; false (nothing deleted) when foreign or missing. */
+  delete(habitId: string, ownerId: string): Promise<boolean>;
   /** Creates or updates the single binary log of the habit on `date` (YYYY-MM-DD) with `completed`; never deletes. */
   upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog>;
   /** Creates or replaces the single numeric log of the habit on `date` (YYYY-MM-DD) with `completed: true` and `value`. */
