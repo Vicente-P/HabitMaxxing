@@ -368,6 +368,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-59: Crear endpoint GET /api/habits/:id/completion?month=YYYY-MM
 - T-60: Mostrar porcentaje en el detalle del hábito
 
+**Estado HU-14 (2026-11-05):** implementada localmente en `feature/SCRUM-19-cumplimiento`, pendiente de PR: `calculateCompletion` (hoy cuenta en el denominador; días previos a la creación excluidos), `GET /api/habits/:id/stats?month=YYYY-MM` con `completion` (el endpoint es `/stats` en lugar del `/completion` de T-59) y grilla de stats en `/habits/[id]` con "Racha actual" y "Cumplimiento mensual". Detalle en `odd/tasks/hu-14-completion.md`.
+
 `Story Points: 2` `Prioridad: Media` `Sprint: 5`
 
 ---

@@ -9,7 +9,7 @@ vi.mock("@/lib/prisma", () => ({
 import { GET } from "@/app/api/habits/[id]/stats/route";
 
 const today = "2026-05-20";
-const habitRow = { id: "habit", name: "Read", type: "BINARY", unit: null, frequency: [0, 1, 2, 3, 4, 5, 6], userId: "owner", createdAt: new Date(0), updatedAt: new Date(0) };
+const habitRow = { id: "habit", name: "Read", type: "BINARY", unit: null, frequency: [0, 1, 2, 3, 4, 5, 6], userId: "owner", createdAt: new Date("2026-05-10T08:00:00.000Z"), updatedAt: new Date(0) };
 const notFound = { error: { code: "NOT_FOUND", message: "Hábito no encontrado" } };
 
 function call(query = "", id = "habit") {
@@ -31,10 +31,13 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); });
 
 describe("GET /api/habits/:id/stats", () => {
-  it("returns the streak with private no-store headers", async () => {
+  it("returns streak and completion of the current UTC month with private no-store headers", async () => {
     const response = await call();
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual({ data: { habitId: "habit", streak: { current: 2, previous: 0, isActive: true } } });
+    expect(await response.json()).toEqual({ data: {
+      habitId: "habit", month: "2026-05", streak: { current: 2, previous: 0, isActive: true },
+      completion: { percentage: 18.2, completedDays: 2, scheduledDaysElapsed: 11, message: null },
+    } });
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(mocks.findLogs).toHaveBeenCalledWith(expect.objectContaining({ where: { habitId: "habit" } }));
   });
@@ -48,7 +51,40 @@ describe("GET /api/habits/:id/stats", () => {
     expect((await (await call()).json()).data.streak).toEqual({ current: 0, previous: 3, isActive: false });
   });
 
-  it.each(["?month=2026-05", "?foo=bar", "?month="])("rejects any query parameter with 400 VALIDATION_ERROR: %s", async (query) => {
+  it("returns the exact body for month=2026-05 and keeps the streak as of today", async () => {
+    mocks.findHabit.mockResolvedValue({ ...habitRow, createdAt: new Date("2026-01-01T00:00:00.000Z") });
+    const response = await call("?month=2026-04");
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ data: {
+      habitId: "habit", month: "2026-04", streak: { current: 2, previous: 0, isActive: true },
+      completion: { percentage: 0, completedDays: 0, scheduledDaysElapsed: 30, message: "Cumplimiento: 0% — ¡Empieza hoy!" },
+    } });
+    const may = await (await call("?month=2026-05")).json();
+    expect(may.data.month).toBe("2026-05");
+  });
+
+  it("uses the UTC month at the boundary of the month", async () => {
+    vi.setSystemTime(new Date("2026-06-01T00:00:00.000Z"));
+    expect((await (await call()).json()).data.month).toBe("2026-06");
+  });
+
+  it("returns 0 elapsed days and the message for a future month", async () => {
+    const body = await (await call("?month=2026-07")).json();
+    expect(body.data.completion).toEqual({ percentage: 0, completedDays: 0, scheduledDaysElapsed: 0, message: "Cumplimiento: 0% — ¡Empieza hoy!" });
+  });
+
+  it.each(["?month=2026-5", "?month=2026-13", "?month=abc", "?month=", "?month=2026-05&month=2026-04"])("rejects an invalid or repeated month with the exact 400 detail: %s", async (query) => {
+    const response = await call(query);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: {
+      code: "VALIDATION_ERROR", message: "Datos de entrada inválidos",
+      details: [{ field: "month", message: "Formato de mes inválido. Usar YYYY-MM" }],
+    } });
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(mocks.findHabit).not.toHaveBeenCalled();
+  });
+
+  it.each(["?foo=bar", "?month=2026-05&foo=bar"])("keeps rejecting other query parameters with 400 VALIDATION_ERROR: %s", async (query) => {
     const response = await call(query);
     expect(response.status).toBe(400);
     expect((await response.json()).error.code).toBe("VALIDATION_ERROR");
