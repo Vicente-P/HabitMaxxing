@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import LogoutButton from "./dashboard/logout-button";
 import Logo from "./logo";
 import { MobileTabBar, SidebarNav } from "./shell-nav";
+import ThemeToggle from "./theme-toggle";
 
 function initialsOf(label: string) {
   const parts = label.trim().split(/\s+/).filter(Boolean);
@@ -32,6 +33,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <div aria-hidden="true" className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-linear-to-br from-hm-accent to-hm-warn text-[12px] font-bold text-hm-on-accent">{initialsOf(label)}</div>
             <div className="min-w-0 flex-1 truncate text-[13px] font-semibold text-hm-text-hi">{label}</div>
           </div>
+          <ThemeToggle />
           <LogoutButton />
         </div>
       </aside>
