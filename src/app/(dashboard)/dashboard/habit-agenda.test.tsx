@@ -322,3 +322,20 @@ describe("numeric value registration", () => {
     expect(screen.getByRole("button", { name: "Registrar Correr" })).toBeEnabled();
   });
 });
+
+describe("agenda refresh after a habit edit (HU-07 S7)", () => {
+  it("refetches daily and catalog data when refreshKey changes and not otherwise", async () => {
+    fetchMock.mockImplementation((url: string) => Promise.resolve(url === "/api/habits?view=catalog" ? catalogResponse([catalogHabit]) : dailyResponse([dailyHabit])));
+    const view = render(<HabitAgenda ownerId="owner" refreshKey={0} />);
+    await screen.findByText("Leer");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    view.rerender(<HabitAgenda ownerId="owner" refreshKey={0} />);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    fetchMock.mockImplementation((url: string) => Promise.resolve(url === "/api/habits?view=catalog" ? catalogResponse([catalogHabit]) : dailyResponse([{ ...dailyHabit, name: "Leer más" }])));
+    view.rerender(<HabitAgenda ownerId="owner" refreshKey={1} />);
+    expect(await screen.findByText("Leer más")).toBeInTheDocument();
+    expect(screen.queryByText("Leer")).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock.mock.calls.every(([, options]) => !options.method)).toBe(true);
+  });
+});

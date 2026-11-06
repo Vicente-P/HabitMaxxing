@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import LogoutButton from "./logout-button";
-import HabitCatalog from "./habit-catalog";
-import HabitAgenda from "./habit-agenda";
+import DashboardHabits from "./dashboard-habits";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -16,8 +15,7 @@ export default async function DashboardPage() {
         <h1>Dashboard</h1>
         <LogoutButton />
       </header>
-      <HabitAgenda ownerId={session.user.id} />
-      <HabitCatalog key={session.user.id} ownerId={session.user.id} />
+      <DashboardHabits key={session.user.id} ownerId={session.user.id} />
     </div>
   );
 }

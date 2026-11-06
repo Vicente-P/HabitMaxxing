@@ -1,4 +1,4 @@
-import type { Habit, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
+import type { Habit, HabitChanges, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
 
 /** Port: persistence of habits. Implementations own all storage-specific query shapes. */
 export interface HabitRepository {
@@ -9,6 +9,10 @@ export interface HabitRepository {
   listScheduledForDay(ownerId: string, day: number, logDate: string): Promise<ScheduledHabit[]>;
   /** The habit with this id regardless of owner (`userId` identifies the owner), or null when it does not exist. */
   findById(habitId: string): Promise<Habit | null>;
+  /** Applies `changes` to the habit only when `ownerId` owns it; null when it is foreign or missing. Logs are untouched. */
+  update(habitId: string, ownerId: string, changes: HabitChanges): Promise<Habit | null>;
+  /** Distinct weekdays (0 = Sunday), sorted ascending, on which the habit has any log. */
+  loggedWeekdays(habitId: string): Promise<number[]>;
   /** Creates or updates the single binary log of the habit on `date` (YYYY-MM-DD) with `completed`; never deletes. */
   upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog>;
   /** Creates or replaces the single numeric log of the habit on `date` (YYYY-MM-DD) with `completed: true` and `value`. */

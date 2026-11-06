@@ -11,7 +11,7 @@
 
 ## Descripción
 
-Actualiza parcialmente un hábito existente del usuario autenticado. Permite modificar nombre, tipo, unidad y frecuencia. Al eliminar días de la frecuencia que ya tienen registros, los logs existentes **no se eliminan** — el frontend debe mostrar advertencia.
+Actualiza parcialmente un hábito existente del usuario autenticado. Permite modificar nombre, unidad y frecuencia; el tipo no es editable. Al eliminar días de la frecuencia que ya tienen registros, los logs existentes **no se eliminan** — el frontend debe mostrar advertencia.
 
 ---
 
@@ -41,9 +41,10 @@ Todos los campos son opcionales (actualización parcial):
 | Campo | Tipo | Requerido | Validaciones |
 |-------|------|-----------|--------------|
 | `name` | `string` | No | No vacío si presente, máx. 100 caracteres |
-| `type` | `"BINARY"` \| `"NUMERIC"` | No | Enum HabitType |
-| `unit` | `string` \| `null` | No | Requerido si `type = NUMERIC`; null si `BINARY` |
-| `frequency` | `number[]` | No | Enteros 0–6, al menos 1 si presente |
+| `unit` | `string` \| `null` | No | Máx. 30 caracteres; obligatoria (no vacía ni `null`) si el hábito es `NUMERIC`; solo `null` si es `BINARY` |
+| `frequency` | `number[]` | No | Enteros 0–6, sin repetir, al menos 1 si presente; se guarda ordenada |
+
+El body debe incluir al menos un campo. `type` no es editable: enviarlo responde 400 (`field: "type"`, "El tipo de un hábito no se puede modificar"). Cualquier otra clave (por ejemplo `userId`) responde 400.
 
 ```json
 {
@@ -129,18 +130,11 @@ Cuando se eliminan días con registros existentes:
 
 ### 403 Forbidden
 
-Hábito pertenece a otro usuario.
-
-```json
-{
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "No tienes permiso para modificar este hábito"
-  }
-}
-```
+Solo por los controles de la petición (`Origin` distinto de `APP_ORIGIN`), igual que en las demás rutas de hábitos que escriben. Un hábito de otro usuario **no** responde 403: ver 404.
 
 ### 404 Not Found
+
+Hábito inexistente o perteneciente a otro usuario; ambas respuestas son idénticas byte a byte.
 
 ```json
 {
@@ -162,21 +156,25 @@ Hábito pertenece a otro usuario.
 
 ## Tests requeridos
 
-- [ ] Actualizar nombre retorna 200 con nombre nuevo.
-- [ ] Actualizar frecuencia retorna 200 con frecuencia nueva.
-- [ ] Actualizar unit en hábito numérico retorna 200.
-- [ ] Cambiar type de BINARY a NUMERIC sin unit retorna 400.
-- [ ] Eliminar días con logs existentes retorna 200 con warning `FREQUENCY_DAYS_REMOVED`.
-- [ ] Logs de días removidos persisten en DB tras actualización.
-- [ ] Hábito de otro usuario retorna 403.
-- [ ] Hábito inexistente retorna 404.
-- [ ] Sin sesión retorna 401.
-- [ ] Body vacío retorna 200 sin cambios (o 400 según implementación).
+- [x] Actualizar nombre retorna 200 con nombre nuevo.
+- [x] Actualizar frecuencia retorna 200 con frecuencia nueva.
+- [x] Actualizar unit en hábito numérico retorna 200.
+- [x] Enviar `type` retorna 400 (el tipo no es editable); `unit` en hábito binario o `unit` vacía/`null` en numérico retorna 400.
+- [x] Eliminar días con logs existentes retorna 200 con warning `FREQUENCY_DAYS_REMOVED` y solo los días removidos que tienen registros.
+- [x] Logs de días removidos persisten en DB tras actualización (contrato del repositorio, también sobre PostgreSQL).
+- [x] Hábito de otro usuario retorna 404, idéntico al de un hábito inexistente.
+- [x] Hábito inexistente retorna 404.
+- [x] Sin sesión retorna 401.
+- [x] Body vacío retorna 400 (`field: "form"`, "Debes enviar al menos un campo para actualizar").
 
 ---
 
 ## Notas de implementación
 
+- Decisiones HU-07 (2026-11-05), resueltas por el usuario: un hábito ajeno responde 404 `NOT_FOUND` idéntico al inexistente (como `POST /api/habits/:id/logs`), para no revelar qué IDs existen; el tipo no se edita, porque cambiarlo dejaría los registros previos incoherentes. Body vacío: 400.
+- Validación de forma antes de consultar el hábito; después, ownership (404) y la unidad según el tipo guardado.
+- La escritura misma filtra por dueño (`updateMany` con `id` y `userId`); si no actualiza nada, responde 404.
+- `removedDays` lista solo los días quitados de `frequency` en los que el hábito tiene algún registro (cualquier fila de `HabitLog`, incluso `completed: false`).
 - Verificar ownership: `habit.userId === session.user.id`.
 - Detectar días removidos comparando `frequency` anterior vs nueva.
 - Consultar `HabitLog` en días removidos para generar warning.

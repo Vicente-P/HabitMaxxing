@@ -48,6 +48,20 @@ export function createPrismaHabitRepository(database: Pick<PrismaClient, "habit"
       return row ? toHabit(row) : null;
     },
 
+    async update(habitId, ownerId, changes) {
+      // The owner is part of the write itself, so a foreign habit can never be modified.
+      const { count } = await database.habit.updateMany({ where: { id: habitId, userId: ownerId }, data: changes });
+      if (count === 0) return null;
+      const row = await database.habit.findUnique({ where: { id: habitId }, select: habitSelect });
+      return row ? toHabit(row) : null;
+    },
+
+    async loggedWeekdays(habitId) {
+      const rows = await database.habitLog.findMany({ where: { habitId }, select: { date: true } });
+      const days = new Set(rows.map((row) => row.date.getUTCDay()));
+      return [...days].sort((a, b) => a - b);
+    },
+
     async upsertBinaryLog(habitId, date, completed) {
       const day = new Date(`${date}T00:00:00.000Z`);
       const row = await database.habitLog.upsert({

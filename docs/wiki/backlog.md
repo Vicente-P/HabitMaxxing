@@ -224,6 +224,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-07 — Editar hábito `SCRUM-12`
+**Estado HU-07 (2026-11-05):** implementada localmente en `feature/SCRUM-12-editar-habito`, pendiente de PR: `PATCH /api/habits/:id` edita nombre, unidad y frecuencia (el tipo no es editable por decisión del usuario; un hábito ajeno responde 404 como uno inexistente) y avisa "Los registros de ese día no serán eliminados" al quitar días con registros. La edición se abre desde el botón "Editar" de cada tarjeta de Mis hábitos (el mockup no tiene pantalla de edición). Detalle en `odd/tasks/hu-07-edit-habit.md`.
 > *"Como usuario, quiero editar un hábito existente, para corregir su nombre, tipo o frecuencia."*
 
 **Criterios de Aceptación:**

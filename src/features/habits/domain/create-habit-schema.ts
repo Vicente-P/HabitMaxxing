@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-const habitFields = {
+export const unitRequiredMessage = "La unidad es obligatoria para hábitos numéricos";
+export const unitTooLongMessage = "La unidad no puede superar 30 caracteres";
+
+/** Validation shared by creation and edition (HU-06/HU-07). */
+export const habitFields = {
   name: z.string({ error: "El nombre del hábito es obligatorio" }).trim()
     .min(1, "El nombre del hábito es obligatorio")
     .max(100, "El nombre no puede superar 100 caracteres"),
@@ -16,9 +20,9 @@ export const createHabitSchema = z.discriminatedUnion("type", [
   z.object({
     ...habitFields,
     type: z.literal("NUMERIC"),
-    unit: z.string({ error: "La unidad es obligatoria para hábitos numéricos" }).trim()
-      .min(1, "La unidad es obligatoria para hábitos numéricos")
-      .max(30, "La unidad no puede superar 30 caracteres"),
+    unit: z.string({ error: unitRequiredMessage }).trim()
+      .min(1, unitRequiredMessage)
+      .max(30, unitTooLongMessage),
   }).strict(),
 ]);
 

@@ -168,6 +168,59 @@ export function describeHabitRepositoryContract(
       });
     });
 
+    describe("update", () => {
+      it("changes name, unit and frequency of the owner's habit and returns it", async () => {
+        await harness.seedHabit({ id: "h", ownerId: owner, frequency: [1], createdAt: new Date(1000), name: "Run", type: "NUMERIC", unit: "km" });
+        const updated = await repository.update("h", owner, { name: "Run far", unit: "mi", frequency: [2, 4] });
+        expect(updated).toMatchObject({ id: "h", name: "Run far", type: "NUMERIC", unit: "mi", frequency: [2, 4], userId: owner });
+        expect(updated?.createdAt.getTime()).toBe(1000);
+        expect(updated!.updatedAt.getTime()).toBeGreaterThan(1000);
+        expect(await repository.findById("h")).toEqual(updated);
+      });
+
+      it("leaves fields that are not in the changes untouched", async () => {
+        await harness.seedHabit({ id: "h", ownerId: owner, frequency: [1, 3], createdAt: new Date(1000), name: "Read" });
+        const updated = await repository.update("h", owner, { name: "Read more" });
+        expect(updated).toMatchObject({ name: "Read more", type: "BINARY", unit: null, frequency: [1, 3] });
+      });
+
+      it("returns null and changes nothing for a habit of another owner", async () => {
+        const other = await harness.createOwner();
+        const foreign = await harness.seedHabit({ id: "foreign", ownerId: other, frequency: [1], createdAt: new Date(1000), name: "Theirs" });
+        expect(await repository.update("foreign", owner, { name: "Mine now" })).toBeNull();
+        expect(await repository.findById("foreign")).toMatchObject({ name: foreign.name, userId: other, frequency: [1] });
+      });
+
+      it("returns null for a missing habit", async () => {
+        expect(await repository.update("missing", owner, { name: "Ghost" })).toBeNull();
+      });
+
+      it("keeps the habit's logs", async () => {
+        await seed("h", 1000, [3]);
+        const log = await repository.upsertBinaryLog("h", "2026-05-20", true);
+        await repository.update("h", owner, { frequency: [1] });
+        const [scheduled] = await repository.listScheduledForDay(owner, 1, "2026-05-20");
+        expect(scheduled.log).toEqual({ id: log.id, completed: true, value: null, date: "2026-05-20" });
+      });
+    });
+
+    describe("loggedWeekdays", () => {
+      it("returns an empty list for a habit without logs", async () => {
+        await seed("h", 1000);
+        expect(await repository.loggedWeekdays("h")).toEqual([]);
+      });
+
+      it("returns the distinct weekdays with any log of the habit, sorted, including Sunday = 0", async () => {
+        await seed("h", 1000);
+        await seed("other", 2000);
+        await repository.upsertBinaryLog("h", "2026-05-20", true); // Wednesday
+        await repository.upsertBinaryLog("h", "2026-05-27", false); // Wednesday, reverted
+        await repository.upsertBinaryLog("h", "2026-05-24", true); // Sunday
+        await repository.upsertBinaryLog("other", "2026-05-23", true); // Saturday, other habit
+        expect(await repository.loggedWeekdays("h")).toEqual([0, 3]);
+      });
+    });
+
     describe("dates", () => {
       it.each(["2026-01-01", "2026-12-31", "2028-02-29"])("returns %s without time zone shift", async (date) => {
         await seed("h", 1000);
