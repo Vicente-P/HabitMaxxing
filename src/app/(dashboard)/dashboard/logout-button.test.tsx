@@ -6,6 +6,8 @@ vi.mock("next-auth/react", () => ({ signOut }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 const { clearOfflineCaches } = vi.hoisted(() => ({ clearOfflineCaches: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/lib/offline-cache", () => ({ clearOfflineCaches }));
+import { createMemoryPendingLogStore } from "@/lib/offline-logs/memory-store";
+import { configurePendingRuntime, pendingRuntime } from "@/lib/offline-logs/pending-runtime";
 import LogoutButton from "./logout-button";
 
 const response = (body: unknown, overrides = {}) => ({ ok: true, redirected: false, json: vi.fn().mockResolvedValue(body), ...overrides });
@@ -100,5 +102,80 @@ describe("confirmed native logout", () => {
     await act(async () => { finish({ url: "/login" }); });
     expect(fetch).not.toHaveBeenCalled();
     expect(replace).not.toHaveBeenCalled();
+  });
+});
+
+describe("logout guard with pending offline changes (HU-20 S6)", () => {
+  let syncFetch: ReturnType<typeof vi.fn>;
+  const store = () => pendingRuntime.getSnapshot().pending;
+
+  beforeEach(async () => {
+    signOut.mockResolvedValue({ url: "/login" });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(null)));
+    syncFetch = vi.fn(async () => new Response(null, { status: 503 }));
+    configurePendingRuntime({ store: createMemoryPendingLogStore(), fetchImpl: syncFetch as unknown as typeof fetch });
+    await pendingRuntime.init("u1");
+  });
+  afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals(); });
+
+  const queue = async (count: number) => {
+    for (let i = 0; i < count; i++) await pendingRuntime.enqueue({ habitId: `h${i}`, date: "2026-11-06", payload: { completed: true } });
+  };
+
+  it("logs out normally, without syncing, when nothing is pending", async () => {
+    render(<LogoutButton />);
+    click();
+    await waitFor(() => expect(replace).toHaveBeenCalledOnce());
+    expect(syncFetch).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each([[1, "Tienes 1 cambio sin sincronizar. Si cierras sesión se perderán."], [2, "Tienes 2 cambios sin sincronizar. Si cierras sesión se perderán."]])(
+    "keeps the session and warns when %i change(s) remain after syncing",
+    async (count, message) => {
+      await queue(count);
+      render(<LogoutButton />);
+      click();
+      expect(await screen.findByRole("alert")).toHaveTextContent(message);
+      expect(syncFetch).toHaveBeenCalled();
+      expect(signOut).not.toHaveBeenCalled();
+      expect(replace).not.toHaveBeenCalled();
+      expect(store()).toHaveLength(count);
+      expect(screen.getByRole("button", { name: "Cerrar sesión y descartar" })).toBeEnabled();
+    },
+  );
+
+  it("discards the queue and then runs the normal logout on the second click", async () => {
+    await queue(2);
+    render(<LogoutButton />);
+    click();
+    await screen.findByRole("alert");
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión y descartar" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledExactlyOnceWith("/login"));
+    expect(store()).toEqual([]);
+    expect(signOut).toHaveBeenCalledOnce();
+    expect(clearOfflineCaches).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("logs out normally when the sync clears every pending change", async () => {
+    await queue(2);
+    syncFetch.mockResolvedValue(new Response(null, { status: 200 }));
+    render(<LogoutButton />);
+    click();
+    await waitFor(() => expect(replace).toHaveBeenCalledOnce());
+    expect(syncFetch).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(signOut).toHaveBeenCalledOnce();
+  });
+
+  it("returns to the plain label and logs out normally if the queue empties before the second click", async () => {
+    await queue(1);
+    render(<LogoutButton />);
+    click();
+    await screen.findByRole("alert");
+    await act(async () => { await pendingRuntime.discardAll(); });
+    fireEvent.click(screen.getByRole("button", { name: /Cerrar sesión/ }));
+    await waitFor(() => expect(replace).toHaveBeenCalledOnce());
   });
 });

@@ -71,3 +71,9 @@ export async function expectNoHorizontalOverflow(page: Page) {
   }));
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth);
 }
+
+/** Waits for the service worker to control the page, so later loads are cached and offline-capable. */
+export async function controlled(page: Page) {
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+}

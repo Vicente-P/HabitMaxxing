@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { auth } from "@/lib/auth";
 import OfflineBanner from "../offline-status";
 import LogoutButton from "./dashboard/logout-button";
+import OfflineSync from "./offline-sync";
 import Logo from "./logo";
 import { MobileTabBar, SidebarNav } from "./shell-nav";
 import ThemeToggle from "./theme-toggle";
@@ -21,9 +22,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const user = session?.user;
   const label = user?.name?.trim() || user?.email?.trim();
   if (!label) return <>{children}</>;
+  const ownerId = typeof user?.id === "string" && user.id.trim() ? user.id : null;
 
   return (
     <div className="flex min-h-screen flex-1">
+      {ownerId && <OfflineSync ownerId={ownerId} />}
       <aside className="sticky top-0 hidden h-screen w-58 shrink-0 flex-col gap-[22px] border-r border-hm-border-lo py-[22px] pr-3.5 pl-5 lg:flex">
         <Logo />
         <div className="mt-1 px-[11px] text-hm-overline text-hm-text-low">NAVEGAR</div>

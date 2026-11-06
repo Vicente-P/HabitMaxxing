@@ -1,6 +1,9 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { utcToday } from "@/features/habits/domain/calendar-date";
+import { createMemoryPendingLogStore } from "@/lib/offline-logs/memory-store";
+import { configurePendingRuntime, pendingRuntime } from "@/lib/offline-logs/pending-runtime";
 import HabitAgenda from "./habit-agenda";
 
 const fetchMock = vi.fn();
@@ -9,7 +12,13 @@ const catalogHabit = { id: "h2", name: "Nadar", type: "BINARY", unit: null, freq
 const dailyResponse = (data: unknown[]) => Response.json({ data, meta: { day: 1, date: "2026-10-12", total: data.length } });
 const catalogResponse = (data: unknown[]) => Response.json({ data });
 
-beforeEach(() => vi.stubGlobal("fetch", fetchMock));
+let queueStore = createMemoryPendingLogStore();
+beforeEach(async () => {
+  vi.stubGlobal("fetch", fetchMock);
+  queueStore = createMemoryPendingLogStore();
+  configurePendingRuntime({ store: queueStore, fetchImpl: fetchMock as unknown as typeof fetch });
+  await pendingRuntime.init("owner");
+});
 afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals(); });
 
 describe("current-day habit agenda", () => {
@@ -103,7 +112,7 @@ describe("binary completion toggle", () => {
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true");
     expect(logCalls()).toHaveLength(1);
     expect(logCalls()[0][1]).toMatchObject({ method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", headers: { "Content-Type": "application/json" } });
-    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ completed: true });
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: "2026-10-12", completed: true });
   });
 
   it("reverts a completed habit back to pending", async () => {
@@ -115,7 +124,7 @@ describe("binary completion toggle", () => {
     await userEvent.click(button);
 
     await waitFor(() => expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false"));
-    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ completed: false });
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: "2026-10-12", completed: false });
     expect(screen.getByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
   });
 
@@ -158,7 +167,6 @@ describe("binary completion toggle", () => {
 
   it.each([
     ["server error", () => Promise.resolve(Response.json({ error: { code: "INTERNAL_ERROR" } }, { status: 500 }))],
-    ["network failure", () => Promise.reject(new Error("offline"))],
     ["malformed success body", () => Promise.resolve(Response.json({ data: { completed: "yes" } }))],
   ])("keeps the previous state and shows an error after a %s", async (_name, failure) => {
     fetchMock.mockImplementation((url: string) => {
@@ -230,7 +238,7 @@ describe("numeric value registration", () => {
     expect(await screen.findByText("5 km")).toBeInTheDocument();
     expect(logCalls()).toHaveLength(1);
     expect(logCalls()[0][1]).toMatchObject({ method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", headers: { "Content-Type": "application/json" } });
-    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ value: 5 });
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: "2026-10-12", value: 5 });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
@@ -247,7 +255,7 @@ describe("numeric value registration", () => {
 
     expect(await screen.findByText("8.5 km")).toBeInTheDocument();
     expect(screen.queryByText("5 km")).not.toBeInTheDocument();
-    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ value: 8.5 });
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: "2026-10-12", value: 8.5 });
   });
 
   it.each([["0"], ["-3"], ["-0.5"], [""]])("shows 'El valor debe ser mayor a 0' for %j without posting", async (typed) => {
@@ -307,7 +315,7 @@ describe("numeric value registration", () => {
 
   it.each([
     ["server error", () => Promise.resolve(Response.json({ error: { code: "INTERNAL_ERROR" } }, { status: 500 })), "No se pudo actualizar el hábito. Inténtalo de nuevo."],
-    ["network failure", () => Promise.reject(new Error("offline")), "No se pudo actualizar el hábito. Inténtalo de nuevo."],
+    ["network failure on a past agenda", () => Promise.reject(new Error("offline")), "Esta agenda es de 12/10/2026. Conéctate para registrar hoy."],
     ["unauthorized", () => Promise.resolve(Response.json({ error: { code: "UNAUTHORIZED" } }, { status: 401 })), "Tu sesión ya no está disponible. Inicia sesión nuevamente."],
   ])("keeps the previous value and shows an error after a %s", async (_name, failure, message) => {
     mockAgenda({ id: "log", completed: true, value: 5, date: "2026-10-12" }, failure);
@@ -337,5 +345,140 @@ describe("agenda refresh after a habit edit (HU-07 S7)", () => {
     expect(screen.queryByText("Leer")).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(fetchMock.mock.calls.every(([, options]) => !options.method)).toBe(true);
+  });
+});
+
+describe("offline logging (HU-20 S2, S3, S5)", () => {
+  const today = utcToday(new Date());
+  const numericHabit = { type: "NUMERIC", unit: "km", name: "Correr" };
+  const logCalls = () => fetchMock.mock.calls.filter(([url]) => url === "/api/habits/h1/logs");
+  const savedLog = (body: { completed?: boolean; value?: number }) => ({ data: { id: "log", habitId: "h1", date: today, completed: body.completed ?? true, value: body.value ?? null, createdAt: "x" } });
+  const offline = () => Promise.reject(new TypeError("Failed to fetch"));
+  const pressed = () => screen.getByRole("button", { name: "Completar Leer" });
+
+  function mockAgenda(options: { date?: string; habit?: Record<string, unknown>; save?: (body: Record<string, unknown>) => Promise<Response> } = {}) {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (url === "/api/habits/h1/logs") {
+        const body = JSON.parse(String(init?.body));
+        return options.save ? options.save(body) : Promise.resolve(Response.json(savedLog(body)));
+      }
+      return Promise.resolve(url === "/api/habits?view=catalog"
+        ? catalogResponse([catalogHabit])
+        : Response.json({ data: [{ ...dailyHabit, ...options.habit }], meta: { day: 1, date: options.date ?? today, total: 1 } }));
+    });
+  }
+
+  it("sends the agenda's explicit date in every direct save", async () => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
+    await waitFor(() => expect(pressed()).toHaveAttribute("aria-pressed", "true"));
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: today, completed: true });
+  });
+
+  it("queues a binary change on network failure, shows it at once with the marker and no error", async () => {
+    mockAgenda({ save: offline });
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
+    await waitFor(() => expect(pressed()).toHaveAttribute("aria-pressed", "true"));
+    expect(screen.getByText("Pendiente de sincronizar")).toHaveClass("text-hm-caption", "text-hm-warn");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(pressed()).toBeEnabled();
+    expect(await queueStore.list("owner")).toEqual([expect.objectContaining({ habitId: "h1", date: today, payload: { completed: true } })]);
+  });
+
+  it("queues a numeric value on network failure and shows it with the marker", async () => {
+    mockAgenda({ habit: numericHabit, save: offline });
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.type(await screen.findByLabelText("Valor de Correr"), "7");
+    await userEvent.click(screen.getByRole("button", { name: "Registrar Correr" }));
+    expect(await screen.findByText("7 km")).toBeInTheDocument();
+    expect(screen.getByText("Pendiente de sincronizar")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect((await queueStore.list("owner"))[0]).toMatchObject({ date: today, payload: { value: 7 } });
+  });
+
+  it("toggling twice offline keeps one queued record with the latest value, computed from the displayed state", async () => {
+    mockAgenda({ save: offline });
+    render(<HabitAgenda ownerId="owner" />);
+    await screen.findByRole("button", { name: "Completar Leer" });
+    await userEvent.click(pressed());
+    await waitFor(() => expect(pressed()).toHaveAttribute("aria-pressed", "true"));
+    await userEvent.click(pressed());
+    await waitFor(() => expect(pressed()).toHaveAttribute("aria-pressed", "false"));
+    const queued = await queueStore.list("owner");
+    expect(queued).toHaveLength(1);
+    expect(queued[0].payload).toEqual({ completed: false });
+    expect(logCalls().map(([, init]) => JSON.parse(String(init.body)).completed)).toEqual([true, false]);
+  });
+
+  it("shows a change already in the queue on a fresh render", async () => {
+    mockAgenda();
+    await pendingRuntime.enqueue({ habitId: "h1", date: today, payload: { completed: true } });
+    render(<HabitAgenda ownerId="owner" />);
+    expect(await screen.findByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText("Pendiente de sincronizar")).toBeInTheDocument();
+  });
+
+  it("ignores queued changes that belong to another date", async () => {
+    mockAgenda();
+    await pendingRuntime.enqueue({ habitId: "h1", date: "2020-01-01", payload: { completed: true } });
+    render(<HabitAgenda ownerId="owner" />);
+    expect(await screen.findByRole("button", { name: "Completar Leer" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText("Pendiente de sincronizar")).not.toBeInTheDocument();
+  });
+
+  it("does not queue on a past agenda: shows the date message and keeps the state", async () => {
+    mockAgenda({ date: "2026-10-12", save: offline });
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Esta agenda es de 12/10/2026. Conéctate para registrar hoy.");
+    expect(pressed()).toHaveAttribute("aria-pressed", "false");
+    expect(await queueStore.list("owner")).toEqual([]);
+    expect(screen.queryByText("Pendiente de sincronizar")).not.toBeInTheDocument();
+  });
+
+  it("shows the generic error when the change cannot be queued", async () => {
+    mockAgenda({ save: offline });
+    configurePendingRuntime({ store: { ...queueStore, put: async () => { throw new Error("quota"); } }, fetchImpl: fetchMock as unknown as typeof fetch });
+    await pendingRuntime.init("owner");
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("No se pudo actualizar el hábito. Inténtalo de nuevo.");
+    expect(pressed()).toHaveAttribute("aria-pressed", "false");
+    expect(screen.queryByText("Pendiente de sincronizar")).not.toBeInTheDocument();
+  });
+
+  it("does not queue server errors that did get a response", async () => {
+    mockAgenda({ save: () => Promise.resolve(Response.json({ error: {} }, { status: 500 })) });
+    render(<HabitAgenda ownerId="owner" />);
+    await userEvent.click(await screen.findByRole("button", { name: "Completar Leer" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("No se pudo actualizar el hábito.");
+    expect(await queueStore.list("owner")).toEqual([]);
+  });
+
+  it("a direct 200 forgets an older queued value for the same habit and day", async () => {
+    mockAgenda();
+    await pendingRuntime.enqueue({ habitId: "h1", date: today, payload: { completed: true } });
+    await pendingRuntime.enqueue({ habitId: "other", date: today, payload: { completed: true } });
+    render(<HabitAgenda ownerId="owner" />);
+    await screen.findByRole("button", { name: "Completar Leer" });
+    await userEvent.click(pressed()); // the displayed (overlay) state is completed, so this saves completed:false
+    await waitFor(() => expect(pressed()).toHaveAttribute("aria-pressed", "false"));
+    expect(JSON.parse(String(logCalls()[0][1].body))).toEqual({ date: today, completed: false });
+    expect((await queueStore.list("owner")).map((log) => log.habitId)).toEqual(["other"]);
+    expect(screen.queryByText("Pendiente de sincronizar")).not.toBeInTheDocument();
+  });
+
+  it("reloads the agenda from the server when a sync run finishes, and not on the initial value", async () => {
+    mockAgenda();
+    render(<HabitAgenda ownerId="owner" />);
+    await screen.findByText("Leer");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    await pendingRuntime.enqueue({ habitId: "h1", date: today, payload: { completed: true } });
+    mockAgenda({ habit: { name: "Leer sincronizado" } });
+    await act(async () => { await pendingRuntime.sync(); });
+    expect(await screen.findByText("Leer sincronizado")).toBeInTheDocument();
+    expect(screen.queryByText("Pendiente de sincronizar")).not.toBeInTheDocument();
   });
 });

@@ -434,10 +434,12 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 Notas: service worker con caché del shell y de las lecturas autenticadas. Debe vaciarse al cerrar sesión. `Prioridad: Media`
 
 ### 📖 HU-20 — Registro sin conexión
+**Estado HU-20 (2026-11-06):** implementada localmente en `feature/pwa-registro-offline`, pendiente de PR. Sin cambios en la API ni en Prisma: la cola vive en el cliente (IndexedDB, sin dependencias nuevas) según `ADR-08`. Sin conexión, marcar o registrar un hábito se ve al instante con la marca "Pendiente de sincronizar" y se envía con la fecha de la agenda mostrada; al abrir la app, al volver la conexión y al volver a primer plano se sincroniza en orden. Un 400/404 descarta el cambio y avisa; un 401 lo conserva. Si la agenda guardada no es de hoy (UTC) no se registra sin conexión. Cerrar sesión con cambios pendientes sincroniza primero, avisa y pide una segunda confirmación para descartarlos. Verificada con unit y E2E con la red cortada (incluida la recarga sin conexión). **Elemento fuera del mockup:** la marca "Pendiente de sincronizar" y el contador del aviso. **Límites conocidos:** la sincronización solo ocurre con la app abierta (Background Sync queda como mejora); con varios dispositivos gana quien sincroniza último; crear, editar y eliminar hábitos siguen requiriendo conexión. **Pendiente en dispositivo:** probar en el S23 con el modo avión.
+
 - CA-01: Dado que estoy sin conexión, cuando marco o registro un hábito, entonces el cambio se ve de inmediato y queda pendiente.
 - CA-02: Dado que vuelve la conexión, entonces los cambios pendientes se sincronizan sin duplicarse ni desmarcarse.
 
-Notas: requiere un ADR. El log binario es hoy un *toggle*, que no es seguro de reintentar; hay que pasarlo a "fijar estado del día" (idempotente) y encolar en IndexedDB. Cambia el contrato de `POST /api/habits/:id/logs`. `Prioridad: Media`
+Notas: ver `docs/architecture/decisions/ADR-08-registro-sin-conexion.md`. `POST /api/habits/:id/logs` ya fija el estado del día (upsert por hábito y día, `date` opcional), así que es idempotente y **no cambia el contrato ni el modelo de datos**; la cola vive en el cliente (IndexedDB). *Corrección (2026-11-06): una versión anterior de esta nota decía que el log era un toggle y que había que cambiar el contrato; era una inferencia sin verificar contra el código.* `Prioridad: Media`
 
 ### 📖 HU-21 — Recordatorios push
 - CA-01: Dado que activé los recordatorios y elegí una hora, cuando llega esa hora y tengo hábitos pendientes, entonces recibo una notificación en el celular aunque la app esté cerrada.
