@@ -9,6 +9,8 @@
 - [Tests de componentes](#tests-de-componentes)
 - [Cobertura](#cobertura)
 - [Setup del entorno](#setup-del-entorno)
+- [Metodología aplicada](#metodología-aplicada)
+- [Mejoras propuestas](#mejoras-propuestas)
 
 ---
 
@@ -195,3 +197,33 @@ import '@testing-library/jest-dom'
 /// <reference types="vitest/globals" />
 // Habilita autocompletado de test/describe/expect sin importarlos
 ```
+
+
+---
+
+## Metodología aplicada
+
+- **Test-first:** cada comportamiento nuevo empieza con un test que falla (RED), luego la implementación mínima (GREEN) y después el refactor. Cada test verifica todos los efectos observables de la regla: estado HTTP, mensaje exacto y que lo rechazado no escriba datos.
+- **Regresión:** por cada comportamiento existente que el cambio toca, un test que demuestra que sigue igual.
+- **Tres capas, todas en Vitest:**
+  1. Dominio y aplicación: funciones puras y `InMemoryHabitRepository`.
+  2. Rutas de API (`tests/*-route.test.ts`): se invoca el handler con `prisma` y `auth` mockeados y se comprueba el contrato (códigos, mensajes, 404 uniforme para recursos ajenos).
+  3. Componentes de UI: Testing Library con `fetch` mockeado.
+- **Guardas estáticas:** `tsc`, `eslint` (tokens de diseño `--hm-*` y fronteras de ADR-05) y `build`, además del CI de `.github/workflows/ci.yml`.
+- **Límites conocidos:** no hay pruebas contra una base de datos real, ni end-to-end con navegador, ni umbral de cobertura. jsdom no mide layout, por lo que lo visual se revisa a mano.
+
+---
+
+## Mejoras propuestas
+
+Ordenadas por relación entre valor y costo. Ninguna está implementada.
+
+| # | Mejora | Estado |
+|---|--------|--------|
+| 1 | Tests de integración del repositorio contra PostgreSQL real | Plan en [ADR-06](../architecture/decisions/ADR-06-tests-de-integracion-con-postgres.md) (aceptado, en implementación) |
+| 2 | Suite de contrato compartida entre `InMemoryHabitRepository` y el adaptador de Prisma | Incluida en ADR-06 |
+| 3 | E2E con Playwright de pocos flujos críticos (registro → login → crear hábito → marcarlo → logout): cubre cookies de sesión, redirecciones, layout y responsive | Pendiente; conviene con más pantallas estables |
+| 4 | Umbral de cobertura en CI solo para `src/features/**` (objetivo realista, p. ej. 80 %) | Pendiente |
+| 5 | Higiene: corregir el warning de `eslint.config.mjs` (`import/no-anonymous-default-export`), mover los tests de `tests/` junto a su ruta y ejecutar los tests en `pre-push` | Pendiente |
+
+Las mejoras 1–3 y 5 cambian tooling o dependencias: requieren aprobación explícita antes de implementarse.
