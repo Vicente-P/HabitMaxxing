@@ -19,6 +19,13 @@ export type NewHabit = {
   ownerId: string;
 };
 
+/** Editable fields of an existing habit (HU-07); the type and the owner never change. */
+export type HabitChanges = {
+  name?: string;
+  unit?: string | null;
+  frequency?: number[];
+};
+
 /** A completion record for one habit on one calendar day (`date` is YYYY-MM-DD). */
 export type HabitLog = {
   id: string;

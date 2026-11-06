@@ -1,4 +1,5 @@
-import type { Habit, HabitLog, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
+import type { Habit, HabitChanges, HabitLog, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
+import { weekdayOf } from "../domain/calendar-date";
 import type { HabitRepository } from "./habit-repository";
 
 type StoredLog = HabitLog & { createdAt?: Date };
@@ -42,6 +43,25 @@ export class InMemoryHabitRepository implements HabitRepository {
     this.throwIfFailing();
     const stored = this.habits.find((habit) => habit.id === habitId);
     return stored ? this.toHabit(stored) : null;
+  }
+
+  async update(habitId: string, ownerId: string, changes: HabitChanges): Promise<Habit | null> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId && habit.userId === ownerId);
+    if (!stored) return null;
+    this.sequence += 1;
+    if (changes.name !== undefined) stored.name = changes.name;
+    if (changes.unit !== undefined) stored.unit = changes.unit;
+    if (changes.frequency !== undefined) stored.frequency = changes.frequency;
+    stored.updatedAt = new Date(Math.max(stored.updatedAt.getTime() + 1, this.sequence * 1000));
+    return this.toHabit(stored);
+  }
+
+  async loggedWeekdays(habitId: string): Promise<number[]> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId);
+    const days = new Set((stored?.logs ?? []).map((log) => weekdayOf(log.date)));
+    return [...days].sort((a, b) => a - b);
   }
 
   async upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog> {
