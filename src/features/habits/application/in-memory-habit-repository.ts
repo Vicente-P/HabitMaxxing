@@ -53,6 +53,15 @@ export class InMemoryHabitRepository implements HabitRepository {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
+  async listLogsInRange(habitId: string, from: string, to: string): Promise<HabitLog[]> {
+    this.throwIfFailing();
+    const stored = this.habits.find((habit) => habit.id === habitId);
+    return (stored?.logs ?? [])
+      .filter((log) => log.date >= from && log.date <= to)
+      .map((log) => this.toDayLog(log)!)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
   async update(habitId: string, ownerId: string, changes: HabitChanges): Promise<Habit | null> {
     this.throwIfFailing();
     const stored = this.habits.find((habit) => habit.id === habitId && habit.userId === ownerId);

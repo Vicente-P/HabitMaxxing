@@ -1,4 +1,4 @@
-import type { Habit, HabitChanges, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
+import type { Habit, HabitChanges, HabitLog, NewHabit, SavedHabitLog, ScheduledHabit } from "../domain/habit";
 
 /** Port: persistence of habits. Implementations own all storage-specific query shapes. */
 export interface HabitRepository {
@@ -11,6 +11,8 @@ export interface HabitRepository {
   findById(habitId: string): Promise<Habit | null>;
   /** Date (YYYY-MM-DD) and completed flag of every log of the habit, oldest first; empty when it has none or does not exist. */
   listLogDays(habitId: string): Promise<Array<{ date: string; completed: boolean }>>;
+  /** Logs (id, completed, value, date) of the habit with `from` <= date <= `to` (YYYY-MM-DD), oldest first; empty when none or the habit does not exist. */
+  listLogsInRange(habitId: string, from: string, to: string): Promise<HabitLog[]>;
   /** Applies `changes` to the habit only when `ownerId` owns it; null when it is foreign or missing. Logs are untouched. */
   update(habitId: string, ownerId: string, changes: HabitChanges): Promise<Habit | null>;
   /** Distinct weekdays (0 = Sunday), sorted ascending, on which the habit has any log. */

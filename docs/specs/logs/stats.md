@@ -172,6 +172,14 @@ GET /api/habits/:id/logs
 
 > MVP: binario usa solo `completed`/`missed`. Numérico: cualquier `value > 0` cuenta como `completed`.
 
+**Decisiones HU-13 (2026-11-05, implementadas en `buildMonthDays` en `src/features/habits/domain/month-days.ts`, `getHabitMonthDays`, `GET /api/habits/:id/logs` y la tarjeta "Actividad del mes" de `/habits/[id]`):**
+
+- Solo vista Mes del mes UTC actual; las pestañas Año/Semana del mockup y el heatmap anual no se renderizan todavía.
+- `status`: `completed` si hay log `completed: true` (en numéricos cualquier valor guardado cuenta); `missed` si el día programado es anterior a hoy sin log o con `completed: false`; `pending` si es hoy sin completar o un día futuro programado; `not_scheduled` si el día de la semana no está en `frequency` o es anterior a la fecha de creación del hábito (día UTC de `createdAt`, como en HU-14). `scheduled` es `false` exactamente cuando el status es `not_scheduled`. `partial` no se emite.
+- `month` es obligatorio; ausente, inválido (`2026-5`, `2026-13`, `abc`, vacío) o repetido responde 400 `VALIDATION_ERROR` con `details: [{ field: "month", message: "Formato de mes inválido. Usar YYYY-MM" }]`; cualquier otro query param responde 400. Respuesta `200 { data: { habitId, month, days } }` con `Cache-Control: private, no-store`.
+- Hábito ajeno e inexistente responden el mismo 404 `NOT_FOUND` byte a byte (no hay 403); sin sesión 401. El `POST` de la misma ruta no cambia.
+- UI: los días hasta hoy son botones (panel de detalle debajo del calendario con fecha, estado y, en numéricos con log, el valor con su unidad); los días futuros no son interactivos. Colores solo con tokens `--hm-*`: cumplido `success`, no cumplido `danger`, no programado `heat-0` ("sin penalización"), pendiente contorno neutro.
+
 ---
 
 ## 3. Heatmap anual (alternativo)
@@ -290,11 +298,11 @@ GET /api/habits/:id/heatmap
 
 ### Heatmap
 
-- [ ] Día programado completado → `status: "completed"`.
-- [ ] Día programado incumplido → `status: "missed"`.
-- [ ] Día no programado → `status: "not_scheduled"`.
-- [ ] Día futuro programado → `status: "pending"`.
-- [ ] Respuesta incluye todos los días del mes.
+- [x] Día programado completado → `status: "completed"`.
+- [x] Día programado incumplido → `status: "missed"`.
+- [x] Día no programado → `status: "not_scheduled"`.
+- [x] Día futuro programado → `status: "pending"`.
+- [x] Respuesta incluye todos los días del mes.
 
 ### Cumplimiento
 

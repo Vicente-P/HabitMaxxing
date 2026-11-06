@@ -1,4 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ auth: vi.fn(), redirect: vi.fn(), notFound: vi.fn(), findHabit: vi.fn(), findLogs: vi.fn() }));
@@ -9,7 +10,7 @@ vi.mock("next/navigation", () => ({ redirect: mocks.redirect, notFound: mocks.no
 import HabitDetailPage from "./page";
 
 const row = { id: "h1", name: "Meditar", type: "BINARY", unit: null, frequency: [0, 1, 2, 3, 4, 5, 6], userId: "u1", createdAt: new Date(0), updatedAt: new Date(0) };
-const day = (date: string, completed = true) => ({ date: new Date(`${date}T00:00:00.000Z`), completed });
+const day = (date: string, completed = true, value: number | null = null) => ({ id: `log-${date}`, date: new Date(`${date}T00:00:00.000Z`), completed, value });
 const params = (id = "h1") => ({ params: Promise.resolve({ id }) });
 
 beforeEach(() => {
@@ -73,7 +74,7 @@ describe("habit detail page", () => {
     mocks.findHabit.mockResolvedValue({ ...row, type: "NUMERIC", unit: "km", frequency: [1, 2, 3, 4, 5] });
     render(await HabitDetailPage(params()));
     expect(screen.getByText("Numérico · km · L–V")).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Editar|Eliminar|Marcar/ })).not.toBeInTheDocument();
   });
 
   it("renders the stat grid with the streak and monthly completion cards (S4)", async () => {
@@ -103,6 +104,81 @@ describe("habit detail page", () => {
     render(await HabitDetailPage(params()));
     expect(screen.getByText("Cumplimiento: 0% — ¡Empieza hoy!")).toBeInTheDocument();
     expect(screen.getByText("0%")).toBeInTheDocument();
-    expect(screen.queryByText(/este mes/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cumplimiento: .*este mes/)).not.toBeInTheDocument();
+  });
+
+  describe("Actividad del mes (S3, S4)", () => {
+    it("renders the card with title, completed-days subtitle, Monday-first weekday headers and the legend", async () => {
+      mocks.findLogs.mockResolvedValue([day("2026-05-18"), day("2026-05-19"), day("2026-05-20")]);
+      render(await HabitDetailPage(params()));
+      expect(screen.getByText("Actividad del mes")).toBeInTheDocument();
+      expect(screen.getByText("3 días marcados este mes")).toBeInTheDocument();
+      expect(screen.getAllByText(/^[LMXJVSD]$/).map((header) => header.textContent).join("")).toBe("LMXJVSD");
+      const legend = screen.getByRole("list", { name: "Leyenda" });
+      for (const text of ["Cumplido", "No cumplido", "No programado (sin penalización)", "Pendiente"]) expect(within(legend).getByText(text)).toBeInTheDocument();
+    });
+
+    it("uses the singular subtitle for one marked day and zero for none", async () => {
+      mocks.findLogs.mockResolvedValue([day("2026-05-20")]);
+      render(await HabitDetailPage(params()));
+      expect(screen.getByText("1 día marcado este mes")).toBeInTheDocument();
+      cleanup();
+      mocks.findLogs.mockResolvedValue([]);
+      render(await HabitDetailPage(params()));
+      expect(screen.getByText("0 días marcados este mes")).toBeInTheDocument();
+    });
+
+    it("gives each day a status class and an accessible name with its date and status", async () => {
+      mocks.findHabit.mockResolvedValue({ ...row, frequency: [1, 2, 3, 4, 5] });
+      mocks.findLogs.mockResolvedValue([day("2026-05-12"), day("2026-05-13", false)]);
+      render(await HabitDetailPage(params()));
+      expect(screen.getByRole("button", { name: "12 de mayo de 2026: Cumplido" })).toHaveClass("bg-hm-success");
+      expect(screen.getByRole("button", { name: "13 de mayo de 2026: No cumplido" })).toHaveClass("bg-hm-danger");
+      expect(screen.getByRole("button", { name: "14 de mayo de 2026: No cumplido" })).toHaveClass("bg-hm-danger");
+      expect(screen.getByRole("button", { name: "2 de mayo de 2026: No programado" })).toHaveClass("bg-hm-heat-0");
+      expect(screen.getByRole("button", { name: "20 de mayo de 2026: Pendiente" })).toHaveClass("border-hm-border-hi");
+    });
+
+    it("renders future days as non-interactive cells and every day up to today as a button", async () => {
+      render(await HabitDetailPage(params()));
+      expect(screen.getAllByRole("button")).toHaveLength(20);
+      expect(screen.queryByRole("button", { name: /21 de mayo/ })).not.toBeInTheDocument();
+      expect(screen.getByRole("img", { name: "21 de mayo de 2026: Pendiente" })).toHaveClass("border-hm-border-hi");
+      expect(screen.getByRole("img", { name: "31 de mayo de 2026: Pendiente" })).toBeInTheDocument();
+    });
+
+    it("shows the day panel with date, status and no value for a binary habit when pressing a past day", async () => {
+      mocks.findLogs.mockResolvedValue([day("2026-05-12")]);
+      render(await HabitDetailPage(params()));
+      expect(screen.queryByRole("region", { name: "Detalle del día" })).not.toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: "12 de mayo de 2026: Cumplido" }));
+      const panel = screen.getByRole("region", { name: "Detalle del día" });
+      expect(panel).toHaveTextContent("12 de mayo de 2026");
+      expect(within(panel).getByText("Cumplido")).toBeInTheDocument();
+      expect(panel).not.toHaveTextContent("Valor");
+      await userEvent.click(screen.getByRole("button", { name: "11 de mayo de 2026: No cumplido" }));
+      expect(within(screen.getByRole("region", { name: "Detalle del día" })).getByText("No cumplido")).toBeInTheDocument();
+      expect(screen.getByRole("region", { name: "Detalle del día" })).toHaveTextContent("11 de mayo de 2026");
+    });
+
+    it("shows the numeric value with its unit and works from the keyboard", async () => {
+      mocks.findHabit.mockResolvedValue({ ...row, type: "NUMERIC", unit: "km" });
+      mocks.findLogs.mockResolvedValue([day("2026-05-12", true, 5)]);
+      render(await HabitDetailPage(params()));
+      screen.getByRole("button", { name: "12 de mayo de 2026: Cumplido" }).focus();
+      await userEvent.keyboard("{Enter}");
+      const panel = screen.getByRole("region", { name: "Detalle del día" });
+      expect(within(panel).getByText("5 km")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "12 de mayo de 2026: Cumplido" })).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("shows No programado and Pendiente (today) in the panel", async () => {
+      mocks.findHabit.mockResolvedValue({ ...row, frequency: [1, 2, 3, 4, 5] });
+      render(await HabitDetailPage(params()));
+      await userEvent.click(screen.getByRole("button", { name: "2 de mayo de 2026: No programado" }));
+      expect(within(screen.getByRole("region", { name: "Detalle del día" })).getByText("No programado")).toBeInTheDocument();
+      await userEvent.click(screen.getByRole("button", { name: "20 de mayo de 2026: Pendiente" }));
+      expect(within(screen.getByRole("region", { name: "Detalle del día" })).getByText("Pendiente")).toBeInTheDocument();
+    });
   });
 });
