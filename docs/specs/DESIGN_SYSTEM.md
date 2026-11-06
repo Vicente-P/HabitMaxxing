@@ -137,6 +137,8 @@ Definidos en `@layer components` de `globals.css`, con sus valores tomados del m
 
 Antes de implementar algo que no esté en el mockup, consulta al usuario. Una excepción aprobada se registra en el feature doc de la historia (`odd/tasks/`) con su motivo, y no se generaliza a otras pantallas.
 
+- **Colores literales para PWA (HU-18):** el manifest y los íconos PNG no pueden leer variables CSS, así que `src/lib/pwa.ts` es el único archivo con hex permitido (con `eslint-disable` justificado). Refleja el tema oscuro y `src/lib/pwa.test.ts` falla si se desfasa de `globals.css`.
+
 ---
 
 ## Checklist pre-entrega

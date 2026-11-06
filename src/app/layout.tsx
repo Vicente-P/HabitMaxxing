@@ -1,5 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { PWA_COLORS } from "@/lib/pwa";
+import ServiceWorkerRegister from "./service-worker-register";
+import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,6 +20,12 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "HabitMaxxing",
   description: "Trackeá tus hábitos diarios",
+  applicationName: "HabitMaxxing",
+  appleWebApp: { capable: true, title: "HabitMaxxing", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_COLORS.background,
 };
 
 export default function RootLayout({
@@ -25,8 +34,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="es" suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

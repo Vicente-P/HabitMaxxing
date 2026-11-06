@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import HabitCatalog from "../dashboard/habit-catalog";
+import ThemeToggle from "../theme-toggle";
 
 /** "Hábitos": the create form and Mis hábitos (edit, delete and the detail links). */
 export default async function HabitsPage() {
@@ -11,7 +12,10 @@ export default async function HabitsPage() {
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-8 p-4 sm:p-6">
-      <h1>Hábitos</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1>Hábitos</h1>
+        <div className="lg:hidden"><ThemeToggle /></div>
+      </div>
       <HabitCatalog ownerId={session.user.id} />
     </main>
   );

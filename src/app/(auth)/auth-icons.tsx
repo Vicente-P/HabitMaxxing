@@ -13,6 +13,8 @@ const PATHS = {
   list: "M4 4h9M4 8h9M4 12h9M2 4h.01M2 8h.01M2 12h.01",
   plus: "M8 3v10M3 8h10",
   target: "M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
+  sun: "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.2 3.2l1 1M11.8 11.8l1 1M3.2 12.8l1-1M11.8 4.2l1-1",
+  moon: "M13.5 9.5A5.5 5.5 0 1 1 6.5 2.5a4.5 4.5 0 0 0 7 7z",
 } as const;
 
 export type AuthIconName = keyof typeof PATHS;

@@ -397,6 +397,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-16 — Modo oscuro `SCRUM-21`
+**Estado HU-16 (2026-11-06):** implementada localmente en `feature/SCRUM-21-modo-oscuro`, pendiente de PR: `ThemeToggle` alterna `data-hm-theme` en `<html>` y guarda la preferencia en `localStorage` (`hm-theme`); un script inline en `<head>` la aplica antes del primer render para evitar el destello oscuro. T-64 no hizo falta: los tokens `--hm-*` ya resuelven ambos temas. El mockup no define el toggle; por decisión del usuario vive en el pie del sidebar (desktop) y en la cabecera de `/habits` (móvil, donde la tab bar no tiene espacio). Verificada con unit y E2E (recarga conserva el tema).
 > *"Como usuario, quiero poder alternar entre modo claro y oscuro, para usar la app cómodamente en cualquier entorno."*
 
 **Criterios de Aceptación:**
@@ -409,6 +410,40 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-66: Persistir preferencia en localStorage
 
 `Story Points: 2` `Prioridad: Baja` `Sprint: 5`
+
+---
+
+## 📱 EP-06 — App instalable (PWA)
+
+> Origen: pedido del usuario (2026-11-06, Android Samsung S23): la app en el inicio del celular como acceso directo, sin aspecto de navegador, con recordatorios y funcionando sin internet. Se parte en cuatro historias mergeables por separado, en este orden.
+
+### 📖 HU-18 — App instalable
+**Estado HU-18 (2026-11-06):** implementada localmente en `feature/pwa-instalable`, pendiente de PR: `src/app/manifest.ts` (`display: standalone`, `start_url: /dashboard`), íconos PNG generados con `next/og` en `/icons/{192,512,maskable}` más `apple-icon`, `themeColor` y metadatos de Apple. Los colores literales viven solo en `src/lib/pwa.ts` (excepción documentada en `DESIGN_SYSTEM.md`, con test anti-desfase contra `globals.css`). Verificada con unit y E2E contra el build real. **Pendiente en dispositivo:** instalar en el S23 desde Chrome tras desplegar.
+
+- CA-01: Dado que abro la app en Chrome para Android, cuando elijo "Instalar app", entonces queda un ícono en el inicio.
+- CA-02: Dado que abro la app desde ese ícono, entonces se muestra en pantalla completa, sin barra del navegador, y arranca en la agenda de hoy.
+
+`Prioridad: Media`
+
+### 📖 HU-19 — Lectura sin conexión
+**Estado HU-19 (2026-11-06):** implementada localmente en `feature/pwa-lectura-offline` (apilada sobre `feature/pwa-instalable`), pendiente de PR: service worker escrito a mano en `public/sw.js`, sin dependencias nuevas, registrado solo en producción. Páginas y `GET /api/habits*` van con red primero y caen a la última copia guardada; `_next/static` e íconos van con caché primero. Las peticiones RSC de Next no se cachean: si fallan sin conexión, el router hace una navegación completa que atiende el caché de páginas. Una pantalla nunca abierta muestra un aviso "Sin conexión" (503) en lugar del error del navegador. `OfflineBanner` avisa en el shell. Las cachés `hm-*` guardan datos autenticados, así que se vacían al cerrar sesión y tras iniciar sesión o registrarse (`src/lib/offline-cache.ts`). Verificada con unit y E2E con la red cortada. **Límites conocidos:** solo se ve offline lo visitado antes con conexión, y la agenda guardada puede ser de un día anterior (la escritura sin conexión es HU-20).
+
+- CA-01: Dado que ya abrí la app con conexión, cuando me quedo sin internet, entonces puedo abrirla y ver la agenda de hoy y mis hábitos con los últimos datos conocidos.
+- CA-02: Dado que estoy sin conexión, entonces veo un aviso claro de que los datos pueden no estar al día.
+
+Notas: service worker con caché del shell y de las lecturas autenticadas. Debe vaciarse al cerrar sesión. `Prioridad: Media`
+
+### 📖 HU-20 — Registro sin conexión
+- CA-01: Dado que estoy sin conexión, cuando marco o registro un hábito, entonces el cambio se ve de inmediato y queda pendiente.
+- CA-02: Dado que vuelve la conexión, entonces los cambios pendientes se sincronizan sin duplicarse ni desmarcarse.
+
+Notas: requiere un ADR. El log binario es hoy un *toggle*, que no es seguro de reintentar; hay que pasarlo a "fijar estado del día" (idempotente) y encolar en IndexedDB. Cambia el contrato de `POST /api/habits/:id/logs`. `Prioridad: Media`
+
+### 📖 HU-21 — Recordatorios push
+- CA-01: Dado que activé los recordatorios y elegí una hora, cuando llega esa hora y tengo hábitos pendientes, entonces recibo una notificación en el celular aunque la app esté cerrada.
+- CA-02: Dado que desactivo los recordatorios, entonces dejo de recibirlos.
+
+Notas: requiere un ADR. Web Push (claves VAPID), tabla nueva de suscripciones (cambio de modelo de datos), hora y zona horaria por usuario, y un disparador periódico: el Cron de Vercel en plan Hobby corre una vez al día, así que haría falta un plan de pago o un scheduler externo. `Prioridad: Media`
 
 ---
 

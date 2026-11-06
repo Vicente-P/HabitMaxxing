@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { clearOfflineCaches } from "@/lib/offline-cache";
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function LogoutButton() {
       if (!response.ok || response.redirected || await response.json() !== null) {
         throw new Error("Logout not confirmed");
       }
+      await clearOfflineCaches();
       if (mounted.current) router.replace("/login");
     } catch {
       if (mounted.current) setFailed(true);

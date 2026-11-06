@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { signOut, replace } = vi.hoisted(() => ({ signOut: vi.fn(), replace: vi.fn() }));
 vi.mock("next-auth/react", () => ({ signOut }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
+const { clearOfflineCaches } = vi.hoisted(() => ({ clearOfflineCaches: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/lib/offline-cache", () => ({ clearOfflineCaches }));
 import LogoutButton from "./logout-button";
 
 const response = (body: unknown, overrides = {}) => ({ ok: true, redirected: false, json: vi.fn().mockResolvedValue(body), ...overrides });
@@ -23,6 +25,22 @@ describe("confirmed native logout", () => {
     expect(signOut).toHaveBeenCalledExactlyOnceWith({ redirect: false, redirectTo: "/login" });
     expect(fetch).toHaveBeenCalledExactlyOnceWith("/api/auth/session", { cache: "no-store", credentials: "same-origin", redirect: "error" });
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("clears the offline caches once logout is confirmed, before leaving the app", async () => {
+    render(<LogoutButton />);
+    click();
+    await waitFor(() => expect(replace).toHaveBeenCalledOnce());
+    expect(clearOfflineCaches).toHaveBeenCalledOnce();
+    expect(clearOfflineCaches.mock.invocationCallOrder[0]).toBeLessThan(replace.mock.invocationCallOrder[0]);
+  });
+
+  it("keeps the offline caches when logout is not confirmed", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response({ user: { id: "user" } }) as unknown as Response);
+    render(<LogoutButton />);
+    click();
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(clearOfflineCaches).not.toHaveBeenCalled();
   });
 
   it.each([
