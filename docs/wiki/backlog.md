@@ -425,6 +425,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 `Prioridad: Media`
 
 ### 📖 HU-19 — Lectura sin conexión
+**Estado HU-19 (2026-11-06):** implementada localmente en `feature/pwa-lectura-offline` (apilada sobre `feature/pwa-instalable`), pendiente de PR: service worker escrito a mano en `public/sw.js`, sin dependencias nuevas, registrado solo en producción. Páginas y `GET /api/habits*` van con red primero y caen a la última copia guardada; `_next/static` e íconos van con caché primero. Las peticiones RSC de Next no se cachean: si fallan sin conexión, el router hace una navegación completa que atiende el caché de páginas. Una pantalla nunca abierta muestra un aviso "Sin conexión" (503) en lugar del error del navegador. `OfflineBanner` avisa en el shell. Las cachés `hm-*` guardan datos autenticados, así que se vacían al cerrar sesión y tras iniciar sesión o registrarse (`src/lib/offline-cache.ts`). Verificada con unit y E2E con la red cortada. **Límites conocidos:** solo se ve offline lo visitado antes con conexión, y la agenda guardada puede ser de un día anterior (la escritura sin conexión es HU-20).
+
 - CA-01: Dado que ya abrí la app con conexión, cuando me quedo sin internet, entonces puedo abrirla y ver la agenda de hoy y mis hábitos con los últimos datos conocidos.
 - CA-02: Dado que estoy sin conexión, entonces veo un aviso claro de que los datos pueden no estar al día.
 

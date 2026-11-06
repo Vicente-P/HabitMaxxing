@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
+import { clearOfflineCaches } from "@/lib/offline-cache";
 import { registerSchema } from "@/lib/validations";
 import AuthAlert from "../auth-alert";
 import AuthField from "../auth-field";
@@ -83,6 +84,7 @@ export default function RegisterPage() {
       }
       const result = await signIn("credentials", { email: data.email, password: data.password, redirect: false }).catch(() => null);
       if (result?.ok && !result.error) {
+        await clearOfflineCaches();
         window.location.assign("/dashboard");
       } else {
         setStatus("Tu cuenta fue creada, pero no pudimos iniciar sesión. Inicia sesión para continuar.");

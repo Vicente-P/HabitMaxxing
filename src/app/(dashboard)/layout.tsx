@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { auth } from "@/lib/auth";
+import OfflineBanner from "../offline-status";
 import LogoutButton from "./dashboard/logout-button";
 import Logo from "./logo";
 import { MobileTabBar, SidebarNav } from "./shell-nav";
@@ -36,6 +37,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
+        <OfflineBanner />
         <header className="flex items-center justify-between gap-3 border-b border-hm-border-lo px-4 py-2 lg:hidden">
           <Logo />
           <LogoutButton />

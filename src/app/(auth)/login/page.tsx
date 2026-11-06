@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
+import { clearOfflineCaches } from "@/lib/offline-cache";
 import AuthAlert from "../auth-alert";
 import AuthField from "../auth-field";
 import AuthIcon from "../auth-icons";
@@ -20,8 +21,10 @@ export default function LoginPage() {
     setError("");
     try {
       const result = await signIn("credentials", { email, password, redirect: false });
-      if (result?.ok && !result.error) window.location.assign("/dashboard");
-      else setError("Credenciales incorrectas");
+      if (result?.ok && !result.error) {
+        await clearOfflineCaches(); // never show a previous user's saved habits
+        window.location.assign("/dashboard");
+      } else setError("Credenciales incorrectas");
     } catch {
       setError("No se pudo iniciar sesión con esos datos.");
     } finally {
