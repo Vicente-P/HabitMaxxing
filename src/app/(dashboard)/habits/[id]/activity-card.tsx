@@ -40,14 +40,14 @@ export default function ActivityCard({ days, today, unit }: { days: MonthDay[]; 
         <div className="mt-0.5 text-[12px] text-hm-text-low">{marked} {marked === 1 ? "día marcado" : "días marcados"} este mes</div>
       </div>
 
-      <div className="grid max-w-md grid-cols-7 gap-[3px]">
+      <div className="grid grid-cols-7 gap-[3px]">
         {weekdayHeaders.map((header) => (
           <div key={header} aria-hidden="true" className="text-center text-[10px] text-hm-text-low">{header}</div>
         ))}
         {Array.from({ length: leading }, (_, index) => <div key={`blank-${index}`} aria-hidden="true" />)}
         {days.map((day) => {
           const name = `${longDate(day.date)}: ${statusLabel[day.status]}`;
-          const cell = `flex aspect-square items-center justify-center rounded-hm-xs text-[11px] tabular-nums ${statusClass[day.status]}`;
+          const cell = `flex h-11 items-center justify-center rounded-hm-xs text-[11px] tabular-nums ${statusClass[day.status]}`;
           const number = Number(day.date.slice(8));
           if (day.date > today) {
             return <div key={day.date} role="img" aria-label={name} className={cell}>{number}</div>;
