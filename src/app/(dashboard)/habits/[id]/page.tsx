@@ -34,12 +34,12 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
   return (
     <main>
       <div className="flex flex-wrap items-center gap-3 border-b border-hm-border-lo px-4 py-5 sm:px-12">
-        <Link href="/dashboard" className="flex items-center gap-1.5 text-hm-caption font-medium text-hm-text-mid hover:text-hm-text">
+        <Link href="/habits" className="flex min-h-11 items-center gap-1.5 text-hm-caption font-medium text-hm-text-mid hover:text-hm-text">
           <AuthIcon name="arrowLeft" size={14} />
           Volver
         </Link>
         <span aria-hidden="true" className="text-hm-caption text-hm-text-dim">/</span>
-        <span className="text-hm-caption text-hm-text-mid">Hábitos</span>
+        <Link href="/habits" className="flex min-h-11 items-center text-hm-caption text-hm-text-mid hover:text-hm-text">Hábitos</Link>
         <span aria-hidden="true" className="text-hm-caption text-hm-text-dim">/</span>
         <span className="min-w-0 break-words text-hm-caption font-medium text-hm-text-hi">{habit.name}</span>
       </div>

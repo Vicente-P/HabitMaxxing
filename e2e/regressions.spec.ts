@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { agenda, catalog, createHabit, registerUser } from "./helpers";
+import { agenda, catalog, createHabit, openToday, registerUser } from "./helpers";
 
 // Regressions found by reviewing the E2E screenshots against the mockup (odd/tasks/e2e-playwright.md, L4).
 
-test("the daily agenda shows a habit right after creating it, without reloading", async ({ page }) => {
+test("the daily agenda shows a habit created on Hábitos as soon as you go to Hoy, without reloading", async ({ page }) => {
   await registerUser(page);
   await createHabit(page, { name: "Leer" });
+  await openToday(page);
   await expect(agenda(page).getByRole("button", { name: "Completar Leer" })).toBeVisible();
 });
 

@@ -1,12 +1,17 @@
 import { expect, test } from "@playwright/test";
-import { agenda, catalog, createHabit, registerUser, reloadAgenda, todayIndex, weekdays } from "./helpers";
+import { agenda, catalog, createHabit, openHabits, openToday, registerUser, reloadAgenda, todayIndex, weekdays } from "./helpers";
 
 test("registers a new account and lands on the dashboard (S3)", async ({ page }) => {
   await registerUser(page);
   await expect(page.getByRole("heading", { name: "Agenda de hoy" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Mis hábitos" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Mis hábitos" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cerrar sesión" })).toBeVisible();
   await expect(agenda(page).getByText("Crea tu primer hábito para comenzar")).toBeVisible();
+
+  await openHabits(page);
+  await expect(page.getByRole("heading", { name: "Mis hábitos" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Crear hábito" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Agenda de hoy" })).toHaveCount(0);
 });
 
 test("creates a binary and a numeric habit, marks the binary one and registers 5 km (S3)", async ({ page }) => {
@@ -18,7 +23,7 @@ test("creates a binary and a numeric habit, marks the binary one and registers 5
   await expect(list.getByText("Binario", { exact: true })).toBeVisible();
   await expect(list.getByText("Numérico · km")).toBeVisible();
 
-  await reloadAgenda(page);
+  await openToday(page);
   const check = agenda(page).getByRole("button", { name: "Completar Meditar" });
   await expect(check).toHaveAttribute("aria-pressed", "false");
   await check.click();
@@ -37,10 +42,11 @@ test("creates a binary and a numeric habit, marks the binary one and registers 5
 test("edits a habit from Mis hábitos and warns when removing a day that has a log (S3)", async ({ page }) => {
   await registerUser(page);
   await createHabit(page, { name: "Meditar" });
-  await reloadAgenda(page);
+  await openToday(page);
   await agenda(page).getByRole("button", { name: "Completar Meditar" }).click();
   await expect(agenda(page).getByRole("button", { name: "Completar Meditar" })).toHaveAttribute("aria-pressed", "true");
 
+  await openHabits(page);
   await catalog(page).getByRole("button", { name: "Editar Meditar" }).click();
   const form = page.getByRole("form", { name: "Editar hábito" });
   await expect(form.getByLabel("Nombre", { exact: true })).toHaveValue("Meditar");
@@ -55,16 +61,18 @@ test("edits a habit from Mis hábitos and warns when removing a day that has a l
   await expect(page.getByText(/Los registros de ese día no serán eliminados/)).toBeVisible();
   await expect(catalog(page).getByRole("link", { name: "Meditar 10 min" })).toBeVisible();
   // Today is no longer scheduled, so the habit leaves the agenda.
+  await openToday(page);
   await expect(agenda(page).getByText("No tienes hábitos programados para este día")).toBeVisible();
 });
 
 test("opens the detail page from the catalog and shows streak, completion and the day panel (S3)", async ({ page }) => {
   await registerUser(page);
   await createHabit(page, { name: "Meditar" });
-  await reloadAgenda(page);
+  await openToday(page);
   await agenda(page).getByRole("button", { name: "Completar Meditar" }).click();
   await expect(agenda(page).getByRole("button", { name: "Completar Meditar" })).toHaveAttribute("aria-pressed", "true");
 
+  await openHabits(page);
   await catalog(page).getByRole("link", { name: "Meditar" }).click();
   await expect(page).toHaveURL(/\/habits\/[^/]+$/);
   await expect(page.getByRole("heading", { name: "Meditar", level: 1 })).toBeVisible();
@@ -84,8 +92,9 @@ test("opens the detail page from the catalog and shows streak, completion and th
 test("deletes a habit only after confirming; Cancelar keeps it (S3)", async ({ page }) => {
   await registerUser(page);
   await createHabit(page, { name: "Meditar" });
-  await reloadAgenda(page);
+  await openToday(page);
   await expect(agenda(page).getByRole("heading", { name: "Meditar" })).toBeVisible();
+  await openHabits(page);
 
   const dialog = page.getByRole("dialog", { name: "¿Estás seguro? Esta acción no se puede deshacer" });
   await catalog(page).getByRole("button", { name: "Eliminar Meditar" }).click();
@@ -93,13 +102,17 @@ test("deletes a habit only after confirming; Cancelar keeps it (S3)", async ({ p
   await dialog.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialog).toBeHidden();
   await expect(catalog(page).getByRole("link", { name: "Meditar" })).toBeVisible();
+  await openToday(page);
   await expect(agenda(page).getByRole("heading", { name: "Meditar" })).toBeVisible();
+  await openHabits(page);
 
   await catalog(page).getByRole("button", { name: "Eliminar Meditar" }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: "Eliminar" }).click();
   await expect(dialog).toBeHidden();
   await expect(catalog(page).getByRole("link", { name: "Meditar" })).toHaveCount(0);
-  await expect(agenda(page).getByRole("heading", { name: "Meditar" })).toHaveCount(0);
   await expect(catalog(page).getByText("Crea tu primer hábito para comenzar")).toBeVisible();
+  await openToday(page);
+  await expect(agenda(page).getByRole("heading", { name: "Meditar" })).toHaveCount(0);
+  await expect(agenda(page).getByText("Crea tu primer hábito para comenzar")).toBeVisible();
 });
