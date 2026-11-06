@@ -15,8 +15,8 @@ Contract: `docs/specs/logs/stats.md` section 1; story: `docs/wiki/backlog.md` HU
 
 ## Tasks
 
-- [x] T1 (S1-S7) - streak domain, repository read, `/stats` route, detail page, catalog link, tests, docs - worker - commit:
-- [ ] T2 (S1-S3) - parent review and checks (Risk: none expected; read-only endpoint) - parent - commit: n/a
+- [x] T1 (S1-S7) - streak domain, repository read, `/stats` route, detail page, catalog link, tests, docs - worker - commit: 181f565
+- [x] T2 (S1-S3) - parent review and checks (Risk: none expected; read-only endpoint) - parent - commit: n/a (reviewed; unit 547, integration 37, typecheck, lint 0 errors)
 
 ## Log
 
