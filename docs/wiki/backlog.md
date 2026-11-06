@@ -224,7 +224,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-07 — Editar hábito `SCRUM-12`
-**Estado HU-07 (2026-11-05):** implementada localmente en `feature/SCRUM-12-editar-habito`, pendiente de PR: `PATCH /api/habits/:id` edita nombre, unidad y frecuencia (el tipo no es editable por decisión del usuario; un hábito ajeno responde 404 como uno inexistente) y avisa "Los registros de ese día no serán eliminados" al quitar días con registros. La edición se abre desde el botón "Editar" de cada tarjeta de Mis hábitos (el mockup no tiene pantalla de edición). Detalle en `odd/tasks/hu-07-edit-habit.md`.
+**Estado HU-07 (2026-11-05):** implementada y mergeada en `develop` (PR #38): `PATCH /api/habits/:id` edita nombre, unidad y frecuencia (el tipo no es editable por decisión del usuario; un hábito ajeno responde 404 como uno inexistente) y avisa "Los registros de ese día no serán eliminados" al quitar días con registros. La edición se abre desde el botón "Editar" de cada tarjeta de Mis hábitos (el mockup no tiene pantalla de edición). Detalle en `odd/tasks/hu-07-edit-habit.md`.
 > *"Como usuario, quiero editar un hábito existente, para corregir su nombre, tipo o frecuencia."*
 
 **Criterios de Aceptación:**
@@ -242,7 +242,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-08 — Eliminar hábito `SCRUM-13`
-**Estado HU-08 (2026-11-05):** implementada localmente en `feature/SCRUM-13-eliminar-habito`, pendiente de PR: `DELETE /api/habits/:id` elimina el hábito y su historial (cascade) acotado por propietario; un hábito ajeno responde 404 como uno inexistente (reemplaza el 403 de la spec); botón "Eliminar" con modal `<dialog>` de confirmación en cada tarjeta de Mis hábitos. Detalle en `odd/tasks/hu-08-delete-habit.md`.
+**Estado HU-08 (2026-11-05):** implementada y mergeada en `develop` (PR #40): `DELETE /api/habits/:id` elimina el hábito y su historial (cascade) acotado por propietario; un hábito ajeno responde 404 como uno inexistente (reemplaza el 403 de la spec); botón "Eliminar" con modal `<dialog>` de confirmación en cada tarjeta de Mis hábitos. Detalle en `odd/tasks/hu-08-delete-habit.md`.
 > *"Como usuario, quiero eliminar un hábito, para remover los que ya no quiero trackear."*
 
 **Criterios de Aceptación:**
@@ -332,14 +332,14 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-52: Mostrar racha actual en el detalle del hábito
 - T-53: Escribir tests unitarios de la lógica de racha
 
-**Estado HU-12 (2026-11-05):** implementada localmente en `feature/SCRUM-17-racha-actual`, pendiente de PR: `calculateStreak` (hoy pendiente no rompe; `previous` = última racha rota), `GET /api/habits/:id/stats` solo con la racha (el endpoint es `/stats` en lugar del `/streak` de T-51; hábito ajeno responde 404) y nueva pantalla `/habits/[id]` con "Racha actual" y "Racha anterior", enlazada desde el nombre en Mis hábitos. Detalle en `odd/tasks/hu-12-streak.md`.
+**Estado HU-12 (2026-11-05):** implementada y mergeada en `develop` (PR #39): `calculateStreak` (hoy pendiente no rompe; `previous` = última racha rota), `GET /api/habits/:id/stats` solo con la racha (el endpoint es `/stats` en lugar del `/streak` de T-51; hábito ajeno responde 404) y nueva pantalla `/habits/[id]` con "Racha actual" y "Racha anterior", enlazada desde el nombre en Mis hábitos. Detalle en `odd/tasks/hu-12-streak.md`.
 
 `Story Points: 3` `Prioridad: Alta` `Sprint: 4`
 
 ---
 
 ### 📖 HU-13 — Ver calendario heatmap `SCRUM-18`
-**Estado HU-13 (2026-11-05):** implementada localmente en `feature/SCRUM-18-heatmap`, pendiente de PR. `GET /api/habits/:id/logs?month=YYYY-MM` y la tarjeta "Actividad del mes" (vista Mes, panel de detalle al pulsar un día) en `/habits/[id]`.
+**Estado HU-13 (2026-11-05):** implementada y mergeada en `develop` (PR #42). `GET /api/habits/:id/logs?month=YYYY-MM` y la tarjeta "Actividad del mes" (vista Mes, panel de detalle al pulsar un día) en `/habits/[id]`.
 
 > *"Como usuario, quiero ver un calendario visual del mes, para identificar mis días de cumplimiento e incumplimiento."*
 
@@ -370,7 +370,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-59: Crear endpoint GET /api/habits/:id/completion?month=YYYY-MM
 - T-60: Mostrar porcentaje en el detalle del hábito
 
-**Estado HU-14 (2026-11-05):** implementada localmente en `feature/SCRUM-19-cumplimiento`, pendiente de PR: `calculateCompletion` (hoy cuenta en el denominador; días previos a la creación excluidos), `GET /api/habits/:id/stats?month=YYYY-MM` con `completion` (el endpoint es `/stats` en lugar del `/completion` de T-59) y grilla de stats en `/habits/[id]` con "Racha actual" y "Cumplimiento mensual". Detalle en `odd/tasks/hu-14-completion.md`.
+**Estado HU-14 (2026-11-05):** implementada y mergeada en `develop` (PR #41): `calculateCompletion` (hoy cuenta en el denominador; días previos a la creación excluidos), `GET /api/habits/:id/stats?month=YYYY-MM` con `completion` (el endpoint es `/stats` en lugar del `/completion` de T-59) y grilla de stats en `/habits/[id]` con "Racha actual" y "Cumplimiento mensual". Detalle en `odd/tasks/hu-14-completion.md`.
 
 `Story Points: 2` `Prioridad: Media` `Sprint: 5`
 
@@ -381,7 +381,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ### 📖 HU-15 — Navegación responsive `SCRUM-20`
 > *"Como usuario, quiero que la app funcione correctamente en móvil y desktop, para acceder desde cualquier dispositivo."*
 
-**Estado HU-15 (2026-11-06):** implementada localmente en `feature/SCRUM-20-navegacion-responsive`, pendiente de PR: shell autenticado en `src/app/(dashboard)/layout.tsx` con sidebar del mockup en desktop y tab bar inferior con "+" en móvil (T-63 sigue la tab bar del mockup en lugar de un menú hamburguesa), `/dashboard` = "Hoy" (solo la agenda) y nueva `/habits` = "Hábitos" (crear + Mis hábitos); verificada con E2E a 375 y 1280 px. Detalle en `odd/tasks/hu-15-responsive-nav.md`.
+**Estado HU-15 (2026-11-06):** implementada y mergeada en `develop` (PR #45): shell autenticado en `src/app/(dashboard)/layout.tsx` con sidebar del mockup en desktop y tab bar inferior con "+" en móvil (T-63 sigue la tab bar del mockup en lugar de un menú hamburguesa), `/dashboard` = "Hoy" (solo la agenda) y nueva `/habits` = "Hábitos" (crear + Mis hábitos); verificada con E2E a 375 y 1280 px. Detalle en `odd/tasks/hu-15-responsive-nav.md`.
 
 **Criterios de Aceptación:**
 - CA-01: Dado que accedo desde un móvil, cuando navego por la app, entonces todos los elementos son accesibles sin necesidad de hacer zoom.
@@ -397,7 +397,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-16 — Modo oscuro `SCRUM-21`
-**Estado HU-16 (2026-11-06):** implementada localmente en `feature/SCRUM-21-modo-oscuro`, pendiente de PR: `ThemeToggle` alterna `data-hm-theme` en `<html>` y guarda la preferencia en `localStorage` (`hm-theme`); un script inline en `<head>` la aplica antes del primer render para evitar el destello oscuro. T-64 no hizo falta: los tokens `--hm-*` ya resuelven ambos temas. El mockup no define el toggle; por decisión del usuario vive en el pie del sidebar (desktop) y en la cabecera de `/habits` (móvil, donde la tab bar no tiene espacio). Verificada con unit y E2E (recarga conserva el tema).
+**Estado HU-16 (2026-11-06):** implementada y mergeada en `develop` (PR #49): `ThemeToggle` alterna `data-hm-theme` en `<html>` y guarda la preferencia en `localStorage` (`hm-theme`); un script inline en `<head>` la aplica antes del primer render para evitar el destello oscuro. T-64 no hizo falta: los tokens `--hm-*` ya resuelven ambos temas. El mockup no define el toggle; por decisión del usuario vive en el pie del sidebar (desktop) y en la cabecera de `/habits` (móvil, donde la tab bar no tiene espacio). Verificada con unit y E2E (recarga conserva el tema).
 > *"Como usuario, quiero poder alternar entre modo claro y oscuro, para usar la app cómodamente en cualquier entorno."*
 
 **Criterios de Aceptación:**
@@ -418,7 +418,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 > Origen: pedido del usuario (2026-11-06, Android Samsung S23): la app en el inicio del celular como acceso directo, sin aspecto de navegador, con recordatorios y funcionando sin internet. Se parte en cuatro historias mergeables por separado, en este orden.
 
 ### 📖 HU-18 — App instalable
-**Estado HU-18 (2026-11-06):** implementada localmente en `feature/pwa-instalable`, pendiente de PR: `src/app/manifest.ts` (`display: standalone`, `start_url: /dashboard`), íconos PNG generados con `next/og` en `/icons/{192,512,maskable}` más `apple-icon`, `themeColor` y metadatos de Apple. Los colores literales viven solo en `src/lib/pwa.ts` (excepción documentada en `DESIGN_SYSTEM.md`, con test anti-desfase contra `globals.css`). Verificada con unit y E2E contra el build real. **Pendiente en dispositivo:** instalar en el S23 desde Chrome tras desplegar.
+**Estado HU-18 (2026-11-06):** implementada y mergeada en `develop` (PR #50): `src/app/manifest.ts` (`display: standalone`, `start_url: /dashboard`), íconos PNG generados con `next/og` en `/icons/{192,512,maskable}` más `apple-icon`, `themeColor` y metadatos de Apple. Los colores literales viven solo en `src/lib/pwa.ts` (excepción documentada en `DESIGN_SYSTEM.md`, con test anti-desfase contra `globals.css`). Verificada con unit y E2E contra el build real. **Pendiente en dispositivo:** instalar en el S23 desde Chrome tras desplegar.
 
 - CA-01: Dado que abro la app en Chrome para Android, cuando elijo "Instalar app", entonces queda un ícono en el inicio.
 - CA-02: Dado que abro la app desde ese ícono, entonces se muestra en pantalla completa, sin barra del navegador, y arranca en la agenda de hoy.
@@ -426,7 +426,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 `Prioridad: Media`
 
 ### 📖 HU-19 — Lectura sin conexión
-**Estado HU-19 (2026-11-06):** implementada localmente en `feature/pwa-lectura-offline` (apilada sobre `feature/pwa-instalable`), pendiente de PR: service worker escrito a mano en `public/sw.js`, sin dependencias nuevas, registrado solo en producción. Páginas y `GET /api/habits*` van con red primero y caen a la última copia guardada; `_next/static` e íconos van con caché primero. Las peticiones RSC de Next no se cachean: si fallan sin conexión, el router hace una navegación completa que atiende el caché de páginas. Una pantalla nunca abierta muestra un aviso "Sin conexión" (503) en lugar del error del navegador. `OfflineBanner` avisa en el shell. Las cachés `hm-*` guardan datos autenticados, así que se vacían al cerrar sesión y tras iniciar sesión o registrarse (`src/lib/offline-cache.ts`). Verificada con unit y E2E con la red cortada. **Límites conocidos:** solo se ve offline lo visitado antes con conexión, y la agenda guardada puede ser de un día anterior (la escritura sin conexión es HU-20).
+**Estado HU-19 (2026-11-06):** implementada y mergeada en `develop` (PR #51): service worker escrito a mano en `public/sw.js`, sin dependencias nuevas, registrado solo en producción. Páginas y `GET /api/habits*` van con red primero y caen a la última copia guardada; `_next/static` e íconos van con caché primero. Las peticiones RSC de Next no se cachean: si fallan sin conexión, el router hace una navegación completa que atiende el caché de páginas. Una pantalla nunca abierta muestra un aviso "Sin conexión" (503) en lugar del error del navegador. `OfflineBanner` avisa en el shell. Las cachés `hm-*` guardan datos autenticados, así que se vacían al cerrar sesión y tras iniciar sesión o registrarse (`src/lib/offline-cache.ts`). Verificada con unit y E2E con la red cortada. **Límites conocidos:** solo se ve offline lo visitado antes con conexión, y la agenda guardada puede ser de un día anterior (la escritura sin conexión es HU-20).
 
 - CA-01: Dado que ya abrí la app con conexión, cuando me quedo sin internet, entonces puedo abrirla y ver la agenda de hoy y mis hábitos con los últimos datos conocidos.
 - CA-02: Dado que estoy sin conexión, entonces veo un aviso claro de que los datos pueden no estar al día.
@@ -434,7 +434,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 Notas: service worker con caché del shell y de las lecturas autenticadas. Debe vaciarse al cerrar sesión. `Prioridad: Media`
 
 ### 📖 HU-20 — Registro sin conexión
-**Estado HU-20 (2026-11-06):** implementada localmente en `feature/pwa-registro-offline`, pendiente de PR. Sin cambios en la API ni en Prisma: la cola vive en el cliente (IndexedDB, sin dependencias nuevas) según `ADR-08`. Sin conexión, marcar o registrar un hábito se ve al instante con la marca "Pendiente de sincronizar" y se envía con la fecha de la agenda mostrada; al abrir la app, al volver la conexión y al volver a primer plano se sincroniza en orden. Un 400/404 descarta el cambio y avisa; un 401 lo conserva. Si la agenda guardada no es de hoy (UTC) no se registra sin conexión. Cerrar sesión con cambios pendientes sincroniza primero, avisa y pide una segunda confirmación para descartarlos. Verificada con unit y E2E con la red cortada (incluida la recarga sin conexión). **Elemento fuera del mockup:** la marca "Pendiente de sincronizar" y el contador del aviso. **Límites conocidos:** la sincronización solo ocurre con la app abierta (Background Sync queda como mejora); con varios dispositivos gana quien sincroniza último; crear, editar y eliminar hábitos siguen requiriendo conexión. **Pendiente en dispositivo:** probar en el S23 con el modo avión.
+**Estado HU-20 (2026-11-06):** implementada y mergeada en `develop` (PR #53 y #54). Sin cambios en la API ni en Prisma: la cola vive en el cliente (IndexedDB, sin dependencias nuevas) según `ADR-08`. Sin conexión, marcar o registrar un hábito se ve al instante con la marca "Pendiente de sincronizar" y se envía con la fecha de la agenda mostrada; al abrir la app, al volver la conexión y al volver a primer plano se sincroniza en orden. Un 400/404 descarta el cambio y avisa; un 401 lo conserva. Si la agenda guardada no es de hoy (UTC) no se registra sin conexión. Cerrar sesión con cambios pendientes sincroniza primero, avisa y pide una segunda confirmación para descartarlos. Verificada con unit y E2E con la red cortada (incluida la recarga sin conexión). **Elemento fuera del mockup:** la marca "Pendiente de sincronizar" y el contador del aviso. **Límites conocidos:** la sincronización solo ocurre con la app abierta (Background Sync queda como mejora); con varios dispositivos gana quien sincroniza último; crear, editar y eliminar hábitos siguen requiriendo conexión. **Pendiente en dispositivo:** probar en el S23 con el modo avión.
 
 - CA-01: Dado que estoy sin conexión, cuando marco o registro un hábito, entonces el cambio se ve de inmediato y queda pendiente.
 - CA-02: Dado que vuelve la conexión, entonces los cambios pendientes se sincronizan sin duplicarse ni desmarcarse.
@@ -458,7 +458,10 @@ Notas: requiere un ADR. Web Push (claves VAPID), tabla nueva de suscripciones (c
 | ✅ EP-03 Registro Diario | HU-10 a HU-11 | 5 SP | 3 |
 | 📊 EP-04 Progreso | HU-12 a HU-14 | 10 SP | 4, 5 |
 | 🎨 EP-05 UI/UX | HU-15 a HU-16 | 5 SP | 5 |
-| **Total** | **17 historias** | **45 SP** | **5 sprints** |
+| 📱 EP-06 App instalable (PWA) | HU-18 a HU-21 | sin estimar | fuera del plan original |
+| **Total** | **21 historias** | **45 SP** (sin contar EP-06) | **5 sprints** |
+
+**Avance (2026-11-06):** 17 de 21 historias implementadas y en producción. Pendientes: HU-04 (recuperación de contraseña), HU-05 (eliminación de cuenta), HU-17 (verificación de correo) y HU-21 (recordatorios push). HU-04 y HU-17 comparten un bloqueo: el proyecto aún no tiene servicio de envío de correo.
 
 ---
 
