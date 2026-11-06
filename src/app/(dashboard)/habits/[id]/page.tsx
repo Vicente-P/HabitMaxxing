@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import AuthIcon from "../../../(auth)/auth-icons";
+import AuthIcon, { type AuthIconName } from "../../../(auth)/auth-icons";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatFrequency } from "@/features/habits";
-import { getHabitStreak } from "@/features/habits/application/get-habit-streak";
+import { getHabitStats } from "@/features/habits/application/get-habit-stats";
 import { createPrismaHabitRepository } from "@/features/habits/infrastructure/prisma-habit-repository";
 
 const habitRepository = createPrismaHabitRepository(prisma);
 
 const days = (count: number) => `${count} ${count === 1 ? "día" : "días"}`;
 
-/** Habit detail (HU-12): top bar, hero with the current streak. Edit/delete/mark-today and stats arrive with later stories. */
+/** Habit detail (HU-12, HU-14): top bar, hero with the streak, stat grid. Edit/delete/mark-today, heatmap and more stats arrive with later stories. */
 export default async function HabitDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user || !("id" in session.user) || typeof session.user.id !== "string" || !session.user.id.trim()) {
@@ -19,10 +19,10 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const result = await getHabitStreak({ ownerId: session.user.id, habitId: id }, habitRepository, new Date());
+  const result = await getHabitStats({ ownerId: session.user.id, habitId: id }, habitRepository, new Date());
   if (!result.ok) notFound();
 
-  const { habit, streak } = result;
+  const { habit, streak, completion } = result;
   const typeText = habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`;
 
   return (
@@ -51,7 +51,29 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
         {streak.current === 0 && streak.previous > 0 && (
           <p className="mt-3 text-hm-caption text-hm-text-mid">Racha anterior: {days(streak.previous)}</p>
         )}
+
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <StatCard label="Racha actual" value={String(streak.current)} suffix={streak.current === 1 ? "día" : "días"} icon="flame" accent />
+          <StatCard label="Cumplimiento mensual" value={`${completion.percentage}%`} icon="target" />
+        </div>
+        <p className="mt-4 text-hm-caption text-hm-text-mid">{completion.message ?? `Cumplimiento: ${completion.percentage}% este mes`}</p>
       </div>
     </main>
+  );
+}
+
+/** Mockup `BigStat` (desktop-flow.jsx): label + icon row, then the big value with an optional suffix. */
+function StatCard({ label, value, suffix, icon, accent = false }: { label: string; value: string; suffix?: string; icon: AuthIconName; accent?: boolean }) {
+  return (
+    <div className="relative rounded-hm-lg border border-hm-border-lo bg-hm-surface px-5 py-[18px]">
+      <div className="mb-3.5 flex items-center justify-between">
+        <div className="text-hm-caption font-medium text-hm-text-mid">{label}</div>
+        <AuthIcon name={icon} size={14} className="text-hm-text-low" />
+      </div>
+      <div className="flex items-baseline gap-1.5">
+        <div className={`text-[30px] leading-none font-bold tracking-[-0.02em] tabular-nums ${accent ? "text-hm-accent" : "text-hm-text-hi"}`}>{value}</div>
+        {suffix && <div className="text-hm-caption text-hm-text-low">{suffix}</div>}
+      </div>
+    </div>
   );
 }

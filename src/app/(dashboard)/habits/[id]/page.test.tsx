@@ -75,4 +75,34 @@ describe("habit detail page", () => {
     expect(screen.getByText("Numérico · km · L–V")).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+
+  it("renders the stat grid with the streak and monthly completion cards (S4)", async () => {
+    mocks.findLogs.mockResolvedValue(Array.from({ length: 5 }, (_, i) => day(`2026-05-${String(i + 16).padStart(2, "0")}`)));
+    render(await HabitDetailPage(params()));
+    const streakCard = screen.getByText("Racha actual").closest("div")!.parentElement!.parentElement!;
+    expect(streakCard).toHaveTextContent("5");
+    expect(streakCard).toHaveTextContent("días");
+    const completionCard = screen.getByText("Cumplimiento mensual").closest("div")!.parentElement!.parentElement!;
+    expect(completionCard).toHaveTextContent("25%");
+    expect(screen.getByText("Cumplimiento: 25% este mes")).toBeInTheDocument();
+    expect(screen.queryByText("Racha más larga")).not.toBeInTheDocument();
+    expect(screen.queryByText("Total completado")).not.toBeInTheDocument();
+    expect(screen.getByText("Racha actual: 5 días")).toBeInTheDocument();
+  });
+
+  it("uses the singular suffix for a one-day streak in the stat card", async () => {
+    mocks.findLogs.mockResolvedValue([day("2026-05-20")]);
+    render(await HabitDetailPage(params()));
+    const streakCard = screen.getByText("Racha actual").closest("div")!.parentElement!.parentElement!;
+    expect(streakCard).toHaveTextContent("1");
+    expect(streakCard).toHaveTextContent("día");
+    expect(streakCard).not.toHaveTextContent("días");
+  });
+
+  it("shows the empty completion text when nothing is completed this month (S2, S4)", async () => {
+    render(await HabitDetailPage(params()));
+    expect(screen.getByText("Cumplimiento: 0% — ¡Empieza hoy!")).toBeInTheDocument();
+    expect(screen.getByText("0%")).toBeInTheDocument();
+    expect(screen.queryByText(/este mes/)).not.toBeInTheDocument();
+  });
 });

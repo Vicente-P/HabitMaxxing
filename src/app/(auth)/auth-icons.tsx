@@ -9,6 +9,7 @@ const PATHS = {
   trash: "M3 4h10M5 4V2h6v2M6 4v9M10 4v9M4 4l1 10h6l1-10",
   check: "M3 9l3 3 7-8",
   flame: "M8 1.5c.5 2 2.5 3 2.5 5.5a2.5 2.5 0 0 1-5 0c0-1 .5-1.5 1-2-.5 2 1.5 2 1.5 0 0-1.5-1.5-2.5 0-3.5z",
+  target: "M8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12zM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
 } as const;
 
 export type AuthIconName = keyof typeof PATHS;

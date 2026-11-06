@@ -84,7 +84,7 @@ GET /api/habits/:id/stats
 - Hoy programado y aún sin completar (sin log o `completed: false`) no rompe ni suma, porque el día no ha terminado; completado suma +1.
 - `previous` es la racha rota más recientemente antes de la posición actual (con `current > 0`, la racha anterior al último fallo; `0` si no hay).
 - Los días anteriores al primer log no extienden ni rompen la racha.
-- Por ahora `GET /api/habits/:id/stats` devuelve solo `{ habitId, streak }`; `month` y `completion` llegan con HU-14, y mientras tanto cualquier query param responde 400 `VALIDATION_ERROR`.
+- Hasta HU-14 `GET /api/habits/:id/stats` devolvía solo `{ habitId, streak }` y cualquier query param respondía 400 `VALIDATION_ERROR`; desde HU-14 acepta `month` (ver abajo).
 - Un hábito ajeno responde el mismo 404 `NOT_FOUND` ("Hábito no encontrado") que uno inexistente.
 
 ### Lógica de cumplimiento (HU-14 / SCRUM-19)
@@ -97,6 +97,16 @@ percentage = (completedDays / scheduledDaysElapsed) × 100
 - `completedDays`: de esos, cuántos tienen log con `completed: true`.
 - Redondear a 1 decimal.
 - Si `scheduledDaysElapsed = 0`: percentage = 0, message especial.
+
+**Decisiones HU-14 (2026-11-05, implementadas en `calculateCompletion` en `src/features/habits/domain/completion.ts` y `getHabitStats`):**
+
+- Hoy cuenta en el denominador si está programado: un hoy pendiente baja el porcentaje (a diferencia de la racha, donde no rompe).
+- Los días anteriores a la fecha de creación del hábito (día UTC de `createdAt`) no cuentan como programados transcurridos; un hábito creado a mitad de mes no arranca penalizado. Un mes futuro, o anterior a la creación, tiene 0 días transcurridos.
+- `message` es `"Cumplimiento: 0% — ¡Empieza hoy!"` siempre que `completedDays` sea 0 (incluye 0 transcurridos y 0 cumplidos con días transcurridos); en otro caso es `null`.
+- `month` (`YYYY-MM`) es opcional y por defecto el mes UTC actual; la respuesta incluye `month`. La racha siempre se calcula a hoy, sea cual sea el mes.
+- `month` inválido (`2026-5`, `2026-13`, `abc`, vacío) o repetido responde 400 `VALIDATION_ERROR` "Datos de entrada inválidos" con `details: [{ field: "month", message: "Formato de mes inválido. Usar YYYY-MM" }]`; cualquier otro query param sigue respondiendo 400.
+- Hábito ajeno e inexistente siguen respondiendo el mismo 404 `NOT_FOUND` byte a byte (no hay 403, para no revelar existencia).
+- El endpoint es `/stats` (no el `/completion` de T-59).
 
 ---
 
@@ -288,17 +298,17 @@ GET /api/habits/:id/heatmap
 
 ### Cumplimiento
 
-- [ ] 6/7 días programados transcurridos completados → `85.7%`.
-- [ ] Solo cuenta días programados (ignora días off).
-- [ ] Mes sin días transcurridos → 0% con message especial.
-- [ ] Día no programado no afecta porcentaje.
+- [x] 6/7 días programados transcurridos completados → `85.7%`.
+- [x] Solo cuenta días programados (ignora días off).
+- [x] Mes sin días transcurridos → 0% con message especial.
+- [x] Día no programado no afecta porcentaje.
 
 ### General
 
 - [ ] Hábito de otro usuario → 403.
-- [ ] Hábito inexistente → 404.
-- [ ] Sin sesión → 401.
-- [ ] `month` con formato inválido → 400.
+- [x] Hábito inexistente → 404.
+- [x] Sin sesión → 401.
+- [x] `month` con formato inválido → 400.
 
 ---
 
