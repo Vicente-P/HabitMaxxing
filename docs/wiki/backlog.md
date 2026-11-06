@@ -339,6 +339,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-13 — Ver calendario heatmap `SCRUM-18`
+**Estado HU-13 (2026-11-05):** implementada localmente en `feature/SCRUM-18-heatmap`, pendiente de PR. `GET /api/habits/:id/logs?month=YYYY-MM` y la tarjeta "Actividad del mes" (vista Mes, panel de detalle al pulsar un día) en `/habits/[id]`.
+
 > *"Como usuario, quiero ver un calendario visual del mes, para identificar mis días de cumplimiento e incumplimiento."*
 
 **Criterios de Aceptación:**

@@ -1,17 +1,20 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import ActivityCard from "./activity-card";
 import AuthIcon, { type AuthIconName } from "../../../(auth)/auth-icons";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatFrequency } from "@/features/habits";
 import { getHabitStats } from "@/features/habits/application/get-habit-stats";
+import { getHabitMonthDays } from "@/features/habits/application/get-habit-month-days";
+import { utcToday } from "@/features/habits/domain/calendar-date";
 import { createPrismaHabitRepository } from "@/features/habits/infrastructure/prisma-habit-repository";
 
 const habitRepository = createPrismaHabitRepository(prisma);
 
 const days = (count: number) => `${count} ${count === 1 ? "día" : "días"}`;
 
-/** Habit detail (HU-12, HU-14): top bar, hero with the streak, stat grid. Edit/delete/mark-today, heatmap and more stats arrive with later stories. */
+/** Habit detail (HU-12, HU-14): top bar, hero with the streak, stat grid, month activity card (HU-13). Edit/delete/mark-today and more stats arrive with later stories. */
 export default async function HabitDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user || !("id" in session.user) || typeof session.user.id !== "string" || !session.user.id.trim()) {
@@ -19,8 +22,11 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
   }
 
   const { id } = await params;
-  const result = await getHabitStats({ ownerId: session.user.id, habitId: id }, habitRepository, new Date());
+  const now = new Date();
+  const result = await getHabitStats({ ownerId: session.user.id, habitId: id }, habitRepository, now);
   if (!result.ok) notFound();
+  const month = await getHabitMonthDays({ ownerId: session.user.id, habitId: id, month: result.month }, habitRepository, now);
+  if (!month.ok) notFound();
 
   const { habit, streak, completion } = result;
   const typeText = habit.type === "BINARY" ? "Binario" : `Numérico · ${habit.unit}`;
@@ -57,6 +63,8 @@ export default async function HabitDetailPage({ params }: { params: Promise<{ id
           <StatCard label="Cumplimiento mensual" value={`${completion.percentage}%`} icon="target" />
         </div>
         <p className="mt-4 text-hm-caption text-hm-text-mid">{completion.message ?? `Cumplimiento: ${completion.percentage}% este mes`}</p>
+
+        <ActivityCard days={month.days} today={utcToday(now)} unit={habit.unit} />
       </div>
     </main>
   );

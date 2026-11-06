@@ -229,6 +229,30 @@ export function describeHabitRepositoryContract(
       });
     });
 
+    describe("listLogsInRange", () => {
+      it("returns an empty list for a habit without logs and for a missing habit", async () => {
+        await seed("h", 1000);
+        expect(await repository.listLogsInRange("h", "2026-05-01", "2026-05-31")).toEqual([]);
+        expect(await repository.listLogsInRange("missing", "2026-05-01", "2026-05-31")).toEqual([]);
+      });
+
+      it("returns id, completed, value and exact date of that habit's logs inside the inclusive range, oldest first", async () => {
+        await seed("h", 1000);
+        await seed("other", 2000);
+        const last = await repository.upsertBinaryLog("h", "2026-05-31", false);
+        const first = await repository.upsertBinaryLog("h", "2026-05-01", true);
+        const numeric = await repository.upsertNumericLog("h", "2026-05-12", 5.5);
+        await repository.upsertBinaryLog("h", "2026-04-30", true);
+        await repository.upsertBinaryLog("h", "2026-06-01", true);
+        await repository.upsertBinaryLog("other", "2026-05-12", true);
+        expect(await repository.listLogsInRange("h", "2026-05-01", "2026-05-31")).toEqual([
+          { id: first.id, completed: true, value: null, date: "2026-05-01" },
+          { id: numeric.id, completed: true, value: 5.5, date: "2026-05-12" },
+          { id: last.id, completed: false, value: null, date: "2026-05-31" },
+        ]);
+      });
+    });
+
     describe("loggedWeekdays", () => {
       it("returns an empty list for a habit without logs", async () => {
         await seed("h", 1000);
