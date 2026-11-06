@@ -63,3 +63,24 @@ La configuración de cada preview es un prerrequisito operativo pendiente: esta 
 - [ ] Migraciones aplicadas en la base de datos de producción (`pnpm prisma migrate deploy`)
 - [ ] Build de producción sin errores (`pnpm build`)
 - [ ] CI en verde antes de mergear a `main`
+
+> Mientras el CI de GitHub no pueda ejecutarse (bloqueo de facturación de la cuenta), el ítem "CI en verde" se reemplaza por la corrida local completa sobre la rama a publicar: `pnpm install --frozen-lockfile`, `pnpm prisma validate`, `pnpm typecheck`, `pnpm lint`, `pnpm exec vitest run`, `pnpm test:integration`, `pnpm test:e2e` y `pnpm build`.
+
+---
+
+## Release de `develop` a `main`
+
+- Publicar con un PR titulado `chore(release): promote develop to main` y mergearlo con **merge commit, nunca con squash**. Un squash crea en `main` un commit con el mismo contenido que uno de `develop` pero fuera de su historia, y el siguiente release choca en todos los archivos que cambiaron desde entonces.
+- Si `develop` → `main` muestra conflictos, comprobar primero si `main` contiene algo que `develop` no tenga. Si el árbol de `main` coincide con un commit de `develop` (`git rev-parse origin/main^{tree}` contra `git log origin/develop --format='%H %T'`), crear una rama `release/<fecha>` desde `develop`, ejecutar `git merge -s ours origin/main`, verificar que su árbol sea idéntico al de `develop` y abrir el PR desde esa rama. Así se hizo el release del 2026-11-06 (PR #47).
+- Revisar si hay migraciones nuevas (`git diff --stat origin/main origin/develop -- prisma/`); si las hay, aplicarlas en producción antes de mergear.
+
+---
+
+## Verificación post-deploy
+
+El estado "success" del deploy en GitHub no garantiza que el dominio público sirva ese deploy. Después de cada release:
+
+1. Confirmar qué deploy sirve el dominio: `vercel inspect habit-maxxing.vercel.app --scope vicente-ps-projects` (el `url` y el `created` deben corresponder al deploy recién creado). Un header `Age` muy alto en `curl -sI https://habit-maxxing.vercel.app/login` también delata una versión vieja.
+2. Si el dominio sigue en un deploy anterior, la asignación automática del dominio de producción está pausada (pasa después de un Instant Rollback o de una promoción manual). Promover el deploy nuevo: `vercel promote <url-del-deploy> --scope vicente-ps-projects --yes`. Esto también reactiva la asignación automática.
+3. Smoke test sin crear datos: `/login` responde 200, `/dashboard` y `/habits` redirigen a `/login` sin sesión, y `GET /api/habits` responde 401 con JSON `UNAUTHORIZED`.
+4. Las URLs propias de cada deploy están detrás de Deployment Protection (login de Vercel); el smoke test se hace contra el dominio público.
