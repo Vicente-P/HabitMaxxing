@@ -58,6 +58,12 @@ const ICONS = {
   filter: 'M2 3h12L9 9v5l-2-1V9L2 3z',
   chevDown: 'M4 6l4 4 4-4',
   chevRight: 'M6 4l4 4-4 4',
+  mail: 'M2 4h12v8H2zM2 4l6 5 6-5',
+  lock: 'M4 7h8v7H4zM5.5 7V5a2.5 2.5 0 0 1 5 0v2',
+  user: 'M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2.5 14a5.5 5.5 0 0 1 11 0',
+  eye: 'M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8zM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  eyeOff: 'M2 2l12 12M6.6 3.7A6 6 0 0 1 8 3.5c4 0 6.5 4.5 6.5 4.5a11 11 0 0 1-1.8 2.3M4.2 5.2A11 11 0 0 0 1.5 8S4 12.5 8 12.5a6 6 0 0 0 2.4-.5M6.6 6.6a2 2 0 0 0 2.8 2.8',
+  alert: 'M8 1.5 15 14H1zM8 6v3.5M8 11.8h.01',
 };
 
 function Icon({ name, size = 16, stroke = 1.6, color = 'currentColor', fill = 'none', style }) {

@@ -4,6 +4,10 @@ import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { registerSchema } from "@/lib/validations";
+import AuthAlert from "../auth-alert";
+import AuthField from "../auth-field";
+import AuthIcon from "../auth-icons";
+import AuthShell from "../auth-shell";
 
 const neutralError = "No se pudo completar el registro con esos datos. Revisa la información e inténtalo de nuevo";
 
@@ -91,22 +95,20 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="page-container">
+    <AuthShell mode="register">
       <h1 className="mb-6">Crear cuenta</h1>
-      <form className="mx-auto max-w-md space-y-4" onSubmit={submit} noValidate>
-        <div role="alert" aria-live="polite">{status}</div>
+      <form className="space-y-4" onSubmit={submit} noValidate>
+        <AuthAlert tone={pending ? "info" : "error"}>{status}</AuthAlert>
         {(["email", "name", "password"] as const).map((field) => {
           const labels = { email: "Correo electrónico", name: "Nombre (opcional)", password: "Contraseña" };
           const autocomplete = { email: "email", name: "name", password: "new-password" };
-          return <div key={field} className="space-y-1.5">
-            <label className="label" htmlFor={field}>{labels[field]}</label>
-            <input ref={(element) => { inputRefs.current[field] = element; }} className={errors[field] ? "input-error" : "input"} id={field} name={field} type={field === "password" ? "password" : field} autoComplete={autocomplete[field]} value={values[field]} onChange={(e) => setValues((current) => ({ ...current, [field]: e.target.value }))} onBlur={() => validateField(field)} aria-invalid={Boolean(errors[field])} aria-describedby={errors[field] ? `${field}-error` : undefined} />
-            {errors[field] && <p className="field-error" id={`${field}-error`}>{errors[field]}</p>}
-          </div>;
+          const icons = { email: "mail", name: "user", password: "lock" } as const;
+          const placeholders = { email: "tu@correo.com", name: "Cómo te llamamos", password: "Mínimo 8 caracteres" };
+          return <AuthField key={field} id={field} label={labels[field]} icon={icons[field]} type={field === "password" ? "password" : field} autoComplete={autocomplete[field]} placeholder={placeholders[field]} inputRef={(element) => { inputRefs.current[field] = element; }} value={values[field]} onChange={(e) => setValues((current) => ({ ...current, [field]: e.target.value }))} onBlur={() => validateField(field)} error={errors[field]} />;
         })}
-        <button className="btn-primary w-full" type="submit" disabled={pending} onMouseDown={(event) => event.preventDefault()}>{pending ? "Creando cuenta…" : "Crear cuenta"}</button>
+        <button className="btn-primary w-full" type="submit" disabled={pending} onMouseDown={(event) => event.preventDefault()}>{pending ? "Creando cuenta…" : <>Crear cuenta <AuthIcon name="arrowRight" size={15} className="stroke-[2.2]" /></>}</button>
       </form>
-      <p className="mx-auto mt-4 max-w-md"><Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link></p>
-    </main>
+      <p className="mt-6 text-center text-hm-caption"><Link href="/login">¿Ya tienes una cuenta? Inicia sesión</Link></p>
+    </AuthShell>
   );
 }

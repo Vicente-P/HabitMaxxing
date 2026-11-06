@@ -40,34 +40,49 @@ El proyecto se desarrolla como ejercicio de aprendizaje cubriendo todas las etap
 
 ## Estructura del proyecto
 
+### Estructura actual
+
 ```
 src/
 ├── app/                            # App Router de Next.js
 │   ├── api/
-│   │   └── auth/[...nextauth]/     # Handler dinámico de Auth.js
+│   │   ├── auth/[...nextauth]/     # Handler dinámico de Auth.js
+│   │   ├── auth/register/          # Registro de cuenta
+│   │   └── habits/                 # Catálogo y agenda de hábitos
 │   ├── (auth)/                     # Grupo de rutas públicas
 │   │   ├── login/page.tsx
 │   │   └── register/page.tsx
 │   ├── (dashboard)/                # Grupo de rutas protegidas
-│   │   └── dashboard/page.tsx
-│   ├── layout.tsx                  # Layout raíz (providers globales)
+│   │   └── dashboard/              # Página, catálogo, agenda, formulario y logout
+│   ├── layout.tsx                  # Layout raíz
 │   └── page.tsx                    # Landing page
-├── components/
-│   ├── ui/                         # Componentes genéricos reutilizables
-│   └── auth/                       # Componentes específicos de autenticación
-├── lib/
+├── lib/                            # Lógica y utilidades mezcladas (a migrar)
 │   ├── prisma.ts                   # Singleton de PrismaClient
 │   ├── auth.ts                     # Configuración de Auth.js
-│   └── validations.ts              # Schemas de Zod
-├── hooks/                          # Custom hooks de React
-└── types/
-    └── index.ts                    # Tipos globales de TypeScript
+│   ├── login-policy.ts
+│   └── validations.ts              # Schemas de Zod (registro y login)
+├── features/                       # Migradas según ADR-05
+│   ├── habits/{domain,application,infrastructure}/
+│   └── auth/{application,infrastructure}/   # Guard de sesión (requireHabitOwner)
+├── shared/
+│   └── http/                       # Guardas HTTP de hábitos (habit-request)
+├── test/                           # Setup de Vitest
+├── types/index.ts                  # Tipos globales
+└── generated/prisma/               # Cliente generado (no editar)
 
 prisma/
 ├── schema.prisma                   # Modelos de base de datos
-├── migrations/                     # Historial de migraciones SQL
-└── config.ts → prisma.config.ts   # Configuración Prisma CLI (Prisma 7)
+└── migrations/                     # Historial de migraciones SQL
 ```
+
+### Estructura objetivo
+
+Definida en [ADR-05](decisions/ADR-05-estructura-por-feature.md): `src/features/<feature>/{domain,application,infrastructure,ui}` más `src/shared/`, con `src/app/` como adaptadores delgados. La migración es incremental, feature por feature.
+
+| Feature | Estado de migración |
+|---------|---------------------|
+| habits | Migrada en backend (dominio, casos de uso, puerto `HabitRepository` y adaptador Prisma); la UI sigue en `src/app/(dashboard)/dashboard/` |
+| auth | Parcial: guard de sesión `requireHabitOwner` en `src/features/auth/`; registro, login y `validations.ts` pendientes |
 
 ---
 

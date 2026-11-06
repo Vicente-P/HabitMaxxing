@@ -126,7 +126,8 @@ Definidos en `@layer components` de `globals.css`, con sus valores tomados del m
 |--------------------|-----------|
 | `docs/design/mockup/ios-frame.jsx` | Marco de dispositivo iOS para vistas móviles |
 | `docs/design/mockup/desktop-dashboards.jsx` | Dashboards desktop (Dense, Quiet, Vibrant) |
-| `docs/design/mockup/desktop-habit-screens.jsx` | Detalle de hábito y creación en desktop |
+| `docs/design/mockup/desktop-flow.jsx` | Flujo completo desktop: detalle de hábito y creación |
+| `docs/design/mockup/auth-screens.jsx` | Login y registro (desktop y móvil), con estados de error y fuerza de contraseña |
 | `docs/design/mockup/mobile-screens.jsx` | Pantallas móviles, barra de pestañas |
 | `docs/design/mockup/app.jsx` | Composición de la app |
 

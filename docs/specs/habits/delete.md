@@ -63,16 +63,20 @@ No requiere body.
 
 ### 403 Forbidden
 
+Solo para una solicitud con `Origin` ajeno al configurado (`APP_ORIGIN`), igual que el resto de rutas mutantes de hábitos. No requiere `Content-Type` porque no hay body.
+
 ```json
 {
   "error": {
     "code": "FORBIDDEN",
-    "message": "No tienes permiso para eliminar este hábito"
+    "message": "Solicitud no permitida"
   }
 }
 ```
 
 ### 404 Not Found
+
+Decisión (HU-08, misma regla que HU-07/HU-10): un hábito de otro usuario responde **404**, byte a byte igual que uno inexistente; ya no se devuelve 403 por propiedad. La plataforma es personal y no debe revelar la existencia de hábitos ajenos.
 
 ```json
 {
@@ -107,26 +111,28 @@ No requiere body.
 
 ## Tests requeridos
 
-- [ ] Eliminar hábito propio retorna 200.
-- [ ] Tras eliminar, `GET /api/habits/:id` retorna 404.
-- [ ] Tras eliminar, todos los `HabitLog` del hábito se eliminan (cascade).
-- [ ] Hábito de otro usuario retorna 403.
-- [ ] Hábito inexistente retorna 404.
-- [ ] Sin sesión retorna 401.
-- [ ] Eliminar el mismo hábito dos veces: segunda llamada retorna 404.
+- [x] Eliminar hábito propio retorna 200.
+- [x] Tras eliminar el hábito deja de existir (no hay `GET /api/habits/:id`: se verifica con `findById` → null en el contrato y con el 404 de la segunda llamada).
+- [x] Tras eliminar, todos los `HabitLog` del hábito se eliminan (cascade).
+- [x] Hábito de otro usuario retorna 404 (idéntico al inexistente; sustituye al 403 original).
+- [x] Origen ajeno retorna 403 `FORBIDDEN` sin eliminar.
+- [x] Modal de confirmación: Cancelar y Escape no envían petición; confirmar envía un único `DELETE`.
+- [x] Hábito inexistente retorna 404.
+- [x] Sin sesión retorna 401.
+- [x] Eliminar el mismo hábito dos veces: segunda llamada retorna 404.
 
 ---
 
 ## Notas de implementación
 
 - Prisma elimina en cascada `HabitLog` por `@relation(onDelete: Cascade)`.
-- Verificar ownership antes de `prisma.habit.delete()`.
-- El modal de confirmación (CA-02) se implementa en frontend, no en API.
+- El borrado es acotado por propietario: `HabitRepository.delete(habitId, ownerId)` usa `habit.deleteMany({ where: { id, userId } })` y devuelve `false` (nada borrado) si el hábito es ajeno o no existe, lo que produce el 404. No hay lectura previa ni ventana de carrera.
+- El modal de confirmación (CA-02) se implementa en frontend, no en API: botón "Eliminar" (icono `trash`, color de peligro) en cada tarjeta de Mis hábitos que abre un `<dialog>` modal con "¿Estás seguro? Esta acción no se puede deshacer", "Cancelar" y "Eliminar". Si se elimina el hábito abierto en modo edición, el formulario vuelve a "Crear hábito".
 
 ## Notas de seguridad
 
 - Operación destructiva e irreversible.
-- Verificar ownership estrictamente.
+- Verificar ownership estrictamente (en la propia escritura, ver arriba).
 
 ---
 

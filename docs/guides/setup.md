@@ -32,6 +32,8 @@ npm install -g pnpm
 
 ---
 
+> **Docker (opcional):** solo hace falta para `pnpm test:integration` (PostgreSQL efímero con Testcontainers). El desarrollo y `pnpm exec vitest run` no lo necesitan.
+
 ## Instalación
 
 **1. Clona el repositorio**

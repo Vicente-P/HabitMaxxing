@@ -224,6 +224,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-07 — Editar hábito `SCRUM-12`
+**Estado HU-07 (2026-11-05):** implementada localmente en `feature/SCRUM-12-editar-habito`, pendiente de PR: `PATCH /api/habits/:id` edita nombre, unidad y frecuencia (el tipo no es editable por decisión del usuario; un hábito ajeno responde 404 como uno inexistente) y avisa "Los registros de ese día no serán eliminados" al quitar días con registros. La edición se abre desde el botón "Editar" de cada tarjeta de Mis hábitos (el mockup no tiene pantalla de edición). Detalle en `odd/tasks/hu-07-edit-habit.md`.
 > *"Como usuario, quiero editar un hábito existente, para corregir su nombre, tipo o frecuencia."*
 
 **Criterios de Aceptación:**
@@ -241,6 +242,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-08 — Eliminar hábito `SCRUM-13`
+**Estado HU-08 (2026-11-05):** implementada localmente en `feature/SCRUM-13-eliminar-habito`, pendiente de PR: `DELETE /api/habits/:id` elimina el hábito y su historial (cascade) acotado por propietario; un hábito ajeno responde 404 como uno inexistente (reemplaza el 403 de la spec); botón "Eliminar" con modal `<dialog>` de confirmación en cada tarjeta de Mis hábitos. Detalle en `odd/tasks/hu-08-delete-habit.md`.
 > *"Como usuario, quiero eliminar un hábito, para remover los que ya no quiero trackear."*
 
 **Criterios de Aceptación:**
@@ -257,7 +259,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-09 — Listar hábitos en dashboard `SCRUM-14`
-**Frontera con HU-06:** la agenda diaria, filtros `day`/`date` y estados de completado permanecen planificados para HU-09. El catálogo mínimo persistente de HU-06 no satisface estos criterios diarios. GET autenticado sin `view=catalog` todavía devuelve 400; GET anónimo devuelve 401.
+**Estado HU-09 (2026-11-05):** implementada y mergeada en `develop` (agenda diaria sobre `GET /api/habits` con filtros `date`/`day`, estado de completado, estado vacío distinto para “sin hábitos” y “sin hábitos ese día”). El catálogo de HU-06 se conserva como `GET /api/habits?view=catalog`. Detalle y evidencia en `odd/tasks/hu-09-daily-agenda.md`.
 > *"Como usuario, quiero ver todos mis hábitos en el dashboard, para tener una visión general de mi día."*
 
 **Criterios de Aceptación:**
@@ -278,6 +280,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ## ✅ EP-03 — Registro Diario
 
 ### 📖 HU-10 — Registrar hábito binario `SCRUM-15`
+**Estado HU-10 (2026-11-05):** implementada y mergeada en `develop` (PR #33): `POST /api/habits/:id/logs` con toggle de completado, 404 uniforme para hábitos ajenos o inexistentes y check de completado en la agenda diaria según el mockup. Incluye la preparación ADR-05 (`src/features/habits/`). Histórico en `odd/tasks/hu-10-binary-log.md`. Los hábitos numéricos quedan para HU-11.
 > *"Como usuario, quiero marcar un hábito binario como completado, para registrar que lo cumplí hoy."*
 
 **Criterios de Aceptación:**
@@ -295,6 +298,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-11 — Registrar hábito numérico `SCRUM-16`
+**Estado HU-11 (2026-11-05):** implementada y mergeada en `develop` (PR #35): `POST /api/habits/:id/logs` acepta `value` > 0 para hábitos numéricos (reemplaza el registro del día) y la agenda muestra input numérico con unidad ("5 km"), sin meta.
 > *"Como usuario, quiero ingresar un valor numérico en mi hábito, para registrar cuánto realicé ese día."*
 
 **Criterios de Aceptación:**
@@ -328,11 +332,15 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-52: Mostrar racha actual en el detalle del hábito
 - T-53: Escribir tests unitarios de la lógica de racha
 
+**Estado HU-12 (2026-11-05):** implementada localmente en `feature/SCRUM-17-racha-actual`, pendiente de PR: `calculateStreak` (hoy pendiente no rompe; `previous` = última racha rota), `GET /api/habits/:id/stats` solo con la racha (el endpoint es `/stats` en lugar del `/streak` de T-51; hábito ajeno responde 404) y nueva pantalla `/habits/[id]` con "Racha actual" y "Racha anterior", enlazada desde el nombre en Mis hábitos. Detalle en `odd/tasks/hu-12-streak.md`.
+
 `Story Points: 3` `Prioridad: Alta` `Sprint: 4`
 
 ---
 
 ### 📖 HU-13 — Ver calendario heatmap `SCRUM-18`
+**Estado HU-13 (2026-11-05):** implementada localmente en `feature/SCRUM-18-heatmap`, pendiente de PR. `GET /api/habits/:id/logs?month=YYYY-MM` y la tarjeta "Actividad del mes" (vista Mes, panel de detalle al pulsar un día) en `/habits/[id]`.
+
 > *"Como usuario, quiero ver un calendario visual del mes, para identificar mis días de cumplimiento e incumplimiento."*
 
 **Criterios de Aceptación:**
@@ -362,6 +370,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 - T-59: Crear endpoint GET /api/habits/:id/completion?month=YYYY-MM
 - T-60: Mostrar porcentaje en el detalle del hábito
 
+**Estado HU-14 (2026-11-05):** implementada localmente en `feature/SCRUM-19-cumplimiento`, pendiente de PR: `calculateCompletion` (hoy cuenta en el denominador; días previos a la creación excluidos), `GET /api/habits/:id/stats?month=YYYY-MM` con `completion` (el endpoint es `/stats` en lugar del `/completion` de T-59) y grilla de stats en `/habits/[id]` con "Racha actual" y "Cumplimiento mensual". Detalle en `odd/tasks/hu-14-completion.md`.
+
 `Story Points: 2` `Prioridad: Media` `Sprint: 5`
 
 ---
@@ -370,6 +380,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 
 ### 📖 HU-15 — Navegación responsive `SCRUM-20`
 > *"Como usuario, quiero que la app funcione correctamente en móvil y desktop, para acceder desde cualquier dispositivo."*
+
+**Estado HU-15 (2026-11-06):** implementada localmente en `feature/SCRUM-20-navegacion-responsive`, pendiente de PR: shell autenticado en `src/app/(dashboard)/layout.tsx` con sidebar del mockup en desktop y tab bar inferior con "+" en móvil (T-63 sigue la tab bar del mockup en lugar de un menú hamburguesa), `/dashboard` = "Hoy" (solo la agenda) y nueva `/habits` = "Hábitos" (crear + Mis hábitos); verificada con E2E a 375 y 1280 px. Detalle en `odd/tasks/hu-15-responsive-nav.md`.
 
 **Criterios de Aceptación:**
 - CA-01: Dado que accedo desde un móvil, cuando navego por la app, entonces todos los elementos son accesibles sin necesidad de hacer zoom.

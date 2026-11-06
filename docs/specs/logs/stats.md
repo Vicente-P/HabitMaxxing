@@ -76,8 +76,16 @@ GET /api/habits/:id/stats
 - Iterar hacia atrás desde hoy (o último día programado transcurrido).
 - Contar días programados consecutivos con `completed: true`.
 - Días **no programados** se ignoran — no rompen ni suman.
-- Si la racha se rompió: `current: 0`, `previous: X` (racha anterior más larga).
+- Si la racha se rompió: `current: 0`, `previous: X` (la racha que se acaba de romper, es decir, la más reciente; no la más larga).
 - `isActive: true` si el último día programado transcurrido está completado.
+
+**Decisiones HU-12 (2026-11-05, implementadas en `calculateStreak` en `src/features/habits/domain/streak.ts`):**
+
+- Hoy programado y aún sin completar (sin log o `completed: false`) no rompe ni suma, porque el día no ha terminado; completado suma +1.
+- `previous` es la racha rota más recientemente antes de la posición actual (con `current > 0`, la racha anterior al último fallo; `0` si no hay).
+- Los días anteriores al primer log no extienden ni rompen la racha.
+- Hasta HU-14 `GET /api/habits/:id/stats` devolvía solo `{ habitId, streak }` y cualquier query param respondía 400 `VALIDATION_ERROR`; desde HU-14 acepta `month` (ver abajo).
+- Un hábito ajeno responde el mismo 404 `NOT_FOUND` ("Hábito no encontrado") que uno inexistente.
 
 ### Lógica de cumplimiento (HU-14 / SCRUM-19)
 
@@ -89,6 +97,16 @@ percentage = (completedDays / scheduledDaysElapsed) × 100
 - `completedDays`: de esos, cuántos tienen log con `completed: true`.
 - Redondear a 1 decimal.
 - Si `scheduledDaysElapsed = 0`: percentage = 0, message especial.
+
+**Decisiones HU-14 (2026-11-05, implementadas en `calculateCompletion` en `src/features/habits/domain/completion.ts` y `getHabitStats`):**
+
+- Hoy cuenta en el denominador si está programado: un hoy pendiente baja el porcentaje (a diferencia de la racha, donde no rompe).
+- Los días anteriores a la fecha de creación del hábito (día UTC de `createdAt`) no cuentan como programados transcurridos; un hábito creado a mitad de mes no arranca penalizado. Un mes futuro, o anterior a la creación, tiene 0 días transcurridos.
+- `message` es `"Cumplimiento: 0% — ¡Empieza hoy!"` siempre que `completedDays` sea 0 (incluye 0 transcurridos y 0 cumplidos con días transcurridos); en otro caso es `null`.
+- `month` (`YYYY-MM`) es opcional y por defecto el mes UTC actual; la respuesta incluye `month`. La racha siempre se calcula a hoy, sea cual sea el mes.
+- `month` inválido (`2026-5`, `2026-13`, `abc`, vacío) o repetido responde 400 `VALIDATION_ERROR` "Datos de entrada inválidos" con `details: [{ field: "month", message: "Formato de mes inválido. Usar YYYY-MM" }]`; cualquier otro query param sigue respondiendo 400.
+- Hábito ajeno e inexistente siguen respondiendo el mismo 404 `NOT_FOUND` byte a byte (no hay 403, para no revelar existencia).
+- El endpoint es `/stats` (no el `/completion` de T-59).
 
 ---
 
@@ -153,6 +171,14 @@ GET /api/habits/:id/logs
 | `partial` | Amarillo | Solo NUMERIC: log con valor pero meta no alcanzada (futuro) |
 
 > MVP: binario usa solo `completed`/`missed`. Numérico: cualquier `value > 0` cuenta como `completed`.
+
+**Decisiones HU-13 (2026-11-05, implementadas en `buildMonthDays` en `src/features/habits/domain/month-days.ts`, `getHabitMonthDays`, `GET /api/habits/:id/logs` y la tarjeta "Actividad del mes" de `/habits/[id]`):**
+
+- Solo vista Mes del mes UTC actual; las pestañas Año/Semana del mockup y el heatmap anual no se renderizan todavía.
+- `status`: `completed` si hay log `completed: true` (en numéricos cualquier valor guardado cuenta); `missed` si el día programado es anterior a hoy sin log o con `completed: false`; `pending` si es hoy sin completar o un día futuro programado; `not_scheduled` si el día de la semana no está en `frequency` o es anterior a la fecha de creación del hábito (día UTC de `createdAt`, como en HU-14). `scheduled` es `false` exactamente cuando el status es `not_scheduled`. `partial` no se emite.
+- `month` es obligatorio; ausente, inválido (`2026-5`, `2026-13`, `abc`, vacío) o repetido responde 400 `VALIDATION_ERROR` con `details: [{ field: "month", message: "Formato de mes inválido. Usar YYYY-MM" }]`; cualquier otro query param responde 400. Respuesta `200 { data: { habitId, month, days } }` con `Cache-Control: private, no-store`.
+- Hábito ajeno e inexistente responden el mismo 404 `NOT_FOUND` byte a byte (no hay 403); sin sesión 401. El `POST` de la misma ruta no cambia.
+- UI: los días hasta hoy son botones (panel de detalle debajo del calendario con fecha, estado y, en numéricos con log, el valor con su unidad); los días futuros no son interactivos. Colores solo con tokens `--hm-*`: cumplido `success`, no cumplido `danger`, no programado `heat-0` ("sin penalización"), pendiente contorno neutro.
 
 ---
 
@@ -265,32 +291,32 @@ GET /api/habits/:id/heatmap
 
 ### Racha
 
-- [ ] 5 días programados consecutivos completados → `current: 5`.
-- [ ] Día no programado entre días completados no rompe racha.
-- [ ] Día programado incumplido rompe racha → `current: 0`, `previous: N`.
-- [ ] Sin registros → `current: 0`, `previous: 0`.
+- [x] 5 días programados consecutivos completados → `current: 5`.
+- [x] Día no programado entre días completados no rompe racha.
+- [x] Día programado incumplido rompe racha → `current: 0`, `previous: N`.
+- [x] Sin registros → `current: 0`, `previous: 0`.
 
 ### Heatmap
 
-- [ ] Día programado completado → `status: "completed"`.
-- [ ] Día programado incumplido → `status: "missed"`.
-- [ ] Día no programado → `status: "not_scheduled"`.
-- [ ] Día futuro programado → `status: "pending"`.
-- [ ] Respuesta incluye todos los días del mes.
+- [x] Día programado completado → `status: "completed"`.
+- [x] Día programado incumplido → `status: "missed"`.
+- [x] Día no programado → `status: "not_scheduled"`.
+- [x] Día futuro programado → `status: "pending"`.
+- [x] Respuesta incluye todos los días del mes.
 
 ### Cumplimiento
 
-- [ ] 6/7 días programados transcurridos completados → `85.7%`.
-- [ ] Solo cuenta días programados (ignora días off).
-- [ ] Mes sin días transcurridos → 0% con message especial.
-- [ ] Día no programado no afecta porcentaje.
+- [x] 6/7 días programados transcurridos completados → `85.7%`.
+- [x] Solo cuenta días programados (ignora días off).
+- [x] Mes sin días transcurridos → 0% con message especial.
+- [x] Día no programado no afecta porcentaje.
 
 ### General
 
 - [ ] Hábito de otro usuario → 403.
-- [ ] Hábito inexistente → 404.
-- [ ] Sin sesión → 401.
-- [ ] `month` con formato inválido → 400.
+- [x] Hábito inexistente → 404.
+- [x] Sin sesión → 401.
+- [x] `month` con formato inválido → 400.
 
 ---
 

@@ -163,18 +163,9 @@ POST /api/habits/:id/logs
 }
 ```
 
-### 403 Forbidden
-
-```json
-{
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "No tienes permiso para registrar este hábito"
-  }
-}
-```
-
 ### 404 Not Found
+
+Se devuelve tanto si el hábito no existe como si pertenece a otro usuario (respuesta idéntica, para evitar enumeración de ids; mismo enfoque privacy-uniform de HU-02).
 
 ```json
 {
@@ -225,25 +216,25 @@ POST /api/habits/:id/logs
 
 ### Binario
 
-- [ ] Toggle a completado crea log con `completed: true` y fecha actual.
-- [ ] Toggle a pendiente actualiza log con `completed: false`.
-- [ ] Segundo toggle revierte estado (CA-02).
+- [x] Toggle a completado crea log con `completed: true` y fecha actual.
+- [x] Toggle a pendiente actualiza log con `completed: false`.
+- [x] Segundo toggle revierte estado (CA-02).
 
 ### Numérico
 
-- [ ] Valor positivo crea log con `completed: true` y `value`.
-- [ ] Valor 0 retorna 400.
-- [ ] Valor negativo retorna 400.
-- [ ] Segundo registro del mismo día reemplaza el anterior (upsert).
+- [x] Valor positivo crea log con `completed: true` y `value`.
+- [x] Valor 0 retorna 400.
+- [x] Valor negativo retorna 400.
+- [x] Segundo registro del mismo día reemplaza el anterior (upsert).
 
 ### General
 
-- [ ] Registro en día no programado retorna 400.
-- [ ] Registro en fecha futura retorna 400.
-- [ ] Hábito de otro usuario retorna 403.
-- [ ] Hábito inexistente retorna 404.
-- [ ] Sin sesión retorna 401.
-- [ ] Constraint `@@unique([habitId, date])` respetado via upsert.
+- [x] Registro en día no programado retorna 400.
+- [x] Registro en fecha futura retorna 400.
+- [x] Hábito de otro usuario retorna 404, idéntico al de un hábito inexistente.
+- [x] Hábito inexistente retorna 404.
+- [x] Sin sesión retorna 401.
+- [x] Constraint `@@unique([habitId, date])` respetado via upsert.
 
 ---
 
@@ -254,9 +245,25 @@ POST /api/habits/:id/logs
 - Para NUMERIC: establecer `completed: true` automáticamente cuando `value > 0`.
 - Schema Zod: `createLogSchema` con discriminated union por `HabitType`.
 
+### Decisiones implementadas en HU-10 (binario)
+
+- Revertir **actualiza** el log a `completed: false` (no lo elimina); la agenda trata un log con `completed: false` igual que la ausencia de log.
+- (Superado por HU-11) Un hábito `NUMERIC` recibía 400 hasta que HU-11 implementó `value`.
+- Divergencia con la spec original (403 para hábito ajeno), resuelta por el usuario: un hábito de otro usuario responde 404 `NOT_FOUND`, byte a byte igual al de un hábito inexistente, para evitar enumeración de ids (consistente con HU-02). El 403 `FORBIDDEN` sigue usándose solo para la guarda de `Origin`.
+- "Hoy" y "fecha futura" usan la fecha UTC del servidor; no hay soporte de zona horaria del usuario.
+
+### Decisiones implementadas en HU-11 (numérico)
+
+- El body se interpreta por su forma: `value` sin `completed` se valida como numérico (`value` número finito > 0, mensaje exacto "El valor debe ser mayor a 0"); cualquier otro body se valida como binario. Ambos esquemas son estrictos (claves desconocidas rechazadas).
+- Validación de forma antes de consultar el hábito; después, el tipo del hábito: un body `{ completed }` enviado a un hábito `NUMERIC` (detalle `value`) o `{ value }` enviado a uno `BINARY` (detalle `completed`) responde 400 `VALIDATION_ERROR`. Un hábito ajeno o inexistente sigue respondiendo 404 uniforme antes de comprobar el tipo.
+- Reemplazo: segundo valor del mismo día actualiza la misma fila (`@@unique([habitId, date])` vía upsert) con `completed: true` y el nuevo `value`.
+- Se reutilizan las reglas de HU-10 (fecha futura, día no programado, "hoy" UTC) mediante `resolveLoggableHabit`.
+- El esquema no es la unión discriminada `createLogSchema` de las notas originales: se mantiene `parseLogBody` en `binary-log-schema.ts` porque el tipo del hábito solo se conoce tras consultarlo.
+- UI: la agenda muestra, para hábitos numéricos, un input numérico con la unidad y el botón "Registrar"; tras guardar muestra "valor unidad" (ej. "5 km"). No se muestra meta (el mockup incluye "5.2 / 5 km", pero el modelo no tiene campo de meta).
+
 ## Notas de seguridad
 
-- Verificar ownership del hábito antes de registrar.
+- Verificar ownership del hábito antes de registrar; un fallo de ownership se reporta como 404.
 
 ---
 

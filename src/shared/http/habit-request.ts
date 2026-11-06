@@ -26,7 +26,8 @@ function configuredOrigin(value: string | undefined): string | null {
   }
 }
 
-export function checkHabitRequest(request: Request, config: string | undefined): HabitRequestError | null {
+/** Origin-only check for mutations without a body (DELETE): no content-type requirement. */
+export function checkHabitOrigin(request: Request, config: string | undefined): HabitRequestError | null {
   const expected = configuredOrigin(config);
   if (!expected) return habitInternalError;
   const origin = request.headers.get("origin");
@@ -34,6 +35,12 @@ export function checkHabitRequest(request: Request, config: string | undefined):
   if (!origin || origin !== expected) {
     return { status: 403, code: "FORBIDDEN", message: "Solicitud no permitida" };
   }
+  return null;
+}
+
+export function checkHabitRequest(request: Request, config: string | undefined): HabitRequestError | null {
+  const originError = checkHabitOrigin(request, config);
+  if (originError) return originError;
   const contentType = request.headers.get("content-type") ?? "";
   if (!/^application\/json(?:\s*;\s*charset=utf-8)?\s*$/i.test(contentType)) {
     return { status: 415, code: "UNSUPPORTED_MEDIA_TYPE", message: "Se requiere contenido JSON" };

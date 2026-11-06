@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
+import AuthAlert from "../auth-alert";
+import AuthField from "../auth-field";
+import AuthIcon from "../auth-icons";
+import AuthShell from "../auth-shell";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -25,20 +29,14 @@ export default function LoginPage() {
     }
   }
 
-  return <main className="page-container">
+  return <AuthShell mode="login">
     <h1 className="mb-6">Iniciar sesión</h1>
-    <form className="mx-auto max-w-md space-y-4" onSubmit={submit}>
-      <div role="alert" aria-live="polite">{error}</div>
-      <div className="space-y-1.5">
-        <label className="label" htmlFor="email">Correo electrónico</label>
-        <input className="input" id="email" name="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </div>
-      <div className="space-y-1.5">
-        <label className="label" htmlFor="password">Contraseña</label>
-        <input className="input" id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-      </div>
-      <button className="btn-primary w-full" type="submit" disabled={pending}>{pending ? "Iniciando sesión…" : "Iniciar sesión"}</button>
+    <form className="space-y-4" onSubmit={submit}>
+      <AuthAlert>{error}</AuthAlert>
+      <AuthField id="email" label="Correo electrónico" icon="mail" type="email" autoComplete="email" placeholder="tu@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <AuthField id="password" label="Contraseña" icon="lock" type="password" autoComplete="current-password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      <button className="btn-primary w-full" type="submit" disabled={pending}>{pending ? "Iniciando sesión…" : <>Iniciar sesión <AuthIcon name="arrowRight" size={15} className="stroke-[2.2]" /></>}</button>
     </form>
-    <p className="mx-auto mt-4 max-w-md"><Link href="/register">Crear una cuenta</Link></p>
-  </main>;
+    <p className="mt-6 text-center text-hm-caption"><Link href="/register">Crear una cuenta</Link></p>
+  </AuthShell>;
 }
