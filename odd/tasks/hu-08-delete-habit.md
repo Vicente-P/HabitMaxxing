@@ -14,10 +14,11 @@ Contract: `docs/specs/habits/delete.md`; story: `docs/wiki/backlog.md` HU-08. Br
 
 ## Tasks
 
-- [x] T1 (S1-S6) - endpoint, repository (contract, in-memory, Prisma), UI modal, tests, docs - worker - commit:
-- [ ] T2 (S1-S3) - independent verification (Risk items 1 and 2: irreversible delete, ownership guard) - gentle-ai-verify - commit: n/a
+- [x] T1 (S1-S6) - endpoint, repository (contract, in-memory, Prisma), UI modal, tests, docs - worker - commit: fead61f
+- [x] T2 (S1-S3) - independent verification (Risk items 1 and 2: irreversible delete, ownership guard) - gentle-ai-verify - commit: n/a (all S1-S5 pass on fead61f)
 
 ## Log
 
 - L1 (user, verbatim): "Dale" (approving HU-08 and HU-12 in parallel), after "Sí haz el merge. ¿Podemos trabajar en varias HU al mismo tiempo?"
 - L2 (user decisions, verbatim answers): confirmation UI: "Modal <dialog> con estilo card (Recomendado)". The backlog CA-01 already decides a permanent delete with cascade; foreign habit 404 follows the HU-07 decision ("Usa buenas practicas. ¿Que sentido tiene que yo vea los habitos de otro usuario? La plataforma o aplicación es personal").
+- L3 (evidence): independent verify of fead61f: S1-S5 met; unit 538/538, integration 39/39, typecheck; owner-scoped deleteMany with no prior read, foreign vs missing indistinguishable, `checkHabitRequest` identical to the previous version over 448 combinations, one DELETE per confirmation. Advisories: real-browser `<dialog>` Escape behavior not tested; the confirm button's danger border is not in the mockup (which has no dialog); a 404 also refreshes the agenda.
