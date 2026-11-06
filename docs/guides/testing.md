@@ -5,6 +5,7 @@
 - [Stack de testing](#stack-de-testing)
 - [Estructura y convenciones](#estructura-y-convenciones)
 - [Correr tests](#correr-tests)
+- [Tests E2E con Playwright](#tests-e2e-con-playwright)
 - [Tests unitarios](#tests-unitarios)
 - [Tests de componentes](#tests-de-componentes)
 - [Cobertura](#cobertura)
@@ -84,6 +85,27 @@ pnpm test:integration
 - **Salvaguarda:** la suite lee únicamente `TEST_DATABASE_URL` (o el contenedor), nunca `DATABASE_URL` ni `DIRECT_URL` ni `.env`. Aborta si el host no es `localhost`/`127.0.0.1` o si el nombre de la base no contiene `test`, porque cada test trunca las tablas.
 - La suite de contrato `describeHabitRepositoryContract` (`src/features/habits/application/habit-repository.contract.ts`) corre contra `InMemoryHabitRepository` y contra el adaptador de Prisma. Un repositorio nuevo debe pasarla.
 - Decisión y plan: ADR-06 (`docs/architecture/decisions/`).
+
+---
+
+## Tests E2E con Playwright
+
+Pruebas de navegador (Chromium) sobre la aplicación real: registro, crear/marcar/editar/eliminar hábitos, detalle y comprobaciones de layout a 375 px y 1280 px. Decisión: [ADR-07](../architecture/decisions/ADR-07-tests-e2e-con-playwright.md).
+
+```bash
+# Una vez: descarga Chromium (cache de Playwright; no se instalan otros navegadores)
+pnpm exec playwright install chromium
+
+# Requiere Docker en marcha. Tarda ~30 s: contenedor + build + 7 tests
+pnpm test:e2e
+```
+
+- `e2e/global-setup.ts` arranca un PostgreSQL con Testcontainers (reutiliza `src/test/integration/` y `assertSafeTestDatabase`), aplica las migraciones, ejecuta `next build` y `next start` en el puerto 3100, y solo entonces corren los tests. Al terminar detiene el servidor y el contenedor.
+- **Aislamiento:** `DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET` (aleatorio), `AUTH_URL` y `APP_ORIGIN` se pasan explícitamente al servidor; `.env` no puede aportar ninguno. Cada test registra su propio usuario por la interfaz.
+- Los hábitos de prueba se programan los siete días para que "hoy" siempre esté programado, sea cual sea la fecha.
+- `next build` escribe en `.next`: no lo ejecutes con `next dev` activo.
+- Las capturas de pantalla completa (`dashboard-1280.png`, `edit-mode-375.png`, `delete-dialog-*.png`, `detail-*.png`…) se guardan en `e2e/screenshots/` para revisar a mano contra el mockup; no hay aserciones de snapshot. Esa carpeta, `test-results/`, `playwright-report/` y `blob-report/` están en `.gitignore`.
+- Vitest nunca recoge `e2e/` (excluido en `vitest.config.mts`). Todavía no corre en el CI (bloqueo de facturación de GitHub).
 
 ---
 
@@ -223,7 +245,7 @@ import '@testing-library/jest-dom'
   2. Rutas de API (`tests/*-route.test.ts`): se invoca el handler con `prisma` y `auth` mockeados y se comprueba el contrato (códigos, mensajes, 404 uniforme para recursos ajenos).
   3. Componentes de UI: Testing Library con `fetch` mockeado.
 - **Guardas estáticas:** `tsc`, `eslint` (tokens de diseño `--hm-*` y fronteras de ADR-05) y `build`, además del CI de `.github/workflows/ci.yml`.
-- **Límites conocidos:** no hay pruebas contra una base de datos real, ni end-to-end con navegador, ni umbral de cobertura. jsdom no mide layout, por lo que lo visual se revisa a mano.
+- **Límites conocidos:** las pruebas de integración cubren el repositorio contra PostgreSQL real y las E2E (Playwright) los flujos principales en Chromium, pero no hay umbral de cobertura ni E2E en el CI. jsdom no mide layout; lo visual se revisa con las capturas de las E2E.
 
 ---
 
@@ -235,7 +257,7 @@ Ordenadas por relación entre valor y costo. Ninguna está implementada.
 |---|--------|--------|
 | 1 | Tests de integración del repositorio contra PostgreSQL real | Plan en [ADR-06](../architecture/decisions/ADR-06-tests-de-integracion-con-postgres.md) (aceptado, en implementación) |
 | 2 | Suite de contrato compartida entre `InMemoryHabitRepository` y el adaptador de Prisma | Incluida en ADR-06 |
-| 3 | E2E con Playwright de pocos flujos críticos (registro → login → crear hábito → marcarlo → logout): cubre cookies de sesión, redirecciones, layout y responsive | Pendiente; conviene con más pantallas estables |
+| 3 | E2E con Playwright de pocos flujos críticos (registro → login → crear hábito → marcarlo → logout): cubre cookies de sesión, redirecciones, layout y responsive | Implementado como `pnpm test:e2e` ([ADR-07](../architecture/decisions/ADR-07-tests-e2e-con-playwright.md)); falta el job de CI |
 | 4 | Umbral de cobertura en CI solo para `src/features/**` (objetivo realista, p. ej. 80 %) | Pendiente |
 | 5 | Higiene: corregir el warning de `eslint.config.mjs` (`import/no-anonymous-default-export`), mover los tests de `tests/` junto a su ruta y ejecutar los tests en `pre-push` | Pendiente |
 

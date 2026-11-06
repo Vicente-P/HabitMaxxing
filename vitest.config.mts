@@ -25,7 +25,8 @@ export default defineConfig({
           environment: 'jsdom',
           globals: true,
           setupFiles: ['./src/test/setup.ts'],
-          exclude: ['**/node_modules/**', '**/dist/**', integrationTests],
+          // e2e/ belongs to Playwright (`pnpm test:e2e`); Vitest must never collect it.
+          exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**', integrationTests],
         },
       },
       ...(integrationRequested
