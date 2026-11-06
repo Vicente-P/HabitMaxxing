@@ -72,6 +72,19 @@ pnpm exec vitest run src/lib/validations.test.ts
 pnpm exec vitest run --reporter=verbose
 ```
 
+### Tests de integración (PostgreSQL real)
+
+```bash
+# Requiere Docker en marcha. Levanta postgres:17-alpine con Testcontainers, aplica las migraciones y ejecuta *.integration.test.ts
+pnpm test:integration
+```
+
+- `pnpm exec vitest run` ejecuta solo el proyecto `unit` y **no** necesita Docker. El proyecto `integration` solo se registra con `--project integration`.
+- Con `TEST_DATABASE_URL` definida se usa esa base en lugar de crear un contenedor.
+- **Salvaguarda:** la suite lee únicamente `TEST_DATABASE_URL` (o el contenedor), nunca `DATABASE_URL` ni `DIRECT_URL` ni `.env`. Aborta si el host no es `localhost`/`127.0.0.1` o si el nombre de la base no contiene `test`, porque cada test trunca las tablas.
+- La suite de contrato `describeHabitRepositoryContract` (`src/features/habits/application/habit-repository.contract.ts`) corre contra `InMemoryHabitRepository` y contra el adaptador de Prisma. Un repositorio nuevo debe pasarla.
+- Decisión y plan: ADR-06 (`docs/architecture/decisions/`).
+
 ---
 
 ## Tests unitarios
