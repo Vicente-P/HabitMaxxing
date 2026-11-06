@@ -242,6 +242,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-08 — Eliminar hábito `SCRUM-13`
+**Estado HU-08 (2026-11-05):** implementada localmente en `feature/SCRUM-13-eliminar-habito`, pendiente de PR: `DELETE /api/habits/:id` elimina el hábito y su historial (cascade) acotado por propietario; un hábito ajeno responde 404 como uno inexistente (reemplaza el 403 de la spec); botón "Eliminar" con modal `<dialog>` de confirmación en cada tarjeta de Mis hábitos. Detalle en `odd/tasks/hu-08-delete-habit.md`.
 > *"Como usuario, quiero eliminar un hábito, para remover los que ya no quiero trackear."*
 
 **Criterios de Aceptación:**

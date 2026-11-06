@@ -25,6 +25,36 @@ async function fetchCatalog(ownerId: string, signal: AbortSignal): Promise<Catal
   }
 }
 
+const sessionMessage = "Tu sesión ya no está disponible. Inicia sesión nuevamente.";
+const deleteFailedMessage = "No se pudo eliminar el hábito. Inténtalo de nuevo.";
+
+/** Modal confirmation (CA-02). Escape and Cancelar only close it; nothing is requested until Eliminar. */
+function ConfirmDeleteDialog({ habit, pending, onCancel, onConfirm }: {
+  habit: CatalogHabit; pending: boolean; onCancel: () => void; onConfirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    if (element && !element.open) element.showModal();
+  }, []);
+  return (
+    <dialog
+      ref={dialog} aria-labelledby="delete-habit-heading"
+      className="card m-auto w-[calc(100%-2rem)] max-w-sm text-hm-text backdrop:bg-hm-bg/80"
+      onCancel={(event) => { event.preventDefault(); if (!pending) onCancel(); }}
+    >
+      <h2 id="delete-habit-heading">¿Estás seguro? Esta acción no se puede deshacer</h2>
+      <p className="mt-2 break-words text-hm-caption text-hm-text-mid">Se eliminará «{habit.name}» con todo su historial.</p>
+      <div className="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" className="btn-secondary" disabled={pending} onClick={onCancel}>Cancelar</button>
+        <button type="button" className="btn-secondary border-hm-danger text-hm-danger" disabled={pending} onClick={onConfirm}>
+          <AuthIcon name="trash" size={13} />Eliminar
+        </button>
+      </div>
+    </dialog>
+  );
+}
+
 type CatalogProps = { ownerId: string; onHabitsChanged?: () => void };
 
 export default function HabitCatalog({ ownerId, onHabitsChanged }: CatalogProps) {
@@ -36,6 +66,10 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
   // A snapshot of the habit being edited: the form must not depend on the catalog list, which empties while it reloads.
   const [editing, setEditing] = useState<CatalogHabit | null>(null);
   const [state, setState] = useState<CatalogState>({ status: "loading", habits: [] });
+  const [confirming, setConfirming] = useState<CatalogHabit | null>(null);
+  const [deleteFailed, setDeleteFailed] = useState(false);
+  const deleting = useRef(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
   const request = useRef<AbortController | null>(null);
 
   const load = useCallback(() => {
@@ -69,6 +103,33 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
     return reload();
   }
 
+  async function confirmDelete(habit: CatalogHabit) {
+    if (deleting.current) return;
+    deleting.current = true;
+    setPendingDelete(true);
+    setDeleteFailed(false);
+    try {
+      const response = await fetch(`/api/habits/${encodeURIComponent(habit.id)}`, {
+        method: "DELETE", credentials: "same-origin", cache: "no-store", redirect: "error",
+      });
+      setConfirming(null);
+      if (response.status === 401) { setEditing(null); invalidateSession(); return; }
+      if (response.status === 200 || response.status === 404) {
+        setEditing((current) => (current?.id === habit.id ? null : current));
+        onHabitsChanged?.();
+        await reload();
+        return;
+      }
+      setDeleteFailed(true);
+    } catch {
+      setConfirming(null);
+      setDeleteFailed(true);
+    } finally {
+      deleting.current = false;
+      setPendingDelete(false);
+    }
+  }
+
   return (
     <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
       {state.status !== "unauthorized" && <CreateHabitForm
@@ -81,7 +142,8 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
         <p className="mt-2 text-hm-caption text-hm-text-mid">Todos tus hábitos configurados, incluidos los que no corresponden a hoy.</p>
         <div className="mt-6" aria-live="polite" aria-busy={state.status === "loading"}>
           {state.status === "loading" && <p role="status">Cargando hábitos…</p>}
-          {state.status === "unauthorized" && <p role="alert">Tu sesión ya no está disponible. Inicia sesión nuevamente.</p>}
+          {state.status === "unauthorized" && <p role="alert">{sessionMessage}</p>}
+          {deleteFailed && state.status !== "unauthorized" && <p role="alert" className="field-error mb-3">{deleteFailedMessage}</p>}
           {state.status === "error" && <div className="card space-y-3">
             <p role="alert">No se pudo cargar Mis hábitos. Si acabas de crear uno, reintenta solamente la carga.</p>
             <button type="button" className="btn-secondary" onClick={() => { void reload(); }}>Reintentar carga</button>
@@ -94,10 +156,17 @@ function CatalogContent({ ownerId, onHabitsChanged }: CatalogProps) {
               <button type="button" className="btn-secondary mt-3 inline-flex items-center gap-2" aria-label={`Editar ${habit.name}`} onClick={() => setEditing(habit)}>
                 <AuthIcon name="edit" />Editar
               </button>
+              <button type="button" className="btn-secondary ml-2 mt-3 inline-flex items-center gap-2 text-hm-danger" aria-label={`Eliminar ${habit.name}`} onClick={() => { setDeleteFailed(false); setConfirming(habit); }}>
+                <AuthIcon name="trash" />Eliminar
+              </button>
             </li>)}
           </ul>)}
         </div>
       </section>
+      {confirming && <ConfirmDeleteDialog
+        key={confirming.id} habit={confirming} pending={pendingDelete}
+        onCancel={() => setConfirming(null)} onConfirm={() => { void confirmDelete(confirming); }}
+      />}
     </div>
   );
 }

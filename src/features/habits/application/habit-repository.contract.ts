@@ -221,6 +221,44 @@ export function describeHabitRepositoryContract(
       });
     });
 
+    describe("delete", () => {
+      it("deletes the owner's habit and returns true", async () => {
+        await seed("h", 1000);
+        expect(await repository.delete("h", owner)).toBe(true);
+        expect(await repository.findById("h")).toBeNull();
+        expect(await repository.listByOwner(owner)).toEqual([]);
+      });
+
+      it("removes the habit's logs and leaves other habits and their logs untouched", async () => {
+        await seed("h", 1000, [3]);
+        await seed("other", 2000, [3]);
+        await repository.upsertBinaryLog("h", "2026-05-20", true);
+        await repository.upsertBinaryLog("other", "2026-05-20", true);
+        expect(await repository.delete("h", owner)).toBe(true);
+        expect(await repository.loggedWeekdays("h")).toEqual([]);
+        expect(await repository.loggedWeekdays("other")).toEqual([3]);
+        const [remaining] = await repository.listScheduledForDay(owner, 3, "2026-05-20");
+        expect(remaining).toMatchObject({ id: "other", log: { completed: true, date: "2026-05-20" } });
+        expect((await repository.listByOwner(owner)).map((h) => h.id)).toEqual(["other"]);
+      });
+
+      it("returns false and deletes nothing for a habit of another owner", async () => {
+        const other = await harness.createOwner();
+        await seed("foreign", 1000, [3], other);
+        await repository.upsertBinaryLog("foreign", "2026-05-20", true);
+        expect(await repository.delete("foreign", owner)).toBe(false);
+        expect(await repository.findById("foreign")).toMatchObject({ id: "foreign", userId: other });
+        expect(await repository.loggedWeekdays("foreign")).toEqual([3]);
+      });
+
+      it("returns false for a missing habit and for a second delete", async () => {
+        await seed("h", 1000);
+        expect(await repository.delete("missing", owner)).toBe(false);
+        expect(await repository.delete("h", owner)).toBe(true);
+        expect(await repository.delete("h", owner)).toBe(false);
+      });
+    });
+
     describe("dates", () => {
       it.each(["2026-01-01", "2026-12-31", "2028-02-29"])("returns %s without time zone shift", async (date) => {
         await seed("h", 1000);

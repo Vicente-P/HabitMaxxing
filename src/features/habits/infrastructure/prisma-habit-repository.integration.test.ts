@@ -60,6 +60,23 @@ describe("PostgreSQL behaviour behind the adapter", () => {
     expect(await prisma.user.count()).toBe(1);
   });
 
+  it("deletes only the owner's habit row and cascades its logs through the adapter", async () => {
+    const owner = await createUser();
+    const other = await createUser();
+    const repository = createPrismaHabitRepository(prisma);
+    const mine = await repository.create({ name: "Read", type: "BINARY", unit: null, frequency: [3], ownerId: owner });
+    const theirs = await repository.create({ name: "Run", type: "BINARY", unit: null, frequency: [3], ownerId: other });
+    await repository.upsertBinaryLog(mine.id, "2026-05-20", true);
+    await repository.upsertBinaryLog(theirs.id, "2026-05-20", true);
+    expect(await repository.delete(theirs.id, owner)).toBe(false);
+    expect(await prisma.habitLog.count()).toBe(2);
+    expect(await repository.delete(mine.id, owner)).toBe(true);
+    expect(await prisma.habitLog.count({ where: { habitId: mine.id } })).toBe(0);
+    expect(await prisma.habitLog.count({ where: { habitId: theirs.id } })).toBe(1);
+    expect(await prisma.habit.count()).toBe(1);
+    expect(await prisma.user.count()).toBe(2);
+  });
+
   it.each(["2026-12-31", "2027-01-01", "2026-03-01", "2028-02-29"])(
     "round-trips @db.Date %s without time zone shift",
     async (date) => {

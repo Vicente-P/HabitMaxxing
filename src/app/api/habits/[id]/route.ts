@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createPrismaUserLookup, requireHabitOwner } from "@/features/auth";
-import { checkHabitRequest, readHabitBody, habitInternalError, habitValidationError } from "@/shared/http/habit-request";
+import { checkHabitOrigin, checkHabitRequest, readHabitBody, habitInternalError, habitValidationError } from "@/shared/http/habit-request";
 import { habitErrorResponse, habitResponseHeaders } from "@/shared/http/habit-response";
 import { updateHabit, type UpdateHabitError } from "@/features/habits/application/update-habit";
 import { unitRequiredMessage } from "@/features/habits/domain/create-habit-schema";
@@ -23,6 +23,24 @@ function toDetails(error: z.ZodError) {
     field: String(issue.path[0] ?? ("keys" in issue ? issue.keys[0] : undefined) ?? "form"),
     message: issue.message,
   }));
+}
+
+/** HU-08: permanently deletes the owner's habit and its logs. A foreign habit looks like a missing one. */
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  try {
+    const ownerId = await requireHabitOwner(await auth(), userLookup);
+    if (!ownerId) return habitErrorResponse({ status: 401, code: "UNAUTHORIZED", message: "Debes iniciar sesión para acceder a este recurso" });
+
+    const requestError = checkHabitOrigin(request, process.env.APP_ORIGIN);
+    if (requestError) return habitErrorResponse(requestError);
+
+    const { id } = await context.params;
+    const deleted = await habitRepository.delete(id, ownerId);
+    if (!deleted) return habitErrorResponse({ status: 404, code: "NOT_FOUND", message: "Hábito no encontrado" });
+    return NextResponse.json({ data: { message: "Hábito eliminado exitosamente", id } }, { status: 200, headers: habitResponseHeaders });
+  } catch {
+    return habitErrorResponse(habitInternalError);
+  }
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {

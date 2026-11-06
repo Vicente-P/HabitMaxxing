@@ -64,6 +64,14 @@ export class InMemoryHabitRepository implements HabitRepository {
     return [...days].sort((a, b) => a - b);
   }
 
+  async delete(habitId: string, ownerId: string): Promise<boolean> {
+    this.throwIfFailing();
+    const index = this.habits.findIndex((habit) => habit.id === habitId && habit.userId === ownerId);
+    if (index === -1) return false;
+    this.habits.splice(index, 1); // logs live inside the stored habit, so they go with it (cascade)
+    return true;
+  }
+
   async upsertBinaryLog(habitId: string, date: string, completed: boolean): Promise<SavedHabitLog> {
     this.throwIfFailing();
     const stored = this.habits.find((habit) => habit.id === habitId);
