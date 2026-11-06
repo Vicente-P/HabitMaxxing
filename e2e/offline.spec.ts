@@ -1,11 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { agenda, catalog, createHabit, openHabits, openToday, registerUser } from "./helpers";
-
-/** Waits for the service worker to control the page, so the next loads are cached. */
-async function controlled(page: Page) {
-  await page.evaluate(() => navigator.serviceWorker.ready);
-  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-}
+import { expect, test } from "@playwright/test";
+import { agenda, catalog, controlled, createHabit, openHabits, openToday, registerUser } from "./helpers";
 
 test("opens and navigates offline with the last saved data and warns it may be stale (HU-19)", async ({ page, context }) => {
   await registerUser(page);
