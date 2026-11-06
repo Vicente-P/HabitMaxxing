@@ -33,7 +33,7 @@ El mockup usa estilos inline que leen variables CSS. En el repo se traducen así
 1. **Tokens:** los valores de `tokens.css` se copian sin cambios a `src/app/globals.css`. Única adición: `--hm-on-accent: #FFFFFF`, porque el mockup escribe `#fff` literal en botones y checks sin token equivalente.
 2. **Estilos inline → clases:** cada propiedad inline se convierte en utilidad Tailwind que referencia un token (`bg-hm-accent`, `text-hm-text-mid`, `rounded-hm-sm`). Así no hay estilos inline de color ni tipografía.
 3. **Estilos sin definición en el mockup:** los inputs y el select no tienen especificación explícita. Se derivan de sus patrones (superficie `--hm-surface`, borde `--hm-border`, radio `--hm-r-sm`, foco con `--hm-accent`). Cualquier diferencia visual se consulta.
-4. **Tema:** el oscuro es el predeterminado. El toggle de tema queda para SCRUM-21.
+4. **Tema:** el oscuro es el predeterminado. El toggle de tema (SCRUM-21) no está en el mockup; su ubicación (pie del sidebar y cabecera de `/habits` en móvil) fue decidida por el usuario.
 
 ## Pantallas implementadas hoy
 

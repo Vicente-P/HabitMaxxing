@@ -397,6 +397,7 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ---
 
 ### 📖 HU-16 — Modo oscuro `SCRUM-21`
+**Estado HU-16 (2026-11-06):** implementada localmente en `feature/SCRUM-21-modo-oscuro`, pendiente de PR: `ThemeToggle` alterna `data-hm-theme` en `<html>` y guarda la preferencia en `localStorage` (`hm-theme`); un script inline en `<head>` la aplica antes del primer render para evitar el destello oscuro. T-64 no hizo falta: los tokens `--hm-*` ya resuelven ambos temas. El mockup no define el toggle; por decisión del usuario vive en el pie del sidebar (desktop) y en la cabecera de `/habits` (móvil, donde la tab bar no tiene espacio). Verificada con unit y E2E (recarga conserva el tema).
 > *"Como usuario, quiero poder alternar entre modo claro y oscuro, para usar la app cómodamente en cualquier entorno."*
 
 **Criterios de Aceptación:**
