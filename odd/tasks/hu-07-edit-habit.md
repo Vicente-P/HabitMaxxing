@@ -18,12 +18,14 @@ Contract: `docs/specs/habits/update.md`; story: `docs/wiki/backlog.md` HU-07. Br
 ## Tasks
 
 - [x] T1 (S1-S5) - domain schema, use case, repository (contract, in-memory, Prisma), PATCH route, tests - parent - commit: e4007e1 (unit 483/483, integration 34/34 on PostgreSQL)
-- [ ] T2 (S6-S8) - edit mode in the habit form, Editar button, agenda refresh, tests - parent - commit:
-- [x] T3 (S9) - spec and backlog - parent - commit: (docs commit)
-- [ ] T4 (S1-S8) - independent verification (Risk item 2: ownership guard) - gentle-ai-verify - commit: n/a
+- [x] T2 (S6-S8) - edit mode in the habit form, Editar button, agenda refresh, tests - parent - commit: 034c2c7 (worker; parent fix: edit state survives catalog reload)
+- [x] T3 (S9) - spec and backlog - parent - commit: a6f2434
+- [x] T4 (S1-S8) - independent verification (Risk item 2: ownership guard) - gentle-ai-verify - commit: n/a (verdict S1,S3,S4,S5 pass; S2 fail on __proto__, fixed in 665a7e7)
 
 ## Log
 
 - L1 (user, verbatim): "Continua con HU-07"
 - L2 (user decisions, verbatim answers): foreign habit: "Usa buenas practicas. ¿Que sentido tiene que yo vea los habitos de otro usuario? La plataforma o aplicación es personal" (resolved as uniform 404, as in HU-10); type change: "No se edita el tipo"; edit UI: "Botón Editar en Mis hábitos (Recomendado)" (Editar on each catalog card, reusing the create form prefilled).
 - L3 (decision, agent, within spec latitude): an empty PATCH body returns 400 (the spec allows 200 or 400).
+- L4 (evidence): parent review of the T2 worker diff found the edit form keyed on the catalog list, which empties during reload, so a slow reload dropped edit mode, "Cambios guardados." and the CA-02 warning. RED reproduced with a deferred reload; fixed by keeping a snapshot of the edited habit. Suite 498/498.
+- L5 (evidence): independent verify of a6f2434 (backend): no ownership leak in 43 hostile/TOCTOU probes; S2 failed for a `__proto__` key (200, silently dropped). Fixed in 665a7e7 with RED first (rejected as 400 `{ field: "__proto__", message: "Campo no permitido" }`). After the fix: unit 501/501, integration 34/34, typecheck, lint 0 errors, build OK. Advisories not addressed: English Zod messages for unknown keys and non-integer days (same as POST), stale warning under concurrent edits, `loggedWeekdays` reads all log dates. T2 UI (034c2c7) was not covered by the independent verify.
