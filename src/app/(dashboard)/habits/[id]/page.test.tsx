@@ -44,8 +44,8 @@ describe("habit detail page", () => {
     mocks.findLogs.mockResolvedValue([day("2026-05-18"), day("2026-05-19"), day("2026-05-20")]);
     render(await HabitDetailPage(params()));
     expect(screen.getByRole("heading", { level: 1, name: "Meditar" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Volver/ })).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByText("Hábitos")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Volver/ })).toHaveAttribute("href", "/habits");
+    expect(screen.getByRole("link", { name: "Hábitos" })).toHaveAttribute("href", "/habits");
     expect(screen.getByText("Racha actual: 3 días")).toBeInTheDocument();
     expect(screen.getByText("Binario · Todos los días")).toBeInTheDocument();
     expect(screen.queryByText(/Racha anterior/)).not.toBeInTheDocument();

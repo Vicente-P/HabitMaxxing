@@ -51,6 +51,8 @@ export default function CreateHabitForm({ onCreated, onUnauthorized, habit, onSa
   }, []);
 
   useEffect(() => { if (editing) nameInput.current?.focus(); }, [editing]);
+  // The mobile "+" links to /habits#crear-habito: landing there focuses Nombre.
+  useEffect(() => { if (window.location.hash === "#crear-habito") nameInput.current?.focus(); }, []);
 
   function showErrors(nextErrors: Partial<Record<Field, string>>, form: HTMLFormElement) {
     setErrors(nextErrors);
@@ -150,7 +152,7 @@ export default function CreateHabitForm({ onCreated, onUnauthorized, habit, onSa
   }
 
   return (
-    <section className="card min-w-0" aria-labelledby="create-habit-heading">
+    <section id="crear-habito" className="card min-w-0 scroll-mt-4" aria-labelledby="create-habit-heading">
       <h2 id="create-habit-heading">{editing ? "Editar hábito" : "Crear hábito"}</h2>
       <p className="mt-2 text-hm-caption text-hm-text-mid">{editing ? "Actualiza el nombre, la unidad o los días de la semana." : "Define qué quieres practicar y sus días de la semana."}</p>
       <form aria-label={editing ? "Editar hábito" : "Crear hábito"} onSubmit={submit} noValidate className="mt-6 space-y-4">

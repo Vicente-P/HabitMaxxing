@@ -381,6 +381,8 @@ La protección contra abuso y la limitación de frecuencia del registro se difie
 ### 📖 HU-15 — Navegación responsive `SCRUM-20`
 > *"Como usuario, quiero que la app funcione correctamente en móvil y desktop, para acceder desde cualquier dispositivo."*
 
+**Estado HU-15 (2026-11-06):** implementada localmente en `feature/SCRUM-20-navegacion-responsive`, pendiente de PR: shell autenticado en `src/app/(dashboard)/layout.tsx` con sidebar del mockup en desktop y tab bar inferior con "+" en móvil (T-63 sigue la tab bar del mockup en lugar de un menú hamburguesa), `/dashboard` = "Hoy" (solo la agenda) y nueva `/habits` = "Hábitos" (crear + Mis hábitos); verificada con E2E a 375 y 1280 px. Detalle en `odd/tasks/hu-15-responsive-nav.md`.
+
 **Criterios de Aceptación:**
 - CA-01: Dado que accedo desde un móvil, cuando navego por la app, entonces todos los elementos son accesibles sin necesidad de hacer zoom.
 - CA-02: Dado que accedo desde desktop, cuando uso la app, entonces el layout aprovecha el espacio horizontal disponible.

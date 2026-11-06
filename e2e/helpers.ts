@@ -10,6 +10,25 @@ export const catalog = (page: Page): Locator => page.getByRole("region", { name:
 /** Index (0 = Sunday) of "today" as the server sees it: the app resolves the day in UTC. */
 export const todayIndex = () => new Date().getUTCDay();
 
+/** The visible shell navigation: the desktop sidebar or the mobile tab bar (the other one is display:none). */
+export const mainNav = (page: Page): Locator => page.getByRole("navigation", { name: /^Navegación/ });
+
+/** Client-side navigation through the shell to "Hábitos" (create form + Mis hábitos). */
+export async function openHabits(page: Page) {
+  await mainNav(page).getByRole("link", { name: "Hábitos" }).click();
+  await expect(page).toHaveURL(/\/habits$/);
+  await expect(page.getByRole("heading", { name: "Hábitos", level: 1 })).toBeVisible();
+  await expect(page.getByText("Cargando hábitos…")).toBeHidden();
+}
+
+/** Client-side navigation through the shell to "Hoy" (the agenda), waiting for it to load. */
+export async function openToday(page: Page) {
+  await mainNav(page).getByRole("link", { name: "Hoy" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("heading", { name: "Agenda de hoy" })).toBeVisible();
+  await expect(page.getByText("Cargando agenda…")).toBeHidden();
+}
+
 /** Registers a brand-new user through the UI and waits for the dashboard. Each test owns its user. */
 export async function registerUser(page: Page): Promise<string> {
   const email = `e2e-${randomUUID()}@example.com`;
@@ -23,8 +42,9 @@ export async function registerUser(page: Page): Promise<string> {
   return email;
 }
 
-/** Creates a habit scheduled every day of the week, so "today" is always scheduled whatever the date. */
+/** Creates a habit scheduled every day of the week, so "today" is always scheduled whatever the date. Opens "Hábitos" first when needed and leaves the page there. */
 export async function createHabit(page: Page, habit: { name: string; unit?: string }) {
+  if (!/\/habits$/.test(new URL(page.url()).pathname)) await openHabits(page);
   const form = page.getByRole("form", { name: "Crear hábito" });
   await form.getByLabel("Nombre", { exact: true }).fill(habit.name);
   if (habit.unit !== undefined) {
@@ -37,7 +57,7 @@ export async function createHabit(page: Page, habit: { name: string; unit?: stri
   await expect(catalog(page).getByRole("link", { name: habit.name })).toBeVisible();
 }
 
-/** Reloads the dashboard and waits for the agenda (creation also refreshes it; kept for flows that need a fresh load). */
+/** Reloads the current page (the agenda on /dashboard) and waits for it to load. */
 export async function reloadAgenda(page: Page) {
   await page.reload();
   await expect(page.getByText("Cargando agenda…")).toBeHidden();

@@ -4,7 +4,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const { auth, redirect } = vi.hoisted(() => ({ auth: vi.fn(), redirect: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ auth }));
 vi.mock("next/navigation", () => ({ redirect }));
-vi.mock("./logout-button", () => ({ default: () => <button type="button">Cerrar sesión</button> }));
 vi.mock("./habit-catalog", () => ({ default: ({ ownerId }: { ownerId: string }) => <section data-testid="catalog" data-owner={ownerId}>Mis hábitos</section> }));
 vi.mock("./habit-agenda", () => ({ default: ({ ownerId }: { ownerId: string }) => <section data-testid="agenda" data-owner={ownerId}>Agenda de hoy</section> }));
 
@@ -23,19 +22,19 @@ describe("dashboard server session boundary", () => {
       expect(auth).toHaveBeenCalledOnce();
       expect(redirect).toHaveBeenCalledExactlyOnceWith("/login");
       expect(screen.queryByRole("heading", { name: "Dashboard" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
+      expect(screen.queryByTestId("agenda")).not.toBeInTheDocument();
     },
   );
 
-  it("renders the catalog for a server-verified safe user identity", async () => {
+  it("renders only the agenda for a server-verified safe user identity (the shell owns logout and navigation)", async () => {
     auth.mockResolvedValue({ user: { id: "u1", name: "User", email: "user@example.com" }, expires: "2030-01-01T00:00:00Z" });
     render(await DashboardPage());
     expect(screen.getByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
     expect(auth).toHaveBeenCalledOnce();
     expect(redirect).not.toHaveBeenCalled();
     expect(screen.queryByText("user@example.com")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
-    expect(screen.getByTestId("catalog")).toHaveAttribute("data-owner", "u1");
+    expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("catalog")).not.toBeInTheDocument();
     expect(screen.getByTestId("agenda")).toHaveAttribute("data-owner", "u1");
   });
 
@@ -45,6 +44,5 @@ describe("dashboard server session boundary", () => {
     await expect(Promise.resolve().then(() => DashboardPage())).rejects.toBe(unavailable);
     expect(redirect).not.toHaveBeenCalled();
     expect(screen.queryByRole("heading", { name: "Dashboard" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Cerrar sesión" })).not.toBeInTheDocument();
   });
 });

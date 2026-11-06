@@ -14,6 +14,20 @@ async function fill() {
 }
 
 describe("create habit form", () => {
+  it("exposes the crear-habito anchor and focuses Nombre when opened with that hash", () => {
+    window.location.hash = "#crear-habito";
+    try {
+      const { container } = render(<CreateHabitForm onCreated={vi.fn()} />);
+      expect(container.querySelector("#crear-habito")).toBe(screen.getByRole("region", { name: "Crear hábito" }));
+      expect(screen.getByRole("textbox", { name: "Nombre" })).toHaveFocus();
+    } finally {
+      window.location.hash = "";
+    }
+  });
+  it("does not steal focus without the hash", () => {
+    render(<CreateHabitForm onCreated={vi.fn()} />);
+    expect(screen.getByRole("textbox", { name: "Nombre" })).not.toHaveFocus();
+  });
   it("enforces name and unit maximums even when native limits are bypassed", async () => {
     render(<CreateHabitForm onCreated={vi.fn()} />);
     const user = await fill();
